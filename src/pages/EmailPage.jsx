@@ -1,37 +1,30 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Plus, Sparkles, Trash2, Copy, Check, ChevronDown } from 'lucide-react'
+import { getActiveTemplate } from '../config/templates'
 import toast from 'react-hot-toast'
 
 const MERGE_TAGS = ['{{contact_name}}', '{{company_name}}', '{{industry}}', '{{city}}', '{{revenue}}', '{{sender_name}}', '{{sender_company}}']
 const TEMPLATES_KEY = 'leadflow_saved_templates'
 
-// Segment definitions matching the suggested searches
-const SEGMENTS = [
+const DEFAULT_SEGMENTS = [
   { id: 'general', name: 'Generell', emoji: '📧', description: 'Standard outreach-mal' },
-  { id: 'dyrebutikker', name: 'Dyrebutikker', emoji: '🐕', description: 'Butikker med kjæledyrutstyr' },
-  { id: 'veterinarer', name: 'Veterinærklinikker', emoji: '🏥', description: 'Dyreklinikker' },
-  { id: 'helsekost', name: 'Helsekost & naturkost', emoji: '🌿', description: 'Naturkostbutikker' },
-  { id: 'apotek', name: 'Apotek', emoji: '💊', description: 'Uavhengige apotek' },
-  { id: 'hotell-spa', name: 'Hotell & spa', emoji: '🏨', description: 'Hoteller med wellness' },
-  { id: 'frisor', name: 'Frisørsalonger', emoji: '💇', description: '3 200+ salonger' },
-  { id: 'hudpleie', name: 'Skjønnhets- og hudpleie', emoji: '✨', description: 'Hudpleie, fotpleie, negler' },
-  { id: 'fotpleie', name: 'Fotpleie & fotterapi', emoji: '🦶', description: 'Fotterapauter' },
-  { id: 'spa', name: 'Spa & dagspa', emoji: '🧖', description: 'Spa og velvære' },
-  { id: 'sykehjem', name: 'Sykehjem & omsorg', emoji: '🏠', description: 'Pleieinstitusjoner' },
-  { id: 'dagligvare', name: 'Dagligvarebutikker', emoji: '🛒', description: 'Dagligvare' },
-  { id: 'sport-ride', name: 'Sport & rideutstyr', emoji: '🐴', description: 'Ridebutikker' },
 ]
 
-// Generate segment-specific email using ICP data
-function generateForSegment(segment, icp) {
+// Generate email from template's emailTemplates config, or fallback to generic
+function generateForSegment(segment, icp, template) {
   const company = icp.companyName || '{{sender_company}}'
   const product = icp.whatYouSell || 'våre produkter'
   const problem = icp.problemYouSolve || 'en løsning som kan hjelpe dere'
 
-  const templates = {
-    general: {
-      subject: `{{contact_name}} — ${company} kan hjelpe {{company_name}}`,
-      body: `Hei {{contact_name}},
+  // Check if the active template has a specific email template for this segment
+  if (template?.emailTemplates?.[segment]) {
+    return template.emailTemplates[segment]
+  }
+
+  // Fallback: generic template using ICP data
+  return {
+    subject: `{{contact_name}} — ${company} kan hjelpe {{company_name}}`,
+    body: `Hei {{contact_name}},
 
 Jeg ser at {{company_name}} jobber innenfor {{industry}} i {{city}}, og tar kontakt fordi vi tror det kan være en god match.
 
@@ -44,186 +37,7 @@ Hadde det passet med en kort samtale denne uken for å se om dette kan være akt
 Vennlig hilsen,
 {{sender_name}}
 ${company}`
-    },
-    dyrebutikker: {
-      subject: `{{contact_name}} — naturlig dyrepleie for kundene til {{company_name}}`,
-      body: `Hei {{contact_name}},
-
-Jeg ser at {{company_name}} selger kjæledyrprodukter i {{city}}, og tar kontakt fordi vi har noe kundene deres etterspør.
-
-${company} har utviklet en naturlig hudpleieserie for dyr basert på pH4-teknologi — uten parabener og kjemikalier. ${product.includes('[') ? 'Produktene hjelper mot kløe, tørr hud og eksem hos hund, hest og andre dyr.' : product}
-
-Mange dyrebutikker opplever høy kundelojalitet med våre produkter fordi de faktisk virker — og kundene kommer tilbake for påfyll.
-
-Kan jeg sende dere noen prøver slik at dere kan teste selv? Det tar 5 minutter å sette opp som forhandler.
-
-Vennlig hilsen,
-{{sender_name}}
-${company}`
-    },
-    veterinarer: {
-      subject: `{{contact_name}} — dokumentert hudpleie dere kan anbefale til dyreeiere`,
-      body: `Hei {{contact_name}},
-
-Som veterinærklinikk i {{city}} møter dere sannsynligvis mange dyreeiere som sliter med kløe og hudproblemer hos kjæledyrene sine.
-
-${company} har utviklet en pH4-basert hudpleieserie med organiske syrer og alginat som bevarer dyrets naturlige bakterieflora — i stedet for å ødelegge den med tradisjonelle sjampoer.
-
-${problem.includes('[') ? 'Produktene er dokumentert effektive og alle ingredienser utenom vaskestoff er godkjent til bruk i mat.' : problem}
-
-Mange veterinærer anbefaler oss allerede til sine kunder. Kan jeg sende informasjon og noen prøver til klinikken?
-
-Vennlig hilsen,
-{{sender_name}}
-${company}`
-    },
-    helsekost: {
-      subject: `{{contact_name}} — norskprodusert naturlig hudpleie for {{company_name}}`,
-      body: `Hei {{contact_name}},
-
-Jeg ser at {{company_name}} selger naturlige og økologiske produkter i {{city}}. Da tror jeg vi passer rett inn i sortimentet deres.
-
-${company} lager naturlig hudpleie basert på pH4-teknologi — uten parabener, parfyme og miljøgifter. ${product.includes('[') ? 'Alle ingredienser utenom vaskestoff er godkjent til bruk i mat.' : product}
-
-Produktene våre selger spesielt godt i helsekostbutikker fordi kundene allerede er bevisste på hva de putter på huden.
-
-Vi er allerede hos flere naturkostkjeder. Kan vi ta en prat om å få ${company} inn hos dere?
-
-Vennlig hilsen,
-{{sender_name}}
-${company}`
-    },
-    apotek: {
-      subject: `{{contact_name}} — naturlig hudpleie kundene etterspør`,
-      body: `Hei {{contact_name}},
-
-Folk med hudproblemer handler ofte hos dere i {{city}}, og vi har et naturlig alternativ de spør etter.
-
-${company} tilbyr dokumentert pH4-hudpleie som hjelper mot tørr hud, eksem og kløe — uten kortison og kjemikalier. ${product.includes('[') ? 'Produktene er parfymefrie og egner seg for hele familien, inkludert barn og eldre.' : product}
-
-Kan jeg sende informasjon om forhandlervilkår og sortiment?
-
-Vennlig hilsen,
-{{sender_name}}
-${company}`
-    },
-    'hotell-spa': {
-      subject: `{{contact_name}} — norskprodusert hudpleie for gjestene på {{company_name}}`,
-      body: `Hei {{contact_name}},
-
-Gjester på {{company_name}} i {{city}} forventer kvalitetsprodukter — spesielt på spa og wellness.
-
-${company} lager norskprodusert, naturlig hudpleie som gir gjestene en eksklusiv opplevelse med ren samvittighet. ${product.includes('[') ? 'Produktene er parfymefrie, parabenfrie og basert på norsk tang og tare.' : product}
-
-Vi leverer allerede til hoteller som ønsker å skille seg ut med bærekraftige, lokale merkevarer. Skal vi ta en prat?
-
-Vennlig hilsen,
-{{sender_name}}
-${company}`
-    },
-    frisor: {
-      subject: `{{contact_name}} — hudpleie kundene dine vil elske`,
-      body: `Hei {{contact_name}},
-
-Som frisør i {{city}} har du daglig kontakt med kunder som bryr seg om hår og hud. Mange spør etter naturlige produkter.
-
-${company} tilbyr en komplett hudpleieserie som kan selges over disk i salongen. ${product.includes('[') ? 'Mild, parfymefri og laget for sensitiv hud.' : product}
-
-Det er enkel oppstart — og du tjener godt per produkt. Kan jeg sende deg noen prøver?
-
-Vennlig hilsen,
-{{sender_name}}
-${company}`
-    },
-    hudpleie: {
-      subject: `{{contact_name}} — naturlig pH4-hudpleie for klinikken din`,
-      body: `Hei {{contact_name}},
-
-Som hudterapeut i {{city}} vet du at riktig hudpleie starter med riktig pH-balanse.
-
-${company} har utviklet en unik pH4-serie med organiske syrer og alginat som styrker hudens naturlige barriere. ${problem.includes('[') ? 'Produktene bevarer den gode bakteriefloraen i stedet for å ødelegge den.' : problem}
-
-Flere hudpleieklinikker bruker og selger produktene våre allerede. Vil du teste dem på klinikken?
-
-Vennlig hilsen,
-{{sender_name}}
-${company}`
-    },
-    sykehjem: {
-      subject: `Mild hudpleie for beboerne på {{company_name}}`,
-      body: `Hei {{contact_name}},
-
-Beboere på {{company_name}} i {{city}} fortjener skånsom hudpleie — spesielt de med tørr og sensitiv hud.
-
-${company} leverer parfymefri, pH4-balansert hudvask og balsam som er laget for daglig bruk uten å tørke ut huden. ${product.includes('[') ? 'Alle ingredienser utenom vaskestoff er godkjent til bruk i mat.' : product}
-
-Vi leverer i store forpakninger til institusjoner med gode volumpriser. Kan jeg sende et tilbud?
-
-Vennlig hilsen,
-{{sender_name}}
-${company}`
-    },
-    dagligvare: {
-      subject: `{{contact_name}} — norsk hudpleie for hyllene i {{company_name}}`,
-      body: `Hei {{contact_name}},
-
-Flere og flere kunder i {{city}} spør etter norskproduserte, naturlige alternativer i hudpleie-hylla.
-
-${company} tilbyr en komplett serie — fra hudvask til balsam — som er 100% norskprodusert, parfymefri og uten parabener. ${product.includes('[') ? 'Kundene som prøver kommer tilbake.' : product}
-
-Vi er allerede hos Felleskjøpet og flere naturkostkjeder. Kan vi snakke om å få produktene inn hos {{company_name}}?
-
-Vennlig hilsen,
-{{sender_name}}
-${company}`
-    },
-    'sport-ride': {
-      subject: `{{contact_name}} — hestepleie og hudpleie for kundene til {{company_name}}`,
-      body: `Hei {{contact_name}},
-
-Ryttere og hesteeiere i {{city}} trenger kvalitetspleie for hestene sine — spesielt ved kløe og hudirritasjon.
-
-${company} har en egen dyrepleieserie basert på pH4-teknologi som er spesialtilpasset hest. ${product.includes('[') ? 'Produktene fjerner ikke fett fra hud og pels, og kan brukes så ofte som nødvendig.' : product}
-
-Vi leverer også hudpleie for ryttere — perfekt som tilleggsprodukt. Kan jeg sende prøver?
-
-Vennlig hilsen,
-{{sender_name}}
-${company}`
-    },
-    fotpleie: {
-      subject: `{{contact_name}} — pH4-hudpleie utviklet for fotterapeuter`,
-      body: `Hei {{contact_name}},
-
-Som fotterapeut i {{city}} vet du bedre enn de fleste hvor viktig riktig hudpleie er for føttene.
-
-${company} har utviklet en pH4-balansert serie med organiske syrer og alginat som er ideell for fotpleie. ${product.includes('[') ? 'Produktene styrker hudens naturlige barriere og bevarer den gode bakteriefloraen.' : product}
-
-Mange fotterapeuter bruker våre produkter både i behandling og selger dem videre til kunder for hjemmebruk — det gir en fin tilleggsinntekt.
-
-Kan jeg sende deg noen prøver å teste på klinikken?
-
-Vennlig hilsen,
-{{sender_name}}
-${company}`
-    },
-    spa: {
-      subject: `{{contact_name}} — norskprodusert hudpleie for {{company_name}}`,
-      body: `Hei {{contact_name}},
-
-Gjester hos {{company_name}} i {{city}} forventer produkter som er både effektive og naturlige.
-
-${company} tilbyr norskprodusert pH4-hudpleie laget av tang og tare — uten parabener, parfyme eller miljøgifter. ${product.includes('[') ? 'Perfekt for spa-behandlinger og som produkter gjestene kan ta med hjem.' : product}
-
-Vi leverer alt fra hudvask og balsam til spesialbehandling for tørr og sensitiv hud. Kan vi ta en prat om å få produktene inn hos dere?
-
-Vennlig hilsen,
-{{sender_name}}
-${company}`
-    },
   }
-
-  return templates[segment] || templates.general
 }
 
 // Preview merge values
@@ -247,6 +61,13 @@ export default function EmailPage() {
   const [selectedSegment, setSelectedSegment] = useState('general')
   const [showSegmentPicker, setShowSegmentPicker] = useState(false)
   const [icp, setIcp] = useState({})
+
+  // Get segments from active template
+  const activeTemplate = useMemo(() => getActiveTemplate(), [])
+  const SEGMENTS = useMemo(() => {
+    const templateSegments = activeTemplate?.emailSegments
+    return templateSegments?.length > 0 ? templateSegments : DEFAULT_SEGMENTS
+  }, [activeTemplate])
 
   // Load saved templates and ICP on mount
   useEffect(() => {
@@ -312,7 +133,7 @@ export default function EmailPage() {
     // Simulate AI delay — in production this would call Claude API
     await new Promise(r => setTimeout(r, 1500))
 
-    const generated = generateForSegment(selectedSegment, icp)
+    const generated = generateForSegment(selectedSegment, icp, activeTemplate)
     setSubject(generated.subject)
     setBody(generated.body)
 

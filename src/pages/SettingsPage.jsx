@@ -2,8 +2,9 @@ import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useSavedLists } from '../hooks/useSavedLists'
 import { useUsage } from '../hooks/useUsage'
+import TEMPLATES, { getActiveTemplate, applyTemplate } from '../config/templates'
 import toast from 'react-hot-toast'
-import { Crown, Zap, Rocket } from 'lucide-react'
+import { Crown, Zap, Rocket, Check } from 'lucide-react'
 
 const PLAN_KEY = 'leadflow_user_plan'
 
@@ -164,6 +165,31 @@ export default function SettingsPage() {
       </div>
 
       <div className="p-8 max-w-[780px]">
+        {/* Active template */}
+        <div className="animate-in bg-white border border-gray-100 rounded-lg p-6 mb-6">
+          <h3 className="font-display text-[1.05rem] font-normal mb-1 text-ink">Bransjemal</h3>
+          <p className="text-[0.82rem] text-txt-tertiary font-light mb-4">Malen bestemmer foreslåtte søk, e-postmaler og ICP-profil</p>
+          <div className="grid grid-cols-3 gap-3">
+            {TEMPLATES.filter(t => t.id !== 'general').map(t => {
+              const isActive = getActiveTemplate().id === t.id
+              return (
+                <button key={t.id}
+                  onClick={() => { applyTemplate(t.id); toast.success(`${t.name}-malen er aktivert! Last siden på nytt for å se endringene.`); }}
+                  className={`flex items-center gap-3 p-3.5 rounded-lg border text-left transition-all ${
+                    isActive ? 'border-gold bg-gold/[0.04]' : 'border-gray-100 hover:border-gray-200'
+                  }`}>
+                  <span className="text-xl">{t.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[0.82rem] font-medium text-ink">{t.name}</div>
+                    <div className="text-[0.7rem] text-txt-tertiary font-light truncate">{t.description}</div>
+                  </div>
+                  {isActive && <Check size={16} className="text-gold flex-shrink-0" />}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
         {/* Current plan + usage */}
         <div className="animate-in delay-1 bg-surface-raised border border-bdr rounded-xl p-8 mb-6">
           <h3 className="font-display text-lg font-semibold mb-6">Abonnement</h3>

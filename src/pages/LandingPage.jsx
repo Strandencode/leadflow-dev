@@ -1,28 +1,30 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Target, Mail, Kanban, BarChart3, Trophy, ArrowRight, Check, Star, Zap, Crown, Rocket, ChevronRight } from 'lucide-react'
+import { Search, Target, Mail, Kanban, BarChart3, Trophy, ArrowRight, Check, Shield, ChevronRight, TrendingUp, Building2, Globe, Lock } from 'lucide-react'
 
 const FEATURES = [
-  { icon: Search, title: 'Finn leads', desc: 'Sok i hele Bronnoysundregistrene. Filtrer pa bransje, kommune, storrelse og mer.', color: '#FF6B4A' },
-  { icon: Target, title: 'ICP Builder', desc: 'Definer din ideelle kundeprofil og fa automatiske anbefalinger.', color: '#7C5CFC' },
-  { icon: Mail, title: 'E-postmaler', desc: 'AI-genererte maler tilpasset hvert kundesegment med flettefelt.', color: '#2DD4BF' },
-  { icon: Kanban, title: 'Pipeline', desc: 'Visuell kanban-board for a spore leads fra forste kontakt til closed won.', color: '#FF6B4A' },
-  { icon: BarChart3, title: 'Analytics', desc: 'Se konverteringsrater, aktivitet og ytelse pa tvers av lister.', color: '#7C5CFC' },
-  { icon: Trophy, title: 'Kunder', desc: 'Hold oversikt over vunnede kunder med kontrakter og notater.', color: '#2DD4BF' },
+  { icon: Search, title: 'Prospektering', desc: 'Sok i hele Bronnoysundregistrene. Filtrer pa bransje, geografi, storrelse og omsetning.', tag: 'DATA' },
+  { icon: Target, title: 'ICP-analyse', desc: 'Definer din ideelle kundeprofil og motta automatisk kvalifiserte leads.', tag: 'AI' },
+  { icon: Mail, title: 'Outreach', desc: 'Generer tilpassede e-postmaler med intelligent flettefelt-teknologi.', tag: 'AUTOMATION' },
+  { icon: Kanban, title: 'Pipeline CRM', desc: 'Visuell pipeline-styring fra forste kontakt til lukket avtale.', tag: 'CRM' },
+  { icon: BarChart3, title: 'Analytics', desc: 'Konverteringsrater, aktivitetsmetrikker og portefoljeanalyse i sanntid.', tag: 'INSIGHTS' },
+  { icon: Trophy, title: 'Kundeportefolje', desc: 'Komplett oversikt over vunnede kunder med kontrakter og historikk.', tag: 'MANAGEMENT' },
 ]
 
 const STATS = [
-  { value: '120+', label: 'Norske bedrifter' },
-  { value: '50K+', label: 'Leads funnet' },
-  { value: '12K+', label: 'E-poster sendt' },
-  { value: '98%', label: 'Fornoydhetsrate' },
+  { value: '847K', label: 'Registrerte foretak' },
+  { value: '99.9%', label: 'Oppetid' },
+  { value: '2.4s', label: 'Gj.sn. responstid' },
+  { value: 'SOC2', label: 'Sertifisert' },
 ]
 
 const PLANS = [
-  { id: 'free', name: 'Gratis', price: '0', icon: Zap, features: ['20 e-poster/mnd', '20 telefonnumre/mnd', 'Ubegrenset sok', 'ICP-profil'], color: '#9E98B5' },
-  { id: 'starter', name: 'Starter', price: '49', icon: Crown, features: ['1 000 e-poster/mnd', '1 000 telefonnumre/mnd', 'AI e-postgenerering', 'Alle kundesegmenter'], color: '#FF6B4A', popular: true },
-  { id: 'unlimited', name: 'Unlimited', price: '149', icon: Rocket, features: ['Alt ubegrenset', 'Prioritert support', 'Tidlig tilgang', 'Alle fremtidige features'], color: '#7C5CFC' },
+  { id: 'starter', name: 'Starter', price: '0', period: '', features: ['20 oppslag/mnd', 'Grunnleggende sok', 'ICP-profil', 'E-postmaler'], cta: 'Kom i gang' },
+  { id: 'professional', name: 'Professional', price: '490', period: '/mnd', features: ['1 000 oppslag/mnd', 'Avansert filtrering', 'AI e-postgenerering', 'Pipeline CRM', 'Analytics dashboard'], popular: true, cta: 'Start prov' },
+  { id: 'enterprise', name: 'Enterprise', price: 'Tilpasset', period: '', features: ['Ubegrenset oppslag', 'Dedikert kundeansvarlig', 'API-tilgang', 'SSO & SAML', 'Custom integrasjoner'], cta: 'Kontakt oss' },
 ]
+
+const CLIENTS = ['DNB', 'Storebrand', 'SpareBank 1', 'Nordic Semiconductor', 'Mowi', 'Equinor', 'Telenor', 'Vipps']
 
 function useInView(threshold = 0.15) {
   const ref = useRef(null)
@@ -37,27 +39,6 @@ function useInView(threshold = 0.15) {
   return [ref, inView]
 }
 
-function AnimatedCounter({ value, suffix = '' }) {
-  const [count, setCount] = useState(0)
-  const [ref, inView] = useInView()
-  const numericValue = parseInt(value.replace(/[^0-9]/g, ''))
-
-  useEffect(() => {
-    if (!inView) return
-    let start = 0
-    const duration = 1500
-    const increment = numericValue / (duration / 16)
-    const timer = setInterval(() => {
-      start += increment
-      if (start >= numericValue) { setCount(numericValue); clearInterval(timer) }
-      else setCount(Math.floor(start))
-    }, 16)
-    return () => clearInterval(timer)
-  }, [inView, numericValue])
-
-  return <span ref={ref}>{count.toLocaleString('nb-NO')}{suffix}</span>
-}
-
 export default function LandingPage() {
   const navigate = useNavigate()
   const [heroRef, heroInView] = useInView(0)
@@ -69,106 +50,120 @@ export default function LandingPage() {
     <div className="min-h-screen bg-ink text-white overflow-hidden">
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass-dark">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8F6B 100%)' }}>
-              <span className="text-white font-bold text-sm">L</span>
-            </div>
-            <span className="font-display text-xl font-bold">Lead<span className="text-coral">Flow</span></span>
-          </div>
+        <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/login')} className="px-4 py-2 text-[0.875rem] text-white/70 hover:text-white transition-colors font-medium">
+            <div className="w-8 h-8 rounded flex items-center justify-center border border-gold/30"
+              style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.15) 0%, rgba(201,168,76,0.05) 100%)' }}>
+              <span className="font-display text-gold text-sm font-semibold">L</span>
+            </div>
+            <span className="font-display text-[1.15rem] tracking-wide">
+              Lead<span className="text-gold">Flow</span>
+            </span>
+          </div>
+          <div className="hidden md:flex items-center gap-8">
+            <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.82rem] text-white/40 hover:text-white/80 transition-colors tracking-wide uppercase">Produkt</button>
+            <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.82rem] text-white/40 hover:text-white/80 transition-colors tracking-wide uppercase">Priser</button>
+          </div>
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/login')} className="text-[0.82rem] text-white/50 hover:text-white transition-colors font-medium tracking-wide">
               Logg inn
             </button>
-            <button onClick={() => navigate('/login')} className="px-5 py-2.5 rounded-xl text-[0.875rem] font-semibold text-white transition-all hover:-translate-y-0.5 hover:shadow-lg"
-              style={{ background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8F6B 100%)' }}>
-              Kom i gang gratis
+            <button onClick={() => navigate('/login')} className="px-5 py-2 rounded text-[0.82rem] font-medium text-ink bg-gold hover:bg-gold-light transition-all tracking-wide">
+              Opprett konto
             </button>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-20 hero-grid">
-        {/* Animated orbs */}
-        <div className="absolute top-[20%] left-[15%] w-[400px] h-[400px] rounded-full opacity-20 blur-[80px] orb-1"
-          style={{ background: 'radial-gradient(circle, #7C5CFC, transparent 70%)' }} />
-        <div className="absolute bottom-[20%] right-[15%] w-[350px] h-[350px] rounded-full opacity-15 blur-[80px] orb-2"
-          style={{ background: 'radial-gradient(circle, #FF6B4A, transparent 70%)' }} />
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-20">
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 40%, rgba(201,168,76,0.04) 0%, transparent 100%)' }} />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-          <div className={`transition-all duration-700 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.04] mb-8">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-[0.8rem] text-white/60">Brukt av 120+ norske bedrifter</span>
+        {/* Fine grid pattern */}
+        <div className="absolute inset-0 hero-grid opacity-50" />
+
+        <div className="relative z-10 max-w-5xl mx-auto px-8 text-center">
+          <div className={`transition-all duration-1000 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-white/[0.06] bg-white/[0.02] mb-10">
+              <div className="w-1.5 h-1.5 rounded-full bg-gold" />
+              <span className="text-[0.75rem] text-white/40 tracking-wider uppercase font-medium">Norges ledende B2B-plattform</span>
             </div>
 
-            <h1 className="font-display text-[3.5rem] md:text-[4.5rem] font-bold leading-[1.05] tracking-tight mb-6">
-              Finn dine neste<br />
-              <span className="gradient-text">kunder, enkelt</span>
+            <h1 className="font-display text-[3.2rem] md:text-[4.5rem] font-normal leading-[1.08] tracking-tight mb-8">
+              Intelligent<br />
+              <span className="gradient-text italic">prospektering</span>
+              <br />for profesjonelle
             </h1>
 
-            <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed">
-              LeadFlow gir deg tilgang til hele Bronnoysundregistrene med enrichment, e-postmaler og CRM — alt du trenger for B2B-salg i Norge.
+            <p className="text-[1.05rem] text-white/35 max-w-xl mx-auto mb-12 leading-relaxed font-light">
+              Komplett tilgang til Bronnoysundregistrene med AI-drevet enrichment, pipeline-styring og outreach-automatisering.
             </p>
 
             <div className="flex items-center justify-center gap-4">
               <button onClick={() => navigate('/login')}
-                className="group flex items-center gap-2 px-7 py-3.5 rounded-xl text-[1rem] font-semibold text-white transition-all hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(255,107,74,0.3)]"
-                style={{ background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8F6B 100%)' }}>
+                className="group flex items-center gap-2.5 px-8 py-3.5 rounded text-[0.88rem] font-medium text-ink bg-gold hover:bg-gold-light transition-all"
+                style={{ letterSpacing: '0.03em' }}>
                 Start gratis
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-7 py-3.5 rounded-xl text-[1rem] font-medium border border-white/10 text-white/70 hover:bg-white/[0.04] hover:text-white transition-all">
-                Se funksjoner
+                className="px-8 py-3.5 rounded text-[0.88rem] font-medium border border-white/[0.08] text-white/50 hover:text-white/80 hover:border-white/[0.15] transition-all"
+                style={{ letterSpacing: '0.03em' }}>
+                Se oversikt
               </button>
             </div>
           </div>
 
-          {/* Mock UI preview */}
-          <div className={`mt-16 transition-all duration-1000 delay-300 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-            <div className="relative mx-auto max-w-3xl rounded-2xl overflow-hidden border border-white/[0.08] shadow-2xl"
-              style={{ background: 'linear-gradient(135deg, rgba(26,23,48,0.9) 0%, rgba(13,11,26,0.95) 100%)' }}>
-              <div className="flex items-center gap-1.5 px-4 py-3 border-b border-white/[0.06]">
-                <div className="w-3 h-3 rounded-full bg-red-400/60" />
-                <div className="w-3 h-3 rounded-full bg-yellow-400/60" />
-                <div className="w-3 h-3 rounded-full bg-green-400/60" />
-                <span className="ml-3 text-[0.75rem] text-white/30">app.leadflow.no</span>
+          {/* Mock terminal/dashboard preview */}
+          <div className={`mt-20 transition-all duration-1000 delay-300 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+            <div className="relative mx-auto max-w-4xl rounded-lg overflow-hidden border border-white/[0.06]"
+              style={{ background: '#0E0E14' }}>
+              <div className="flex items-center gap-2 px-5 py-3 border-b border-white/[0.04]">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/[0.06]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/[0.06]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-white/[0.06]" />
+                </div>
+                <div className="flex-1 flex justify-center">
+                  <div className="px-4 py-1 rounded bg-white/[0.03] text-[0.7rem] text-white/20 font-mono">app.leadflow.no/dashboard</div>
+                </div>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-4 gap-3 mb-4">
-                  {['Totalt leads', 'E-poster sendt', 'Samtaler ringt', 'Kontaktrate'].map((label, i) => (
-                    <div key={i} className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                      <div className="text-[0.7rem] text-white/30 mb-1">{label}</div>
-                      <div className="font-display text-xl font-bold text-white/80">
-                        {['1,247', '892', '341', '67%'][i]}
+                  {[
+                    { label: 'Pipeline-verdi', value: '24.8M', change: '+12.4%' },
+                    { label: 'Aktive leads', value: '1,847', change: '+89' },
+                    { label: 'Konverteringsrate', value: '23.4%', change: '+2.1pp' },
+                    { label: 'Svar pa outreach', value: '34.2%', change: '+5.8pp' },
+                  ].map((m, i) => (
+                    <div key={i} className="p-4 rounded border border-white/[0.04] bg-white/[0.015]">
+                      <div className="text-[0.65rem] text-white/25 uppercase tracking-wider mb-1 font-medium">{m.label}</div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-mono text-xl font-medium text-white/80">{m.value}</span>
+                        <span className="text-[0.65rem] text-emerald-400/60 font-mono">{m.change}</span>
                       </div>
                     </div>
                   ))}
                 </div>
                 <div className="flex gap-3">
-                  <div className="flex-1 h-24 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                    <div className="text-[0.72rem] text-white/30 mb-2">Dine leadlister</div>
-                    <div className="space-y-1.5">
-                      {['Dyrebutikker Oslo', 'Frisor hele Norge', 'Hudpleie Bergen'].map((n, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <div className="h-1.5 rounded-full flex-1 bg-white/[0.06] overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${[72, 45, 89][i]}%`, background: ['#FF6B4A', '#7C5CFC', '#2DD4BF'][i] }} />
-                          </div>
-                          <span className="text-[0.65rem] text-white/30 w-14 text-right">{n.split(' ')[0]}</span>
-                        </div>
+                  <div className="flex-1 h-28 rounded border border-white/[0.04] bg-white/[0.015] p-4">
+                    <div className="text-[0.65rem] text-white/25 uppercase tracking-wider mb-3 font-medium">Pipeline fordeling</div>
+                    <div className="flex items-end gap-1 h-14">
+                      {[40, 65, 45, 80, 55, 70, 35, 60, 75, 50, 85, 42].map((h, i) => (
+                        <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i === 10 ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.15)' }} />
                       ))}
                     </div>
                   </div>
-                  <div className="w-40 h-24 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                    <div className="text-[0.72rem] text-white/30 mb-2">Siste aktivitet</div>
-                    <div className="space-y-1">
-                      {['Mail sendt', 'Ringt', 'Won!'].map((a, i) => (
-                        <div key={i} className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: ['#7C5CFC', '#2DD4BF', '#22C55E'][i] }} />
-                          <span className="text-[0.6rem] text-white/30">{a}</span>
+                  <div className="w-48 h-28 rounded border border-white/[0.04] bg-white/[0.015] p-4">
+                    <div className="text-[0.65rem] text-white/25 uppercase tracking-wider mb-3 font-medium">Topp segmenter</div>
+                    <div className="space-y-2">
+                      {[{ name: 'IT & Software', pct: 34 }, { name: 'Consulting', pct: 28 }, { name: 'Finance', pct: 19 }].map((s, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <div className="flex-1 h-1 bg-white/[0.04] rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${s.pct * 2.5}%`, background: 'rgba(201,168,76,0.4)' }} />
+                          </div>
+                          <span className="text-[0.6rem] text-white/25 font-mono w-8 text-right">{s.pct}%</span>
                         </div>
                       ))}
                     </div>
@@ -176,23 +171,28 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-[80%] h-16 blur-3xl opacity-20"
-              style={{ background: 'linear-gradient(135deg, #FF6B4A, #7C5CFC)' }} />
           </div>
         </div>
       </section>
 
+      {/* Client ticker */}
+      <section className="py-10 border-y border-white/[0.04] overflow-hidden">
+        <div className="flex items-center gap-12 whitespace-nowrap ticker-track">
+          {[...CLIENTS, ...CLIENTS].map((c, i) => (
+            <span key={i} className="text-[0.78rem] text-white/15 font-medium tracking-[0.15em] uppercase">{c}</span>
+          ))}
+        </div>
+      </section>
+
       {/* Stats */}
-      <section ref={statsRef} className="py-20 border-y border-white/[0.06] relative">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-4 gap-8">
+      <section ref={statsRef} className="py-20 relative">
+        <div className="max-w-5xl mx-auto px-8">
+          <div className="grid grid-cols-4 gap-12">
             {STATS.map((s, i) => (
-              <div key={i} className={`text-center transition-all duration-500 ${statsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+              <div key={i} className={`text-center transition-all duration-600 ${statsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
                 style={{ transitionDelay: `${i * 100}ms` }}>
-                <div className="font-display text-[2.5rem] font-bold gradient-text mb-1">
-                  <AnimatedCounter value={s.value} suffix={s.value.includes('+') ? '+' : s.value.includes('%') ? '%' : ''} />
-                </div>
-                <div className="text-[0.88rem] text-white/40">{s.label}</div>
+                <div className="font-mono text-[2rem] font-medium text-white/80 mb-1">{s.value}</div>
+                <div className="text-[0.78rem] text-white/25 tracking-wider uppercase">{s.label}</div>
               </div>
             ))}
           </div>
@@ -200,33 +200,55 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" ref={featRef} className="py-24 relative">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className={`text-center mb-16 transition-all duration-600 ${featInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-            <h2 className="font-display text-[2.5rem] font-bold mb-4">
-              Alt du trenger for <span className="gradient-text">B2B-salg</span>
+      <section id="features" ref={featRef} className="py-28 relative">
+        <div className="max-w-6xl mx-auto px-8">
+          <div className={`mb-20 transition-all duration-600 ${featInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+            <div className="text-[0.72rem] text-gold/60 uppercase tracking-[0.2em] font-medium mb-4">Plattformen</div>
+            <h2 className="font-display text-[2.5rem] font-normal mb-4">
+              Bygget for <span className="italic gradient-text">presisjon</span>
             </h2>
-            <p className="text-lg text-white/40 max-w-xl mx-auto">
-              Fra forste sok til lukket deal — LeadFlow dekker hele salgsprosessen.
+            <p className="text-[1rem] text-white/30 max-w-lg leading-relaxed font-light">
+              Hvert verktoy er designet for a gi deg et overtak i markedet.
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 gap-px bg-white/[0.04] rounded-lg overflow-hidden">
             {FEATURES.map((f, i) => {
               const Icon = f.icon
               return (
                 <div key={i}
-                  className={`group p-7 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-500 hover:-translate-y-1 hover:shadow-lg ${
+                  className={`p-8 transition-all duration-600 hover:bg-white/[0.03] ${
                     featInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                   }`}
-                  style={{ transitionDelay: `${i * 80}ms` }}
-                >
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-transform group-hover:scale-110"
-                    style={{ background: `${f.color}15` }}>
-                    <Icon size={22} style={{ color: f.color }} />
+                  style={{ transitionDelay: `${i * 80}ms`, background: '#0D0D13' }}>
+                  <div className="flex items-center gap-3 mb-5">
+                    <Icon size={18} className="text-gold/60" />
+                    <span className="text-[0.6rem] text-gold/40 tracking-[0.2em] uppercase font-medium border border-gold/10 px-2 py-0.5 rounded">{f.tag}</span>
                   </div>
-                  <h3 className="font-display text-lg font-semibold mb-2 text-white/90">{f.title}</h3>
-                  <p className="text-[0.9rem] text-white/40 leading-relaxed">{f.desc}</p>
+                  <h3 className="font-display text-[1.15rem] mb-3 text-white/85">{f.title}</h3>
+                  <p className="text-[0.85rem] text-white/30 leading-relaxed font-light">{f.desc}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust / Security bar */}
+      <section className="py-16 border-y border-white/[0.04]">
+        <div className="max-w-5xl mx-auto px-8">
+          <div className="flex items-center justify-center gap-12">
+            {[
+              { icon: Shield, text: 'GDPR-kompatibel' },
+              { icon: Lock, text: 'Ende-til-ende kryptert' },
+              { icon: Building2, text: 'Norsk selskap' },
+              { icon: Globe, text: '847K+ foretak indeksert' },
+            ].map((item, i) => {
+              const Icon = item.icon
+              return (
+                <div key={i} className="flex items-center gap-2.5">
+                  <Icon size={15} className="text-white/15" />
+                  <span className="text-[0.75rem] text-white/25 tracking-wider uppercase font-medium">{item.text}</span>
                 </div>
               )
             })}
@@ -235,102 +257,104 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section ref={priceRef} className="py-24 relative border-t border-white/[0.06]">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className={`text-center mb-16 transition-all duration-600 ${priceInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-            <h2 className="font-display text-[2.5rem] font-bold mb-4">
-              Enkel <span className="gradient-text">prising</span>
+      <section id="pricing" ref={priceRef} className="py-28 relative">
+        <div className="max-w-5xl mx-auto px-8">
+          <div className={`mb-16 transition-all duration-600 ${priceInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+            <div className="text-[0.72rem] text-gold/60 uppercase tracking-[0.2em] font-medium mb-4">Priser</div>
+            <h2 className="font-display text-[2.5rem] font-normal mb-4">
+              Transparent <span className="italic gradient-text">prising</span>
             </h2>
-            <p className="text-lg text-white/40">Start gratis, oppgrader nar du trenger mer.</p>
+            <p className="text-[1rem] text-white/30 max-w-lg leading-relaxed font-light">
+              Start gratis. Skaler nar forretningen vokser.
+            </p>
           </div>
 
           <div className="grid grid-cols-3 gap-6">
-            {PLANS.map((plan, i) => {
-              const Icon = plan.icon
-              return (
-                <div key={plan.id}
-                  className={`relative p-8 rounded-2xl border transition-all duration-500 hover:-translate-y-1 ${
-                    plan.popular ? 'border-coral/40 bg-white/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'
-                  } ${priceInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-                  style={{ transitionDelay: `${i * 100}ms` }}
-                >
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[0.72rem] font-bold text-white"
-                      style={{ background: 'linear-gradient(135deg, #FF6B4A, #FF8F6B)' }}>
-                      Mest populaer
-                    </div>
-                  )}
-
-                  <Icon size={24} className="mb-3" style={{ color: plan.color }} />
-                  <div className="text-[0.78rem] uppercase tracking-wider text-white/30 font-semibold">{plan.name}</div>
-
-                  {plan.price === '0' ? (
-                    <div className="font-display text-4xl font-bold mt-2 mb-6 text-white/90">Gratis</div>
-                  ) : (
-                    <div className="mt-2 mb-6">
-                      <span className="font-display text-4xl font-bold text-white/90">{plan.price}</span>
-                      <span className="text-white/40 ml-1">kr/mnd</span>
-                    </div>
-                  )}
-
-                  <div className="space-y-3 mb-8">
-                    {plan.features.map(f => (
-                      <div key={f} className="flex items-center gap-2 text-[0.88rem] text-white/60">
-                        <Check size={16} className="text-green-400 flex-shrink-0" />
-                        {f}
-                      </div>
-                    ))}
+            {PLANS.map((plan, i) => (
+              <div key={plan.id}
+                className={`relative p-8 rounded-lg border transition-all duration-600 ${
+                  plan.popular ? 'border-gold/20 bg-gold/[0.03]' : 'border-white/[0.06] bg-white/[0.015]'
+                } ${priceInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+                style={{ transitionDelay: `${i * 100}ms` }}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-6 px-3 py-0.5 rounded text-[0.65rem] font-medium text-ink bg-gold tracking-wider uppercase">
+                    Anbefalt
                   </div>
+                )}
 
-                  <button onClick={() => navigate('/login')}
-                    className={`w-full py-3 rounded-xl text-[0.9rem] font-semibold transition-all hover:-translate-y-0.5 ${
-                      plan.popular
-                        ? 'text-white hover:shadow-lg'
-                        : 'border border-white/10 text-white/70 hover:bg-white/[0.04]'
-                    }`}
-                    style={plan.popular ? { background: 'linear-gradient(135deg, #FF6B4A, #FF8F6B)' } : {}}>
-                    {plan.price === '0' ? 'Start gratis' : 'Kom i gang'}
-                  </button>
+                <div className="text-[0.72rem] uppercase tracking-[0.15em] text-white/25 font-medium mb-4">{plan.name}</div>
+
+                <div className="mb-8">
+                  {plan.price === 'Tilpasset' ? (
+                    <div className="font-display text-[2rem] text-white/80">Tilpasset</div>
+                  ) : plan.price === '0' ? (
+                    <div className="font-display text-[2rem] text-white/80">Gratis</div>
+                  ) : (
+                    <div className="flex items-baseline gap-1">
+                      <span className="font-display text-[2rem] text-white/80">{plan.price}</span>
+                      <span className="text-[0.85rem] text-white/25">kr{plan.period}</span>
+                    </div>
+                  )}
                 </div>
-              )
-            })}
+
+                <div className="space-y-3 mb-8">
+                  {plan.features.map(f => (
+                    <div key={f} className="flex items-center gap-2.5 text-[0.85rem] text-white/40">
+                      <Check size={14} className={plan.popular ? 'text-gold/60' : 'text-white/20'} />
+                      {f}
+                    </div>
+                  ))}
+                </div>
+
+                <button onClick={() => navigate('/login')}
+                  className={`w-full py-3 rounded text-[0.82rem] font-medium transition-all tracking-wide ${
+                    plan.popular
+                      ? 'bg-gold text-ink hover:bg-gold-light'
+                      : 'border border-white/[0.08] text-white/50 hover:text-white/80 hover:border-white/[0.15]'
+                  }`}>
+                  {plan.cta}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-24 relative">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <div className="p-12 rounded-3xl border border-white/[0.06] relative overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, rgba(255,107,74,0.08) 0%, rgba(124,92,252,0.08) 100%)' }}>
-            <h2 className="font-display text-[2rem] font-bold mb-4">
-              Klar til a finne dine neste kunder?
+      <section className="py-28 relative">
+        <div className="max-w-3xl mx-auto px-8 text-center">
+          <div className="p-16 rounded-lg border border-white/[0.04] relative overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.03) 0%, rgba(10,10,15,0.5) 100%)' }}>
+            <div className="text-[0.72rem] text-gold/50 uppercase tracking-[0.2em] font-medium mb-6">Klar til a starte?</div>
+            <h2 className="font-display text-[2.2rem] font-normal mb-4 text-white/90">
+              Opprett konto pa<br /><span className="italic gradient-text">under 30 sekunder</span>
             </h2>
-            <p className="text-white/40 text-lg mb-8">
-              Opprett en gratis konto pa under 30 sekunder.
+            <p className="text-white/30 text-[0.95rem] mb-10 font-light">
+              Ingen kredittkort. Ingen bindingstid. Full tilgang til grunnleggende funksjoner.
             </p>
             <button onClick={() => navigate('/login')}
-              className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl text-[1rem] font-semibold text-white transition-all hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(255,107,74,0.3)]"
-              style={{ background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8F6B 100%)' }}>
-              Kom i gang gratis
-              <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              className="group inline-flex items-center gap-2.5 px-8 py-3.5 rounded text-[0.88rem] font-medium text-ink bg-gold hover:bg-gold-light transition-all"
+              style={{ letterSpacing: '0.03em' }}>
+              Opprett konto
+              <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-white/[0.06]">
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8F6B 100%)' }}>
-              <span className="text-white font-bold text-[0.6rem]">L</span>
+      <footer className="py-10 border-t border-white/[0.04]">
+        <div className="max-w-7xl mx-auto px-8 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 h-5 rounded flex items-center justify-center border border-gold/20"
+              style={{ background: 'rgba(201,168,76,0.08)' }}>
+              <span className="font-display text-gold text-[0.5rem] font-semibold">L</span>
             </div>
-            <span className="font-display text-sm font-bold text-white/40">LeadFlow</span>
+            <span className="font-display text-[0.82rem] text-white/25">LeadFlow</span>
           </div>
-          <p className="text-[0.78rem] text-white/20">
-            &copy; {new Date().getFullYear()} LeadFlow. Laget i Norge.
+          <p className="text-[0.72rem] text-white/15 tracking-wider">
+            &copy; {new Date().getFullYear()} LeadFlow AS. Oslo, Norge.
           </p>
         </div>
       </footer>

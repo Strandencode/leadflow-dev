@@ -1,121 +1,115 @@
-import { useAuth } from '../hooks/useAuth'
 import { useNavigate, useLocation } from 'react-router-dom'
-import {
-  LayoutDashboard, Search, Target, Mail, Bookmark, Settings, LogOut, Trophy, Kanban, BarChart3
-} from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
+import { Search, LayoutDashboard, Target, Mail, Kanban, BarChart3, Bookmark, Users, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { useState } from 'react'
 
-const navItems = [
-  { label: 'Main', type: 'section' },
-  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', page: 'dashboard' },
-  { path: '/search', icon: Search, label: 'Find Leads', badge: 'New', page: 'search' },
-  { path: '/pipeline', icon: Kanban, label: 'Pipeline', badge: 'New', page: 'pipeline' },
-  { path: '/icp', icon: Target, label: 'ICP Builder', page: 'icp' },
-  { label: 'Outreach', type: 'section' },
-  { path: '/email', icon: Mail, label: 'Email Templates', page: 'email' },
-  { path: '/saved', icon: Bookmark, label: 'Saved Lists', page: 'saved' },
-  { path: '/customers', icon: Trophy, label: 'Kunder (Won)', page: 'customers' },
-  { label: 'Insights', type: 'section' },
-  { path: '/analytics', icon: BarChart3, label: 'Analytics', page: 'analytics' },
-  { label: 'Account', type: 'section' },
-  { path: '/settings', icon: Settings, label: 'Settings', page: 'settings' },
+const NAV_ITEMS = [
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+  { label: 'Prospektering', icon: Search, path: '/search' },
+  { label: 'Pipeline', icon: Kanban, path: '/pipeline' },
+  { label: 'ICP-analyse', icon: Target, path: '/icp' },
+  { label: 'Outreach', icon: Mail, path: '/email' },
+  { label: 'Lagrede lister', icon: Bookmark, path: '/saved' },
+  { label: 'Kunder', icon: Users, path: '/customers' },
+  { label: 'Analytics', icon: BarChart3, path: '/analytics' },
 ]
 
 export default function Sidebar() {
-  const { user, profile, signOut, isDemo } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const { profile, user, signOut, isDemo } = useAuth()
+  const [showUserMenu, setShowUserMenu] = useState(false)
 
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || 'User'
-  const initials = displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-  const plan = profile?.plan || 'pro'
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Bruker'
+  const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  const plan = profile?.plan || 'starter'
 
   return (
-    <aside className="fixed top-0 left-0 bottom-0 w-[260px] flex flex-col z-50 border-r border-white/[0.06]"
-      style={{ background: 'linear-gradient(180deg, #0D0B1A 0%, #151228 50%, #1A1730 100%)' }}>
+    <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-ink flex flex-col border-r border-white/[0.04] z-50">
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-white/[0.06]">
+      <div className="px-5 py-5 border-b border-white/[0.04]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center animate-pulse-glow"
-            style={{ background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8F6B 100%)' }}>
-            <span className="text-white font-bold text-sm">L</span>
+          <div className="w-7 h-7 rounded flex items-center justify-center border border-gold/20"
+            style={{ background: 'rgba(201,168,76,0.08)' }}>
+            <span className="font-display text-gold text-[0.7rem] font-semibold">L</span>
           </div>
-          <h2 className="font-display text-2xl font-bold tracking-tight text-white">
-            Lead<span className="text-coral">Flow</span>
-          </h2>
+          <span className="font-display text-[0.95rem] tracking-wide text-white/90">
+            Lead<span className="text-gold">Flow</span>
+          </span>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 p-4 flex flex-col gap-0.5 overflow-y-auto">
-        {navItems.map((item, i) => {
-          if (item.type === 'section') {
-            return (
-              <span key={i} className="text-[0.65rem] uppercase tracking-widest text-white/25 px-2 pt-5 pb-1.5 font-semibold first:pt-0">
-                {item.label}
-              </span>
-            )
-          }
-
-          const isActive = location.pathname === item.path
+      <nav className="flex-1 py-3 px-3 overflow-y-auto">
+        <div className="text-[0.6rem] uppercase tracking-[0.15em] text-white/15 font-medium px-3 mb-2">Hovedmeny</div>
+        {NAV_ITEMS.map(item => {
           const Icon = item.icon
-
+          const active = location.pathname === item.path
           return (
-            <button
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              className={`group flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[0.875rem] font-medium transition-all duration-200 w-full text-left relative overflow-hidden ${
-                isActive
-                  ? 'text-white'
-                  : 'text-white/45 hover:text-white/80'
-              }`}
-              style={isActive ? {
-                background: 'linear-gradient(135deg, rgba(255,107,74,0.15) 0%, rgba(124,92,252,0.1) 100%)',
-              } : {}}
-            >
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-coral" />
-              )}
-              <Icon size={18} className={`transition-all duration-200 ${isActive ? 'text-coral' : 'group-hover:text-white/70'}`} />
+            <button key={item.path} onClick={() => navigate(item.path)}
+              className={`flex items-center gap-2.5 w-full px-3 py-2 rounded text-[0.82rem] transition-all duration-150 mb-0.5 ${
+                active
+                  ? 'bg-white/[0.06] text-white font-medium'
+                  : 'text-white/35 hover:text-white/60 hover:bg-white/[0.03]'
+              }`}>
+              <Icon size={16} className={active ? 'text-gold' : ''} />
               {item.label}
-              {item.badge && (
-                <span className="ml-auto text-[0.65rem] font-bold px-2 py-0.5 rounded-full"
-                  style={{ background: 'linear-gradient(135deg, #FF6B4A, #FF8F6B)', color: 'white' }}>
-                  {item.badge}
-                </span>
-              )}
             </button>
           )
         })}
+
+        <div className="my-3 mx-3 border-t border-white/[0.04]" />
+
+        <button onClick={() => navigate('/settings')}
+          className={`flex items-center gap-2.5 w-full px-3 py-2 rounded text-[0.82rem] transition-all duration-150 ${
+            location.pathname === '/settings'
+              ? 'bg-white/[0.06] text-white font-medium'
+              : 'text-white/35 hover:text-white/60 hover:bg-white/[0.03]'
+          }`}>
+          <Settings size={16} className={location.pathname === '/settings' ? 'text-gold' : ''} />
+          Innstillinger
+        </button>
       </nav>
 
       {/* Demo banner */}
       {isDemo && (
-        <div className="mx-4 mb-2 px-3 py-2.5 rounded-xl border border-amber-500/20"
-          style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.05) 100%)' }}>
-          <p className="text-amber-400 text-[0.72rem] font-semibold">Demo Mode</p>
-          <p className="text-amber-400/50 text-[0.65rem]">Connect Supabase for real auth</p>
+        <div className="mx-3 mb-2 px-3 py-2 rounded border border-gold/10 bg-gold/[0.04]">
+          <p className="text-gold/60 text-[0.65rem] font-medium tracking-wider uppercase">Demo Mode</p>
         </div>
       )}
 
       {/* User card */}
-      <div className="p-4 border-t border-white/[0.06]">
+      <div className="p-3 border-t border-white/[0.04] relative">
         <button
-          onClick={signOut}
-          className="flex items-center gap-2.5 p-2.5 rounded-xl w-full hover:bg-white/[0.04] transition-all duration-200 group"
+          onClick={() => setShowUserMenu(!showUserMenu)}
+          className="flex items-center gap-2.5 p-2.5 rounded w-full hover:bg-white/[0.03] transition-all duration-150 group"
         >
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-semibold text-white shadow-lg"
-            style={{ background: 'linear-gradient(135deg, #FF6B4A 0%, #7C5CFC 100%)' }}>
+          <div className="w-8 h-8 rounded flex items-center justify-center text-[0.7rem] font-medium text-gold border border-gold/20"
+            style={{ background: 'rgba(201,168,76,0.08)' }}>
             {initials}
           </div>
           <div className="flex-1 min-w-0 text-left">
-            <div className="text-[0.82rem] font-medium text-white/90 truncate">{displayName}</div>
-            <div className="text-[0.68rem] font-semibold capitalize"
-              style={{ background: 'linear-gradient(135deg, #2DD4BF, #5EEAD4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              {plan} Plan
-            </div>
+            <div className="text-[0.78rem] font-medium text-white/70 truncate">{displayName}</div>
+            <div className="text-[0.62rem] text-gold/40 uppercase tracking-wider font-medium">{plan}</div>
           </div>
-          <LogOut size={15} className="text-white/20 group-hover:text-white/50 transition-colors" />
+          <ChevronDown size={14} className={`text-white/15 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
         </button>
+
+        {/* Dropdown menu */}
+        {showUserMenu && (
+          <div className="absolute bottom-full left-3 right-3 mb-1 rounded border border-white/[0.06] bg-ink-soft shadow-2xl overflow-hidden">
+            <button onClick={() => { navigate('/settings'); setShowUserMenu(false) }}
+              className="flex items-center gap-2.5 w-full px-4 py-2.5 text-[0.78rem] text-white/40 hover:text-white/70 hover:bg-white/[0.03] transition-all">
+              <Settings size={14} />
+              Innstillinger
+            </button>
+            <button onClick={signOut}
+              className="flex items-center gap-2.5 w-full px-4 py-2.5 text-[0.78rem] text-red-400/60 hover:text-red-400 hover:bg-red-400/[0.04] transition-all border-t border-white/[0.04]">
+              <LogOut size={14} />
+              Logg ut
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   )

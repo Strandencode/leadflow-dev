@@ -1,58 +1,41 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, ChevronDown, Mail, ExternalLink, Globe, Phone, Trophy } from 'lucide-react'
 import { fetchAllBasic, enrichCompanies, NACE_CODES, MUNICIPALITIES, EMPLOYEE_RANGES, formatNOK } from '../api/brreg'
 import { useSavedLists } from '../hooks/useSavedLists'
 import { useCustomers } from '../hooks/useCustomers'
+import { getActiveTemplate } from '../config/templates'
 import EmailComposerModal from '../components/EmailComposerModal'
 import toast from 'react-hot-toast'
 
-const SUGGESTED_SEARCHES = [
-  { id: 'dyrebutikker', emoji: '🐕', name: 'Dyrebutikker', description: 'Butikker som selger kjæledyrutstyr og fôr — filtrerer bort blomsterbutikker',
-    filters: { industrikode: '47.76', kommunenummer: '', employeeRange: '' }, color: 'from-amber-500 to-orange-500',
-    include: /dyr|kjæledyr|hund|katt|fôr|pet|zoo|akvar|reptil|fugl|gnager|valp/i,
-    exclude: /blomst|flora|florist|interflora|gartn|plante|hage.?sent|bukett|grønt/i },
-  { id: 'veterinarer', emoji: '🏥', name: 'Veterinærklinikker', description: 'Klinikker som kan anbefale og selge hudpleie',
-    filters: { industrikode: '75', kommunenummer: '', employeeRange: '' }, color: 'from-emerald-500 to-teal-500',
-    include: /veterin|dyreklinikk|dyrlege|dyre.?hospital|smådyr|hest/i, exclude: null },
-  { id: 'helsekost', emoji: '🌿', name: 'Helsekost & naturkost', description: 'Naturkostbutikker med økologiske produkter',
-    filters: { industrikode: '47.29', kommunenummer: '', employeeRange: '' }, color: 'from-green-500 to-emerald-500',
-    include: /helsekost|naturkost|økolog|helse.?butikk|vitamin|kosttilskudd|naturlig/i, exclude: null },
-  { id: 'apotek', emoji: '💊', name: 'Apotek', description: 'Uavhengige apotek med egne hudpleimerker',
-    filters: { industrikode: '47.73', kommunenummer: '', employeeRange: '' }, color: 'from-blue-500 to-indigo-500',
+// Default fallback searches when no template is active
+const DEFAULT_SEARCHES = [
+  { id: 'it-software', emoji: '💻', name: 'IT & Programvare', description: 'Teknologiselskaper, SaaS og programvareutvikling',
+    filters: { industrikode: '62', kommunenummer: '', employeeRange: '' }, color: 'from-blue-500 to-indigo-500',
     include: null, exclude: null },
-  { id: 'hotell-spa', emoji: '🏨', name: 'Hotell & spa', description: 'Hoteller med wellness-tilbud',
-    filters: { industrikode: '55.10', kommunenummer: '', employeeRange: '11-50' }, color: 'from-purple-500 to-violet-500',
+  { id: 'radgivning', emoji: '📊', name: 'Rådgivning', description: 'Konsulentselskaper og managementrådgivning',
+    filters: { industrikode: '70', kommunenummer: '', employeeRange: '' }, color: 'from-violet-500 to-purple-500',
     include: null, exclude: null },
-  { id: 'frisor', emoji: '💇', name: 'Frisørsalonger', description: '3 200+ salonger som selger produkter over disk',
-    filters: { industrikode: '96.210', kommunenummer: '', employeeRange: '' }, color: 'from-pink-500 to-rose-500',
+  { id: 'regnskap-juss', emoji: '📋', name: 'Regnskap & Juss', description: 'Regnskapsførere, revisorer og advokatfirmaer',
+    filters: { industrikode: '69', kommunenummer: '', employeeRange: '' }, color: 'from-emerald-500 to-teal-500',
     include: null, exclude: null },
-  { id: 'hudpleie', emoji: '✨', name: 'Skjønnhets- og hudpleie', description: '1 000+ klinikker inkl. fotpleie, negler, hudterapeuter',
-    filters: { industrikode: '96.220', kommunenummer: '', employeeRange: '' }, color: 'from-rose-400 to-pink-500',
+  { id: 'bygg-anlegg', emoji: '🏗️', name: 'Bygg & Anlegg', description: 'Byggefirmaer og entreprenører',
+    filters: { industrikode: '41', kommunenummer: '', employeeRange: '' }, color: 'from-amber-500 to-orange-500',
     include: null, exclude: null },
-  { id: 'fotpleie', emoji: '🦶', name: 'Fotpleie & fotterapi', description: 'Fotterapauter og fotpleieklinkker — nisje for hudpleie',
-    filters: { industrikode: '86.991', kommunenummer: '', employeeRange: '' }, color: 'from-cyan-500 to-teal-500',
+  { id: 'detaljhandel', emoji: '🛍️', name: 'Detaljhandel', description: 'Butikker og detaljhandelsvirksomheter',
+    filters: { industrikode: '47', kommunenummer: '', employeeRange: '' }, color: 'from-pink-500 to-rose-500',
     include: null, exclude: null },
-  { id: 'spa', emoji: '🧖', name: 'Spa & dagspa', description: '600+ spa-er, badstuer og velværesentre',
-    filters: { industrikode: '96.230', kommunenummer: '', employeeRange: '' }, color: 'from-indigo-400 to-violet-500',
+  { id: 'servering', emoji: '🍽️', name: 'Servering', description: 'Restauranter, kafeer og catering',
+    filters: { industrikode: '56', kommunenummer: '', employeeRange: '' }, color: 'from-red-500 to-orange-500',
     include: null, exclude: null },
-  { id: 'sykehjem', emoji: '🏠', name: 'Sykehjem & omsorg', description: 'Pleieinstitusjoner — gjentakende bestillinger',
-    filters: { industrikode: '87', kommunenummer: '', employeeRange: '' }, color: 'from-sky-500 to-blue-500',
-    include: null, exclude: null },
-  { id: 'dagligvare', emoji: '🛒', name: 'Dagligvarebutikker', description: 'Butikker med lokalprofil og norske merkevarer',
-    filters: { industrikode: '47.11', kommunenummer: '', employeeRange: '1-10' }, color: 'from-orange-500 to-red-500',
-    include: null, exclude: null },
-  { id: 'sport-ride', emoji: '🐴', name: 'Sport & rideutstyr', description: 'Butikker med rideutstyr — nisje for hestepleie',
-    filters: { industrikode: '47.64', kommunenummer: '', employeeRange: '' }, color: 'from-yellow-500 to-amber-500',
-    include: /hest|ride|rideutstyr|ridesport|saddel|stallrekvisita/i, exclude: null },
 ]
 
 function buildGmailUrl(c) {
   const n = c.contactName && c.contactName !== '—' ? c.contactName : ''
-  return `https://mail.google.com/mail/?view=cm&to=${c.email||''}&su=${encodeURIComponent('Hei '+n+' — naturlig hudpleie for '+c.name)}&body=${encodeURIComponent('Hei '+n+',\n\nJeg tar kontakt fordi jeg tror '+c.name+' kan ha interesse av våre produkter.\n\nVennlig hilsen')}`
+  return `https://mail.google.com/mail/?view=cm&to=${c.email||''}&su=${encodeURIComponent('Hei '+n+' — en henvendelse angående '+c.name)}&body=${encodeURIComponent('Hei '+n+',\n\nJeg tar kontakt fordi jeg tror vi kan hjelpe '+c.name+'.\n\nVennlig hilsen')}`
 }
 function buildOutlookUrl(c) {
   const n = c.contactName && c.contactName !== '—' ? c.contactName : ''
-  return `https://outlook.office.com/mail/deeplink/compose?to=${c.email||''}&subject=${encodeURIComponent('Hei '+n+' — naturlig hudpleie for '+c.name)}&body=${encodeURIComponent('Hei '+n+',\n\nJeg tar kontakt fordi jeg tror '+c.name+' kan ha interesse av våre produkter.\n\nVennlig hilsen')}`
+  return `https://outlook.office.com/mail/deeplink/compose?to=${c.email||''}&subject=${encodeURIComponent('Hei '+n+' — en henvendelse angående '+c.name)}&body=${encodeURIComponent('Hei '+n+',\n\nJeg tar kontakt fordi jeg tror vi kan hjelpe '+c.name+'.\n\nVennlig hilsen')}`
 }
 
 const PAGE_SIZE = 50
@@ -80,6 +63,12 @@ export default function SearchPage() {
   const [searchName, setSearchName] = useState('')
   const { saveList, markEmailed, markCalled, getTracking } = useSavedLists()
   const { addCustomer, isCustomer } = useCustomers()
+
+  // Get suggested searches from active template, or use defaults
+  const SUGGESTED_SEARCHES = useMemo(() => {
+    const template = getActiveTemplate()
+    return template.suggestedSearches?.length > 0 ? template.suggestedSearches : DEFAULT_SEARCHES
+  }, [])
 
   // Filtered list based on contact filter + table search
   let filtered = contactFilter === 'email' ? allCompanies.filter(c=>c.email)

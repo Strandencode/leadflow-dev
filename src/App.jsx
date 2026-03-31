@@ -19,13 +19,13 @@ function ProtectedLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
+      <div className="min-h-screen bg-ink flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-4 animate-pulse-glow"
-            style={{ background: 'linear-gradient(135deg, #FF6B4A 0%, #7C5CFC 100%)' }}>
-            <span className="text-white font-bold text-lg">L</span>
+          <div className="w-10 h-10 rounded flex items-center justify-center mx-auto mb-4 border border-gold/20 animate-pulse-glow"
+            style={{ background: 'rgba(201,168,76,0.08)' }}>
+            <span className="font-display text-gold font-semibold text-lg">L</span>
           </div>
-          <p className="text-txt-secondary text-sm">Laster LeadFlow...</p>
+          <p className="text-white/30 text-sm">Laster LeadFlow...</p>
         </div>
       </div>
     )
@@ -36,7 +36,7 @@ function ProtectedLayout() {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <main className="ml-[260px] flex-1 min-h-screen">
+      <main className="ml-[240px] flex-1 min-h-screen">
         <Routes>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/search" element={<SearchPage />} />
@@ -60,9 +60,9 @@ function AppRoutes() {
   if (loading) {
     return (
       <div className="min-h-screen bg-ink flex items-center justify-center">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center animate-pulse-glow"
-          style={{ background: 'linear-gradient(135deg, #FF6B4A 0%, #7C5CFC 100%)' }}>
-          <span className="text-white font-bold text-lg">L</span>
+        <div className="w-10 h-10 rounded flex items-center justify-center border border-gold/20 animate-pulse-glow"
+          style={{ background: 'rgba(201,168,76,0.08)' }}>
+          <span className="font-display text-gold font-semibold text-lg">L</span>
         </div>
       </div>
     )

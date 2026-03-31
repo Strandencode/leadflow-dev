@@ -4,23 +4,30 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: { DEFAULT: '#0D0B1A', soft: '#1A1730', muted: '#2D2950' },
-        coral: { DEFAULT: '#FF6B4A', hover: '#E85A3A', glow: 'rgba(255,107,74,0.15)' },
-        violet: { DEFAULT: '#7C5CFC', soft: 'rgba(124,92,252,0.1)' },
-        teal: { DEFAULT: '#2DD4BF', soft: 'rgba(45,212,191,0.1)' },
-        surface: { DEFAULT: '#F8F7FC', raised: '#FFFFFF', sunken: '#EEEDF5' },
-        txt: { primary: '#0D0B1A', secondary: '#6B6589', tertiary: '#9E98B5' },
-        bdr: '#E5E3EF',
+        // Premium dark palette
+        ink: { DEFAULT: '#0A0A0F', soft: '#12121A', muted: '#1A1A24' },
+        gold: { DEFAULT: '#C9A84C', light: '#E2C97E', dim: 'rgba(201,168,76,0.12)', hover: '#B8963E' },
+        silver: { DEFAULT: '#8A8A9A', light: '#B8B8C8' },
+        surface: { DEFAULT: '#F5F5F7', raised: '#FFFFFF', sunken: '#EBEBEF' },
+        txt: { primary: '#0A0A0F', secondary: '#5A5A6E', tertiary: '#8A8A9A' },
+        bdr: '#E0E0E6',
+        // Accent colors for data/charts
+        accent: {
+          blue: '#3B82F6',
+          green: '#10B981',
+          red: '#EF4444',
+          amber: '#F59E0B',
+        }
       },
       fontFamily: {
-        display: ['Fraunces', 'Georgia', 'serif'],
-        body: ['Instrument Sans', 'system-ui', 'sans-serif'],
+        display: ['"EB Garamond"', 'Georgia', 'serif'],
+        body: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       borderRadius: {
-        DEFAULT: '12px',
+        DEFAULT: '8px',
       }
     },
   },
   plugins: [],
 }
-

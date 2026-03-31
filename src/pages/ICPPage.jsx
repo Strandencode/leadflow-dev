@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Save } from 'lucide-react'
+import { Save, Sparkles } from 'lucide-react'
+import { getActiveTemplate } from '../config/templates'
 import toast from 'react-hot-toast'
 
 export default function ICPPage() {
+  const activeTemplate = getActiveTemplate()
   const [icp, setIcp] = useState({
     companyName: '',
     senderName: '',
@@ -47,6 +49,17 @@ export default function ICPPage() {
       </div>
 
       <div className="p-8 max-w-[740px]">
+        {activeTemplate?.id !== 'general' && (
+          <div className="animate-in mb-6 flex items-center gap-3 p-4 rounded-lg border border-gold/15 bg-gold/[0.03]">
+            <Sparkles size={16} className="text-gold flex-shrink-0" />
+            <div>
+              <span className="text-[0.82rem] font-medium text-ink">
+                Fylt ut fra <strong>{activeTemplate.icon} {activeTemplate.name}</strong>-malen
+              </span>
+              <span className="text-[0.78rem] text-txt-tertiary ml-1">— rediger feltene under for å tilpasse</span>
+            </div>
+          </div>
+        )}
         {/* Step 1 */}
         <div className="animate-in delay-1 bg-surface-raised border border-bdr rounded-xl p-8 mb-6 relative">
           <div className="absolute top-6 right-6 w-8 h-8 rounded-full bg-coral-glow text-coral flex items-center justify-center font-bold text-[0.85rem]">1</div>
