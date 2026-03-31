@@ -6,7 +6,7 @@ export default {
       colors: {
         // Premium dark palette
         ink: { DEFAULT: '#0A0A0F', soft: '#12121A', muted: '#1A1A24' },
-        gold: { DEFAULT: '#C9A84C', light: '#E2C97E', dim: 'rgba(201,168,76,0.12)', hover: '#B8963E' },
+        gold: { DEFAULT: '#0051A8', light: '#1A6BC4', dim: 'rgba(0,81,168,0.12)', hover: '#003D7A' },
         silver: { DEFAULT: '#8A8A9A', light: '#B8B8C8' },
         surface: { DEFAULT: '#F5F5F7', raised: '#FFFFFF', sunken: '#EBEBEF' },
         txt: { primary: '#0A0A0F', secondary: '#5A5A6E', tertiary: '#8A8A9A' },

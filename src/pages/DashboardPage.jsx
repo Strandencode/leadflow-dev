@@ -65,7 +65,7 @@ export default function DashboardPage() {
 
   const statCards = [
     { label: 'Totalt leads', value: stats.totalLeads, icon: Users, color: '#3B82F6', subtext: `${stats.totalLists} lister` },
-    { label: 'E-poster sendt', value: stats.emailsSent, icon: Mail, color: '#C9A84C', subtext: stats.totalLeads > 0 ? `${Math.round((stats.emailsSent / stats.totalLeads) * 100)}%` : '0%' },
+    { label: 'E-poster sendt', value: stats.emailsSent, icon: Mail, color: '#0051A8', subtext: stats.totalLeads > 0 ? `${Math.round((stats.emailsSent / stats.totalLeads) * 100)}%` : '0%' },
     { label: 'Samtaler', value: stats.callsMade, icon: Phone, color: '#10B981', subtext: stats.totalLeads > 0 ? `${Math.round((stats.callsMade / stats.totalLeads) * 100)}%` : '0%' },
     { label: 'Kontaktrate', value: `${stats.contactRate}%`, icon: BarChart3, color: '#8B5CF6', subtext: `${stats.contacted} av ${stats.totalLeads}` },
   ]
@@ -123,7 +123,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-3 gap-3 mb-6">
           {[
             { label: 'Prospektering', desc: 'Sok i Bronnoysundregistrene', icon: Search, path: '/search', color: '#3B82F6' },
-            { label: 'Pipeline', desc: 'Administrer salgsprosessen', icon: Kanban, path: '/pipeline', color: '#C9A84C' },
+            { label: 'Pipeline', desc: 'Administrer salgsprosessen', icon: Kanban, path: '/pipeline', color: '#0051A8' },
             { label: 'Analytics', desc: 'Oversikt og metrikker', icon: TrendingUp, path: '/analytics', color: '#10B981' },
           ].map((action, i) => {
             const Icon = action.icon
@@ -191,13 +191,13 @@ export default function DashboardPage() {
                         <tr key={l.id} className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50 transition-colors" onClick={() => navigate('/saved')}>
                           <td className="py-2.5 text-[0.82rem] font-medium text-ink">{l.name}</td>
                           <td className="py-2.5 text-[0.82rem] font-mono text-txt-secondary">{l.leadCount}</td>
-                          <td className="py-2.5 text-[0.82rem] font-mono" style={{ color: '#C9A84C' }}>{l.emailedCount}</td>
+                          <td className="py-2.5 text-[0.82rem] font-mono" style={{ color: '#0051A8' }}>{l.emailedCount}</td>
                           <td className="py-2.5 text-[0.82rem] font-mono" style={{ color: '#10B981' }}>{l.calledCount}</td>
                           <td className="py-2.5">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all duration-1000 animate-expand"
-                                  style={{ width: `${pct}%`, background: '#C9A84C' }} />
+                                  style={{ width: `${pct}%`, background: '#0051A8' }} />
                               </div>
                               <span className="text-[0.7rem] text-txt-tertiary font-mono w-8">{pct}%</span>
                             </div>
@@ -223,7 +223,7 @@ export default function DashboardPage() {
                     {stats.recentActivity.map((a, i) => (
                       <div key={i} className="flex gap-2.5 text-[0.8rem]">
                         <div className="w-1.5 h-1.5 rounded-full mt-[7px] flex-shrink-0"
-                          style={{ background: a.type === 'email' ? '#C9A84C' : '#10B981' }} />
+                          style={{ background: a.type === 'email' ? '#0051A8' : '#10B981' }} />
                         <div className="flex-1 min-w-0">
                           <div className="text-txt-secondary font-light">
                             {a.type === 'email' ? 'E-post til ' : 'Ringt '}

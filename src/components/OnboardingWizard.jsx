@@ -18,7 +18,7 @@ export default function OnboardingWizard({ onDismiss }) {
         : 'Fortell oss om bedriften din og hvem du ønsker å nå.',
       action: 'Gå til ICP',
       path: '/icp',
-      color: '#C9A84C',
+      color: '#0051A8',
     },
     {
       icon: Search,

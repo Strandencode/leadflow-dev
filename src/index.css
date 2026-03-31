@@ -5,8 +5,8 @@
 @tailwind utilities;
 
 :root {
-  --gold: #C9A84C;
-  --gold-light: #E2C97E;
+  --gold: #0051A8;
+  --gold-light: #1A6BC4;
   --ink: #0A0A0F;
   --ink-soft: #12121A;
 }
@@ -54,8 +54,8 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(201,168,76,0.08); }
-  50% { box-shadow: 0 0 40px rgba(201,168,76,0.2); }
+  0%, 100% { box-shadow: 0 0 20px rgba(0,81,168,0.08); }
+  50% { box-shadow: 0 0 40px rgba(0,81,168,0.2); }
 }
 @keyframes shimmer {
   0% { background-position: -200% 0; }
@@ -136,7 +136,7 @@ body {
 
 /* Gold gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #C9A84C 0%, #E2C97E 50%, #C9A84C 100%);
+  background: linear-gradient(135deg, #0051A8 0%, #1A6BC4 50%, #0051A8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -167,7 +167,7 @@ body {
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(201,168,76,0.3), rgba(201,168,76,0.05));
+  background: linear-gradient(135deg, rgba(0,81,168,0.3), rgba(0,81,168,0.05));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -179,7 +179,7 @@ body {
 .kanban-card { cursor: grab; }
 .kanban-card:active { cursor: grabbing; }
 .kanban-card.dragging { opacity: 0.5; transform: rotate(2deg); }
-.kanban-column.drag-over { background: rgba(201,168,76,0.04); }
+.kanban-column.drag-over { background: rgba(0,81,168,0.04); }
 
 /* Landing page grid */
 .hero-grid {
@@ -195,7 +195,7 @@ body {
   display: block;
   width: 60px;
   height: 1px;
-  background: linear-gradient(90deg, #C9A84C, transparent);
+  background: linear-gradient(90deg, #0051A8, transparent);
   margin-top: 16px;
   animation: gold-line 1s ease-out both;
 }

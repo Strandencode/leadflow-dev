@@ -30,7 +30,7 @@ export default function Sidebar() {
       <div className="px-5 py-5 border-b border-white/[0.04]">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded flex items-center justify-center border border-gold/20"
-            style={{ background: 'rgba(201,168,76,0.08)' }}>
+            style={{ background: 'rgba(0,81,168,0.08)' }}>
             <span className="font-display text-gold text-[0.7rem] font-semibold">L</span>
           </div>
           <span className="font-display text-[0.95rem] tracking-wide text-white/90">
@@ -85,7 +85,7 @@ export default function Sidebar() {
           className="flex items-center gap-2.5 p-2.5 rounded w-full hover:bg-white/[0.03] transition-all duration-150 group"
         >
           <div className="w-8 h-8 rounded flex items-center justify-center text-[0.7rem] font-medium text-gold border border-gold/20"
-            style={{ background: 'rgba(201,168,76,0.08)' }}>
+            style={{ background: 'rgba(0,81,168,0.08)' }}>
             {initials}
           </div>
           <div className="flex-1 min-w-0 text-left">

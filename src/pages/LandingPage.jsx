@@ -53,7 +53,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded flex items-center justify-center border border-gold/30"
-              style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.15) 0%, rgba(201,168,76,0.05) 100%)' }}>
+              style={{ background: 'linear-gradient(135deg, rgba(0,81,168,0.15) 0%, rgba(0,81,168,0.05) 100%)' }}>
               <span className="font-display text-gold text-sm font-semibold">L</span>
             </div>
             <span className="font-display text-[1.15rem] tracking-wide">
@@ -78,7 +78,7 @@ export default function LandingPage() {
       {/* Hero */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-20">
         {/* Subtle gradient overlay */}
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 40%, rgba(201,168,76,0.04) 0%, transparent 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 40%, rgba(0,81,168,0.04) 0%, transparent 100%)' }} />
 
         {/* Fine grid pattern */}
         <div className="absolute inset-0 hero-grid opacity-50" />
@@ -151,7 +151,7 @@ export default function LandingPage() {
                     <div className="text-[0.65rem] text-white/25 uppercase tracking-wider mb-3 font-medium">Pipeline fordeling</div>
                     <div className="flex items-end gap-1 h-14">
                       {[40, 65, 45, 80, 55, 70, 35, 60, 75, 50, 85, 42].map((h, i) => (
-                        <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i === 10 ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.15)' }} />
+                        <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i === 10 ? 'rgba(0,81,168,0.5)' : 'rgba(0,81,168,0.15)' }} />
                       ))}
                     </div>
                   </div>
@@ -161,7 +161,7 @@ export default function LandingPage() {
                       {[{ name: 'IT & Software', pct: 34 }, { name: 'Consulting', pct: 28 }, { name: 'Finance', pct: 19 }].map((s, i) => (
                         <div key={i} className="flex items-center gap-2">
                           <div className="flex-1 h-1 bg-white/[0.04] rounded-full overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${s.pct * 2.5}%`, background: 'rgba(201,168,76,0.4)' }} />
+                            <div className="h-full rounded-full" style={{ width: `${s.pct * 2.5}%`, background: 'rgba(0,81,168,0.4)' }} />
                           </div>
                           <span className="text-[0.6rem] text-white/25 font-mono w-8 text-right">{s.pct}%</span>
                         </div>
@@ -325,7 +325,7 @@ export default function LandingPage() {
       <section className="py-28 relative">
         <div className="max-w-3xl mx-auto px-8 text-center">
           <div className="p-16 rounded-lg border border-white/[0.04] relative overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.03) 0%, rgba(10,10,15,0.5) 100%)' }}>
+            style={{ background: 'linear-gradient(135deg, rgba(0,81,168,0.03) 0%, rgba(10,10,15,0.5) 100%)' }}>
             <div className="text-[0.72rem] text-gold/50 uppercase tracking-[0.2em] font-medium mb-6">Klar til a starte?</div>
             <h2 className="font-display text-[2.2rem] font-normal mb-4 text-white/90">
               Opprett konto pa<br /><span className="italic gradient-text">under 30 sekunder</span>
@@ -348,7 +348,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-8 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-5 h-5 rounded flex items-center justify-center border border-gold/20"
-              style={{ background: 'rgba(201,168,76,0.08)' }}>
+              style={{ background: 'rgba(0,81,168,0.08)' }}>
               <span className="font-display text-gold text-[0.5rem] font-semibold">L</span>
             </div>
             <span className="font-display text-[0.82rem] text-white/25">LeadFlow</span>

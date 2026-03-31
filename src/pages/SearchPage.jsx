@@ -3,7 +3,7 @@ import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, Chevron
 import { fetchAllBasic, enrichCompanies, NACE_CODES, MUNICIPALITIES, EMPLOYEE_RANGES, formatNOK } from '../api/brreg'
 import { useSavedLists } from '../hooks/useSavedLists'
 import { useCustomers } from '../hooks/useCustomers'
-import { getActiveTemplate } from '../config/templates'
+import TEMPLATES, { getActiveTemplate, applyTemplate } from '../config/templates'
 import EmailComposerModal from '../components/EmailComposerModal'
 import toast from 'react-hot-toast'
 
@@ -65,10 +65,16 @@ export default function SearchPage() {
   const { addCustomer, isCustomer } = useCustomers()
 
   // Get suggested searches from active template, or use defaults
+  const [activeTemplateId, setActiveTemplateId] = useState(() => localStorage.getItem('leadflow_template') || 'general')
   const SUGGESTED_SEARCHES = useMemo(() => {
     const template = getActiveTemplate()
     return template.suggestedSearches?.length > 0 ? template.suggestedSearches : DEFAULT_SEARCHES
-  }, [])
+  }, [activeTemplateId])
+
+  function handleSwitchTemplate(id) {
+    applyTemplate(id)
+    setActiveTemplateId(id)
+  }
 
   // Filtered list based on contact filter + table search
   let filtered = contactFilter === 'email' ? allCompanies.filter(c=>c.email)
@@ -349,10 +355,25 @@ export default function SearchPage() {
       )}
 
       <div className="p-8">
-        {/* Suggested Searches */}
+        {/* Template selector + Suggested Searches */}
         {!hasResults && !loading && (
           <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4"><Sparkles size={18} className="text-coral"/><h2 className="font-display text-lg font-semibold">Foreslåtte leadsøk</h2><span className="text-[0.78rem] text-txt-tertiary ml-1">basert på din ICP</span></div>
+            {/* Template selector */}
+            <div className="flex items-center gap-3 mb-5 flex-wrap">
+              <span className="text-[0.78rem] text-txt-tertiary font-medium">Bransjemal:</span>
+              {TEMPLATES.filter(t => t.id !== 'general').map(t => (
+                <button key={t.id} onClick={() => handleSwitchTemplate(t.id)}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-[0.82rem] font-medium border transition-all ${
+                    activeTemplateId === t.id
+                      ? 'border-gold bg-gold/[0.06] text-gold'
+                      : 'border-bdr text-txt-secondary hover:border-gray-300 hover:bg-gray-50'
+                  }`}>
+                  <span>{t.icon}</span> {t.name}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 mb-4"><Sparkles size={18} className="text-gold"/><h2 className="font-display text-lg font-semibold">Foreslåtte leadsøk</h2><span className="text-[0.78rem] text-txt-tertiary ml-1">basert på valgt mal</span></div>
             <div className="grid grid-cols-2 gap-3">
               {SUGGESTED_SEARCHES.map(s=>(
                 <button key={s.id} onClick={()=>handleSuggestedSearch(s)} className="group flex items-start gap-4 p-4 bg-surface-raised border border-bdr rounded-xl text-left hover:border-violet/40 hover:-translate-y-0.5 hover:shadow-md transition-all">

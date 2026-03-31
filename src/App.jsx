@@ -22,7 +22,7 @@ function ProtectedLayout() {
       <div className="min-h-screen bg-ink flex items-center justify-center">
         <div className="text-center">
           <div className="w-10 h-10 rounded flex items-center justify-center mx-auto mb-4 border border-gold/20 animate-pulse-glow"
-            style={{ background: 'rgba(201,168,76,0.08)' }}>
+            style={{ background: 'rgba(0,81,168,0.08)' }}>
             <span className="font-display text-gold font-semibold text-lg">L</span>
           </div>
           <p className="text-white/30 text-sm">Laster LeadFlow...</p>
@@ -61,7 +61,7 @@ function AppRoutes() {
     return (
       <div className="min-h-screen bg-ink flex items-center justify-center">
         <div className="w-10 h-10 rounded flex items-center justify-center border border-gold/20 animate-pulse-glow"
-          style={{ background: 'rgba(201,168,76,0.08)' }}>
+          style={{ background: 'rgba(0,81,168,0.08)' }}>
           <span className="font-display text-gold font-semibold text-lg">L</span>
         </div>
       </div>
