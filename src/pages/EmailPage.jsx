@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Plus, Sparkles, Trash2, Copy, Check, ChevronDown } from 'lucide-react'
+import { Plus, Sparkles, Trash2, Copy, Check, ChevronDown, Save } from 'lucide-react'
 import { getActiveTemplate } from '../config/templates'
 import toast from 'react-hot-toast'
 
@@ -10,15 +10,20 @@ const DEFAULT_SEGMENTS = [
   { id: 'general', name: 'Generell', emoji: '📧', description: 'Standard outreach-mal' },
 ]
 
-// Generate email from template's emailTemplates config, or fallback to generic
+// Generate email from template config, injecting ICP data into the text
 function generateForSegment(segment, icp, template) {
   const company = icp.companyName || '{{sender_company}}'
   const product = icp.whatYouSell || 'våre produkter'
   const problem = icp.problemYouSolve || 'en løsning som kan hjelpe dere'
+  const sender = icp.senderName || '{{sender_name}}'
 
   // Check if the active template has a specific email template for this segment
   if (template?.emailTemplates?.[segment]) {
-    return template.emailTemplates[segment]
+    const tmpl = template.emailTemplates[segment]
+    // Replace {{sender_company}} and {{sender_name}} with ICP values in the template
+    let subj = tmpl.subject.replace(/\{\{sender_company\}\}/g, company).replace(/\{\{sender_name\}\}/g, sender)
+    let body = tmpl.body.replace(/\{\{sender_company\}\}/g, company).replace(/\{\{sender_name\}\}/g, sender)
+    return { subject: subj, body }
   }
 
   // Fallback: generic template using ICP data
@@ -35,7 +40,7 @@ ${problem}
 Hadde det passet med en kort samtale denne uken for å se om dette kan være aktuelt for {{company_name}}?
 
 Vennlig hilsen,
-{{sender_name}}
+${sender}
 ${company}`
   }
 }
@@ -87,6 +92,10 @@ export default function EmailPage() {
   }
 
   function handleSave() {
+    if (!subject && !body) {
+      toast.error('Skriv eller generer en mal først')
+      return
+    }
     const name = templateName.trim() || `Mal ${savedTemplates.length + 1}`
     const segment = SEGMENTS.find(s => s.id === selectedSegment)
     const template = {
@@ -130,8 +139,7 @@ export default function EmailPage() {
 
   async function handleGenerate() {
     setGenerating(true)
-    // Simulate AI delay — in production this would call Claude API
-    await new Promise(r => setTimeout(r, 1500))
+    await new Promise(r => setTimeout(r, 1200))
 
     const generated = generateForSegment(selectedSegment, icp, activeTemplate)
     setSubject(generated.subject)
@@ -151,7 +159,7 @@ export default function EmailPage() {
   function renderPreview(text) {
     let result = text
     for (const [tag, value] of Object.entries(PREVIEW_VALUES)) {
-      result = result.replaceAll(tag, `<span class="bg-[rgba(255,107,74,0.15)] text-[#FF6B4A] px-1.5 py-0.5 rounded font-medium">${value}</span>`)
+      result = result.replaceAll(tag, `<span class="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">${value}</span>`)
     }
     return result
   }
@@ -160,52 +168,54 @@ export default function EmailPage() {
 
   return (
     <div>
-      <div className="px-8 py-6 bg-surface-raised border-b border-bdr flex items-center justify-between sticky top-0 z-40">
+      <div className="px-8 py-5 bg-white border-b border-gray-100 flex items-center justify-between sticky top-0 z-40">
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">E-postmaler</h1>
-          <p className="text-txt-secondary text-[0.9rem] mt-0.5">
+          <h1 className="font-display text-[1.6rem] font-normal tracking-tight text-ink">Outreach</h1>
+          <p className="text-txt-tertiary text-[0.82rem] mt-0.5 font-light">
             {savedTemplates.length > 0
-              ? `${savedTemplates.length} lagrede maler — velg segment og generer med AI`
+              ? `${savedTemplates.length} lagrede maler — velg segment og generer`
               : 'Lag eller generer e-postmaler med flettefelt'
             }
           </p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => { setSubject(''); setBody(''); setTemplateName(''); setActiveTemplateId(null) }} className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all">
-            <Plus size={16} /> Ny tom mal
+          <button onClick={() => { setSubject(''); setBody(''); setTemplateName(''); setActiveTemplateId(null) }} className="flex items-center gap-2 px-4 py-2 rounded text-[0.82rem] font-medium border border-gray-200 text-txt-secondary hover:bg-gray-50 transition-all">
+            <Plus size={15} /> Ny tom mal
           </button>
         </div>
       </div>
 
       <div className="p-8">
-        <div className="grid grid-cols-[280px_1fr_1fr] gap-6">
+        <div className="grid grid-cols-[260px_1fr_1fr] gap-5">
 
-          {/* Saved templates sidebar */}
+          {/* Sidebar */}
           <div className="space-y-4">
-            {/* Segment picker for AI generation */}
-            <div className="bg-surface-raised border border-bdr rounded-xl p-5">
-              <h3 className="text-[0.82rem] font-semibold mb-3 flex items-center gap-1.5"><Sparkles size={14} className="text-violet" /> AI-generering</h3>
+            {/* Segment picker */}
+            <div className="bg-white border border-gray-100 rounded-lg p-5">
+              <h3 className="text-[0.82rem] font-medium mb-3 flex items-center gap-1.5 text-ink">
+                <Sparkles size={14} className="text-gold" /> Generer mal
+              </h3>
 
               {!icpFilled && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[0.78rem] text-amber-700 mb-3">
-                  Tips: Fyll ut ICP-profilen din først for bedre maler
+                <div className="p-2.5 bg-blue-50 border border-blue-100 rounded text-[0.75rem] text-blue-700 mb-3 font-light">
+                  Tips: Fyll ut ICP-profilen for bedre maler
                 </div>
               )}
 
-              <label className="block text-[0.72rem] font-semibold uppercase tracking-wide text-txt-tertiary mb-2">Velg kundesegment</label>
+              <label className="block text-[0.65rem] font-medium uppercase tracking-[0.1em] text-txt-tertiary mb-2">Kundesegment</label>
               <div className="relative mb-3">
                 <button
                   onClick={() => setShowSegmentPicker(!showSegmentPicker)}
-                  className="w-full flex items-center justify-between px-3 py-2.5 bg-surface border border-bdr rounded-lg text-[0.85rem] text-left hover:border-violet transition-all"
+                  className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 border border-gray-100 rounded text-[0.82rem] text-left hover:border-gray-200 transition-all"
                 >
                   <span>{SEGMENTS.find(s => s.id === selectedSegment)?.emoji} {SEGMENTS.find(s => s.id === selectedSegment)?.name}</span>
                   <ChevronDown size={14} className="text-txt-tertiary" />
                 </button>
                 {showSegmentPicker && (
-                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-surface-raised border border-bdr rounded-xl shadow-lg max-h-[300px] overflow-y-auto">
+                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-lg shadow-lg max-h-[300px] overflow-y-auto">
                     {SEGMENTS.map(s => (
                       <button key={s.id} onClick={() => { setSelectedSegment(s.id); setShowSegmentPicker(false) }}
-                        className={`w-full flex items-center gap-2 px-3 py-2.5 text-left text-[0.82rem] hover:bg-surface transition-colors ${selectedSegment === s.id ? 'bg-violet-soft text-violet font-medium' : 'text-txt-secondary'}`}
+                        className={`w-full flex items-center gap-2 px-3 py-2.5 text-left text-[0.82rem] hover:bg-gray-50 transition-colors ${selectedSegment === s.id ? 'bg-blue-50 text-gold font-medium' : 'text-txt-secondary'}`}
                       >
                         <span>{s.emoji}</span> {s.name}
                       </button>
@@ -217,7 +227,7 @@ export default function EmailPage() {
               <button
                 onClick={handleGenerate}
                 disabled={generating}
-                className="w-full flex items-center justify-center gap-2 py-2.5 bg-violet text-white rounded-lg text-[0.82rem] font-semibold hover:bg-[#6A4AE8] transition-all disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-gold text-white rounded text-[0.82rem] font-medium hover:bg-gold-light transition-all disabled:opacity-60"
               >
                 {generating
                   ? <><svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Genererer...</>
@@ -227,28 +237,28 @@ export default function EmailPage() {
             </div>
 
             {/* Saved templates list */}
-            <div className="bg-surface-raised border border-bdr rounded-xl p-5">
-              <h3 className="text-[0.82rem] font-semibold mb-3">Lagrede maler ({savedTemplates.length})</h3>
+            <div className="bg-white border border-gray-100 rounded-lg p-5">
+              <h3 className="text-[0.82rem] font-medium mb-3 text-ink">Lagrede maler ({savedTemplates.length})</h3>
 
               {savedTemplates.length === 0 ? (
-                <p className="text-[0.78rem] text-txt-tertiary">Generer eller skriv en mal og klikk "Lagre" for å lagre den her.</p>
+                <p className="text-[0.75rem] text-txt-tertiary font-light">Generer eller skriv en mal og klikk "Lagre" for å lagre den her.</p>
               ) : (
-                <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
+                <div className="space-y-1 max-h-[400px] overflow-y-auto">
                   {savedTemplates.map(t => (
                     <div
                       key={t.id}
                       onClick={() => loadTemplate(t)}
-                      className={`group flex items-start gap-2 p-2.5 rounded-lg cursor-pointer transition-all ${
-                        activeTemplateId === t.id ? 'bg-violet-soft border border-violet/30' : 'hover:bg-surface border border-transparent'
+                      className={`group flex items-start gap-2 p-2.5 rounded cursor-pointer transition-all ${
+                        activeTemplateId === t.id ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50 border border-transparent'
                       }`}
                     >
                       <span className="text-sm mt-0.5">{t.segmentEmoji || '📧'}</span>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[0.82rem] font-medium truncate">{t.name}</div>
-                        <div className="text-[0.7rem] text-txt-tertiary">{t.segmentName || 'Generell'} · {new Date(t.createdAt).toLocaleDateString('nb-NO')}</div>
+                        <div className="text-[0.82rem] font-medium truncate text-ink">{t.name}</div>
+                        <div className="text-[0.68rem] text-txt-tertiary">{t.segmentName || 'Generell'} · {new Date(t.createdAt).toLocaleDateString('nb-NO')}</div>
                       </div>
                       <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={e => duplicateTemplate(t, e)} className="p-1 rounded hover:bg-surface-sunken text-txt-tertiary hover:text-txt-primary" title="Dupliser"><Copy size={12} /></button>
+                        <button onClick={e => duplicateTemplate(t, e)} className="p-1 rounded hover:bg-gray-100 text-txt-tertiary hover:text-ink" title="Dupliser"><Copy size={12} /></button>
                         <button onClick={e => deleteTemplate(t.id, e)} className="p-1 rounded hover:bg-red-50 text-txt-tertiary hover:text-red-500" title="Slett"><Trash2 size={12} /></button>
                       </div>
                     </div>
@@ -259,41 +269,41 @@ export default function EmailPage() {
           </div>
 
           {/* Editor */}
-          <div className="bg-surface-raised border border-bdr rounded-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-bdr flex items-center justify-between">
+          <div className="bg-white border border-gray-100 rounded-lg overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="text-[0.95rem] font-semibold">Redigering</h3>
-                {activeTemplateId && <Check size={14} className="text-green-500" />}
+                <h3 className="text-[0.88rem] font-medium text-ink">Redigering</h3>
+                {activeTemplateId && <Check size={14} className="text-emerald-500" />}
               </div>
-              <button onClick={handleSave} className="px-3 py-1.5 bg-coral text-white rounded-lg text-[0.8rem] font-medium hover:bg-coral-hover transition-all">
-                Lagre mal
+              <button onClick={handleSave} className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gold text-white rounded text-[0.78rem] font-medium hover:bg-gold-light transition-all">
+                <Save size={13} /> Lagre mal
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-5">
               <input
                 type="text"
                 value={templateName}
                 onChange={e => setTemplateName(e.target.value)}
                 placeholder="Navn på malen..."
-                className="w-full py-2 border-b border-bdr text-[0.85rem] outline-none bg-transparent mb-3 text-txt-secondary"
+                className="w-full py-2 border-b border-gray-100 text-[0.82rem] outline-none bg-transparent mb-3 text-txt-secondary"
               />
               <input
                 type="text"
                 value={subject}
                 onChange={e => setSubject(e.target.value)}
                 placeholder="Emnelinje..."
-                className="w-full py-2.5 border-b border-bdr text-base font-medium outline-none bg-transparent mb-4"
+                className="w-full py-2 border-b border-gray-100 text-[0.92rem] font-medium outline-none bg-transparent mb-4 text-ink"
               />
               <textarea
                 value={body}
                 onChange={e => setBody(e.target.value)}
                 placeholder="Skriv e-postinnhold her, eller klikk 'Generer' til venstre..."
-                className="w-full min-h-[320px] p-4 bg-surface border border-bdr rounded-lg text-[0.9rem] outline-none resize-y leading-relaxed focus:border-violet focus:ring-2 focus:ring-violet-soft transition-all"
+                className="w-full min-h-[320px] p-4 bg-gray-50 border border-gray-100 rounded text-[0.88rem] outline-none resize-y leading-relaxed focus:border-gold focus:ring-1 focus:ring-gold/20 transition-all"
               />
               <div className="flex flex-wrap gap-1.5 mt-3">
-                <span className="text-[0.72rem] text-txt-tertiary mr-1 self-center">Sett inn:</span>
+                <span className="text-[0.68rem] text-txt-tertiary mr-1 self-center">Sett inn:</span>
                 {MERGE_TAGS.map(tag => (
-                  <button key={tag} onClick={() => insertTag(tag)} className="px-2.5 py-0.5 bg-violet-soft text-violet rounded-full text-[0.72rem] font-medium hover:bg-violet hover:text-white transition-all">
+                  <button key={tag} onClick={() => insertTag(tag)} className="px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[0.68rem] font-medium hover:bg-gold hover:text-white transition-all">
                     {tag}
                   </button>
                 ))}
@@ -302,23 +312,23 @@ export default function EmailPage() {
           </div>
 
           {/* Preview */}
-          <div className="bg-surface-raised border border-bdr rounded-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-bdr bg-surface-sunken">
-              <h3 className="text-[0.95rem] font-semibold">Forhåndsvisning</h3>
+          <div className="bg-white border border-gray-100 rounded-lg overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-gray-100 bg-gray-50">
+              <h3 className="text-[0.88rem] font-medium text-ink">Forhåndsvisning</h3>
             </div>
-            <div className="p-6">
+            <div className="p-5">
               {!subject && !body ? (
                 <div className="text-center py-12">
-                  <Sparkles size={32} className="mx-auto text-txt-tertiary/30 mb-3" />
-                  <p className="text-txt-tertiary text-[0.88rem]">Velg et segment og generer en mal, eller skriv din egen</p>
+                  <Sparkles size={28} className="mx-auto text-gray-200 mb-3" />
+                  <p className="text-txt-tertiary text-[0.85rem] font-light">Velg et segment og generer en mal, eller skriv din egen</p>
                 </div>
               ) : (
                 <>
-                  <div className="mb-5 text-[0.85rem] text-txt-secondary flex flex-col gap-1">
-                    <div><strong className="text-txt-primary font-medium">Til:</strong> erik@cloudway.no</div>
-                    <div><strong className="text-txt-primary font-medium">Emne:</strong> <span dangerouslySetInnerHTML={{ __html: renderPreview(subject) }} /></div>
+                  <div className="mb-5 text-[0.82rem] text-txt-secondary flex flex-col gap-1">
+                    <div><strong className="text-ink font-medium">Til:</strong> erik@cloudway.no</div>
+                    <div><strong className="text-ink font-medium">Emne:</strong> <span dangerouslySetInnerHTML={{ __html: renderPreview(subject) }} /></div>
                   </div>
-                  <div className="text-[0.9rem] leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: renderPreview(body) }} />
+                  <div className="text-[0.88rem] leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: renderPreview(body) }} />
                 </>
               )}
             </div>

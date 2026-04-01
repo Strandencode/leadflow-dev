@@ -11,6 +11,10 @@ export default {
         surface: { DEFAULT: '#F5F5F7', raised: '#FFFFFF', sunken: '#EBEBEF' },
         txt: { primary: '#0A0A0F', secondary: '#5A5A6E', tertiary: '#8A8A9A' },
         bdr: '#E0E0E6',
+        // Legacy aliases (mapped to new palette)
+        coral: { DEFAULT: '#0051A8', hover: '#003D7A', glow: 'rgba(0,81,168,0.12)' },
+        violet: { DEFAULT: '#0051A8', soft: 'rgba(0,81,168,0.06)' },
+        teal: { DEFAULT: '#10B981', soft: 'rgba(16,185,129,0.06)' },
         // Accent colors for data/charts
         accent: {
           blue: '#3B82F6',
