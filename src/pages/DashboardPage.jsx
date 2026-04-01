@@ -55,7 +55,7 @@ export default function DashboardPage() {
     if (!iso) return ''
     const diff = Date.now() - new Date(iso).getTime()
     const mins = Math.floor(diff / 60000)
-    if (mins < 1) return 'Na'
+    if (mins < 1) return 'Nå'
     if (mins < 60) return `${mins}m`
     const hours = Math.floor(mins / 60)
     if (hours < 24) return `${hours}t`
@@ -85,7 +85,7 @@ export default function DashboardPage() {
             <RefreshCw size={15} /> Bytt mal
           </button>
           <button onClick={() => navigate('/search')} className="flex items-center gap-2 px-4 py-2 rounded text-[0.82rem] font-medium border border-gray-200 text-txt-secondary hover:bg-gray-50 transition-all">
-            <Search size={15} /> Nytt sok
+            <Search size={15} /> Nytt søk
           </button>
           <button onClick={() => navigate('/search')}
             className="flex items-center gap-2 px-4 py-2 rounded text-[0.82rem] font-medium text-ink bg-gold hover:bg-gold-light transition-all">
@@ -122,7 +122,7 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           {[
-            { label: 'Prospektering', desc: 'Sok i Bronnoysundregistrene', icon: Search, path: '/search', color: '#3B82F6' },
+            { label: 'Prospektering', desc: 'Søk i Brønnøysundregistrene', icon: Search, path: '/search', color: '#3B82F6' },
             { label: 'Pipeline', desc: 'Administrer salgsprosessen', icon: Kanban, path: '/pipeline', color: '#0051A8' },
             { label: 'Analytics', desc: 'Oversikt og metrikker', icon: TrendingUp, path: '/analytics', color: '#10B981' },
           ].map((action, i) => {
@@ -152,7 +152,7 @@ export default function DashboardPage() {
             </div>
             <h3 className="font-display text-[1.3rem] font-normal mb-2 text-ink">Kom i gang med LeadFlow</h3>
             <p className="text-txt-tertiary text-[0.88rem] mb-8 max-w-md mx-auto font-light">
-              Definer din ICP, sok etter leads og bygg din forste liste. Alle metrikker oppdateres i sanntid.
+              Definer din ICP, søk etter leads og bygg din første liste. Alle metrikker oppdateres i sanntid.
             </p>
             <div className="flex gap-3 justify-center">
               <button onClick={() => navigate('/icp')} className="px-5 py-2.5 border border-gray-200 rounded text-[0.82rem] font-medium text-txt-secondary hover:bg-gray-50 transition-all">

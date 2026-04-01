@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { Search, Target, Mail, Kanban, BarChart3, Trophy, ArrowRight, Check, Shield, ChevronRight, TrendingUp, Building2, Globe, Lock } from 'lucide-react'
 
 const FEATURES = [
-  { icon: Search, title: 'Prospektering', desc: 'Sok i hele Bronnoysundregistrene. Filtrer pa bransje, geografi, storrelse og omsetning.', tag: 'DATA' },
+  { icon: Search, title: 'Prospektering', desc: 'Søk i hele Brønnøysundregistrene. Filtrer på bransje, geografi, storrelse og omsetning.', tag: 'DATA' },
   { icon: Target, title: 'ICP-analyse', desc: 'Definer din ideelle kundeprofil og motta automatisk kvalifiserte leads.', tag: 'AI' },
   { icon: Mail, title: 'Outreach', desc: 'Generer tilpassede e-postmaler med intelligent flettefelt-teknologi.', tag: 'AUTOMATION' },
-  { icon: Kanban, title: 'Pipeline CRM', desc: 'Visuell pipeline-styring fra forste kontakt til lukket avtale.', tag: 'CRM' },
+  { icon: Kanban, title: 'Pipeline CRM', desc: 'Visuell pipeline-styring fra første kontakt til lukket avtale.', tag: 'CRM' },
   { icon: BarChart3, title: 'Analytics', desc: 'Konverteringsrater, aktivitetsmetrikker og portefoljeanalyse i sanntid.', tag: 'INSIGHTS' },
   { icon: Trophy, title: 'Kundeportefolje', desc: 'Komplett oversikt over vunnede kunder med kontrakter og historikk.', tag: 'MANAGEMENT' },
 ]
@@ -19,7 +19,7 @@ const STATS = [
 ]
 
 const PLANS = [
-  { id: 'starter', name: 'Starter', price: '0', period: '', features: ['20 oppslag/mnd', 'Grunnleggende sok', 'ICP-profil', 'E-postmaler'], cta: 'Kom i gang' },
+  { id: 'starter', name: 'Starter', price: '0', period: '', features: ['20 oppslag/mnd', 'Grunnleggende søk', 'ICP-profil', 'E-postmaler'], cta: 'Kom i gang' },
   { id: 'professional', name: 'Professional', price: '490', period: '/mnd', features: ['1 000 oppslag/mnd', 'Avansert filtrering', 'AI e-postgenerering', 'Pipeline CRM', 'Analytics dashboard'], popular: true, cta: 'Start prov' },
   { id: 'enterprise', name: 'Enterprise', price: 'Tilpasset', period: '', features: ['Ubegrenset oppslag', 'Dedikert kundeansvarlig', 'API-tilgang', 'SSO & SAML', 'Custom integrasjoner'], cta: 'Kontakt oss' },
 ]
@@ -97,7 +97,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-[1.05rem] text-white/35 max-w-xl mx-auto mb-12 leading-relaxed font-light">
-              Komplett tilgang til Bronnoysundregistrene med AI-drevet enrichment, pipeline-styring og outreach-automatisering.
+              Komplett tilgang til Brønnøysundregistrene med AI-drevet enrichment, pipeline-styring og outreach-automatisering.
             </p>
 
             <div className="flex items-center justify-center gap-4">
@@ -208,7 +208,7 @@ export default function LandingPage() {
               Bygget for <span className="italic gradient-text">presisjon</span>
             </h2>
             <p className="text-[1rem] text-white/30 max-w-lg leading-relaxed font-light">
-              Hvert verktoy er designet for a gi deg et overtak i markedet.
+              Hvert verktoy er designet for å gi deg et overtak i markedet.
             </p>
           </div>
 
@@ -265,7 +265,7 @@ export default function LandingPage() {
               Transparent <span className="italic gradient-text">prising</span>
             </h2>
             <p className="text-[1rem] text-white/30 max-w-lg leading-relaxed font-light">
-              Start gratis. Skaler nar forretningen vokser.
+              Start gratis. Skaler når forretningen vokser.
             </p>
           </div>
 
@@ -326,9 +326,9 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto px-8 text-center">
           <div className="p-16 rounded-lg border border-white/[0.04] relative overflow-hidden"
             style={{ background: 'linear-gradient(135deg, rgba(0,81,168,0.03) 0%, rgba(10,10,15,0.5) 100%)' }}>
-            <div className="text-[0.72rem] text-gold/50 uppercase tracking-[0.2em] font-medium mb-6">Klar til a starte?</div>
+            <div className="text-[0.72rem] text-gold/50 uppercase tracking-[0.2em] font-medium mb-6">Klar til å starte?</div>
             <h2 className="font-display text-[2.2rem] font-normal mb-4 text-white/90">
-              Opprett konto pa<br /><span className="italic gradient-text">under 30 sekunder</span>
+              Opprett konto på<br /><span className="italic gradient-text">under 30 sekunder</span>
             </h2>
             <p className="text-white/30 text-[0.95rem] mb-10 font-light">
               Ingen kredittkort. Ingen bindingstid. Full tilgang til grunnleggende funksjoner.

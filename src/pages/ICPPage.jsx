@@ -38,17 +38,27 @@ export default function ICPPage() {
 
   return (
     <div>
-      <div className="px-8 py-6 bg-surface-raised border-b border-bdr flex items-center justify-between sticky top-0 z-40">
+      <div className="px-8 py-5 bg-white border-b border-gray-100 flex items-center justify-between sticky top-0 z-40">
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">ICP Builder</h1>
-          <p className="text-txt-secondary text-[0.9rem] mt-0.5">Definer din ideelle kundeprofil for å finne bedre leads</p>
+          <h1 className="font-display text-[1.6rem] font-normal tracking-tight text-ink">ICP-profil</h1>
+          <p className="text-txt-tertiary text-[0.82rem] mt-0.5 font-light">Definer din ideelle kundeprofil</p>
         </div>
-        <button onClick={handleSave} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium text-white hover:-translate-y-0.5 hover:shadow-lg transition-all" style={{background:'linear-gradient(135deg, #FF6B4A 0%, #FF8F6B 100%)'}}>
-          <Save size={16} /> Lagre profil
+        <button onClick={handleSave} className="flex items-center gap-2 px-4 py-2 rounded text-[0.82rem] font-medium text-white bg-gold hover:bg-gold-light transition-all">
+          <Save size={15} /> Lagre profil
         </button>
       </div>
 
       <div className="p-8 max-w-[740px]">
+        {/* How ICP is used */}
+        <div className="animate-in mb-6 p-4 rounded-lg border border-blue-100 bg-blue-50/50">
+          <h4 className="text-[0.82rem] font-medium text-ink mb-1.5">Hvordan brukes ICP-profilen?</h4>
+          <ul className="text-[0.78rem] text-txt-secondary font-light space-y-1">
+            <li>• <strong>Selskapsnavn</strong> og <strong>ditt navn</strong> settes automatisk inn i genererte e-postmaler (erstatter flettefeltene &#123;&#123;sender_company&#125;&#125; og &#123;&#123;sender_name&#125;&#125;)</li>
+            <li>• <strong>Hva du selger</strong> og <strong>problemet du løser</strong> brukes som fallback-tekst i e-poster uten bransjemal</li>
+            <li>• Resten av feltene hjelper deg å holde oversikt over din ideelle kundeprofil</li>
+          </ul>
+        </div>
+
         {activeTemplate?.id !== 'general' && (
           <div className="animate-in mb-6 flex items-center gap-3 p-4 rounded-lg border border-gold/15 bg-gold/[0.03]">
             <Sparkles size={16} className="text-gold flex-shrink-0" />
