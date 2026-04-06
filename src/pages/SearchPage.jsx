@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef } from 'react'
-import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, ChevronDown, Mail, ExternalLink, Globe, Phone, Trophy, Zap } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, ChevronDown, Mail, ExternalLink, Globe, Phone, Trophy } from 'lucide-react'
 import { fetchAllBasic, enrichCompanies, NACE_CODES, MUNICIPALITIES, EMPLOYEE_RANGES, formatNOK } from '../api/brreg'
 import { useSavedLists } from '../hooks/useSavedLists'
 import { usePipeline } from '../hooks/usePipeline'
@@ -62,8 +62,7 @@ export default function SearchPage() {
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [saveName, setSaveName] = useState('')
   const [searchName, setSearchName] = useState('')
-  const [enrichAllProgress, setEnrichAllProgress] = useState(null) // { done, total } or null
-  const enrichAllAbort = useRef(false)
+
   const [searchHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem('leadflow_search_history') || '[]') } catch { return [] }
   })
@@ -252,47 +251,47 @@ export default function SearchPage() {
     }
   }
 
-  // Enrich ALL companies in background
-  async function enrichAll() {
-    const needsEnrich = filtered.filter(c => !enrichedCache[c.orgNumber])
-    if (!needsEnrich.length) { toast.success('Alle leads er allerede enrichet!'); return }
-    enrichAllAbort.current = false
-    setEnrichAllProgress({ done: 0, total: needsEnrich.length })
-    const BATCH = 10
-    let done = 0
-    try {
-      for (let i = 0; i < needsEnrich.length; i += BATCH) {
-        if (enrichAllAbort.current) { toast('Enrichment avbrutt', { icon: '⏹' }); break }
-        const batch = needsEnrich.slice(i, i + BATCH)
-        const enriched = await enrichCompanies(batch)
-        setEnrichedCache(prev => { const n = { ...prev }; enriched.forEach(c => { n[c.orgNumber] = c }); return n })
-        done += enriched.length
-        setEnrichAllProgress({ done, total: needsEnrich.length })
-      }
-      if (!enrichAllAbort.current) toast.success(`Enrichet ${done} leads med kontaktinfo og regnskap!`)
-    } catch (e) { console.error(e); toast.error('Enrichment feilet delvis') }
-    finally { setEnrichAllProgress(null) }
-  }
-
-  function cancelEnrichAll() { enrichAllAbort.current = true }
-
   function handleSuggestedSearch(s) {
     const f = { query:'', industrikode:s.filters.industrikode||'', kommunenummer:s.filters.kommunenummer||'', employeeRange:s.filters.employeeRange||'', fraRegistreringsdato:'', tilRegistreringsdato:'' }
     setFilters(f); handleSearch(0, f, s.name, { include: s.include || null, exclude: s.exclude || null })
   }
 
-  function handleSave() {
+  const [saving, setSaving] = useState(false)
+  const [saveProgress, setSaveProgress] = useState(null) // { done, total } or null
+
+  async function handleSave() {
     const toSave = selectedRows.size > 0 ? filtered.filter(c => selectedRows.has(c.orgNumber)) : filtered
     if (!toSave.length) return
     const nm = saveName.trim() || searchName || 'Uten navn'
+
+    // Enrich all unenriched leads before saving
+    const needsEnrich = toSave.filter(c => !enrichedCache[c.orgNumber])
+    let localCache = { ...enrichedCache }
+    if (needsEnrich.length > 0) {
+      setSaving(true)
+      setSaveProgress({ done: 0, total: needsEnrich.length })
+      const BATCH = 10
+      let done = 0
+      try {
+        for (let i = 0; i < needsEnrich.length; i += BATCH) {
+          const batch = needsEnrich.slice(i, i + BATCH)
+          const enriched = await enrichCompanies(batch)
+          enriched.forEach(c => { localCache[c.orgNumber] = c })
+          setEnrichedCache(prev => { const n = { ...prev }; enriched.forEach(c => { n[c.orgNumber] = c }); return n })
+          done += enriched.length
+          setSaveProgress({ done, total: needsEnrich.length })
+        }
+      } catch (e) { console.error(e) }
+    }
+
     const nace = NACE_CODES.find(n=>n.value===filters.industrikode)
     const muni = MUNICIPALITIES.find(m=>m.value===filters.kommunenummer)
     const emp = EMPLOYEE_RANGES.find(r=>r.value===filters.employeeRange)
     const parts = [nace?.label?.split(' — ')[1]||'', muni?.label||'', emp?.label||''].filter(Boolean)
-    const companiesWithEnrichment = toSave.map(c => enrichedCache[c.orgNumber] ? { ...c, ...enrichedCache[c.orgNumber] } : c)
+    const companiesWithEnrichment = toSave.map(c => localCache[c.orgNumber] ? { ...c, ...localCache[c.orgNumber] } : c)
     saveList({ name:nm, filters:{...filters}, filterLabels:parts.join(' · ')||'Alle filtre', companies:companiesWithEnrichment, totalResults:toSave.length })
-    toast.success(`"${nm}" lagret med ${toSave.length} leads!`)
-    setShowSaveModal(false); setSaveName('')
+    toast.success(`"${nm}" lagret med ${toSave.length} leads — alle enrichet!`)
+    setShowSaveModal(false); setSaveName(''); setSaving(false); setSaveProgress(null)
   }
 
   function toggleRow(o) { setSelectedRows(p=>{const n=new Set(p);n.has(o)?n.delete(o):n.add(o);return n}) }
@@ -367,15 +366,6 @@ export default function SearchPage() {
         </div>
         <div className="flex gap-2">
           {hasResults && (<>
-            {enrichAllProgress ? (
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[0.82rem] font-medium bg-violet/10 text-violet border border-violet/20">
-                <Loader2 size={14} className="animate-spin"/>
-                <span>Enricher {enrichAllProgress.done}/{enrichAllProgress.total}</span>
-                <button onClick={cancelEnrichAll} className="ml-1 text-violet/60 hover:text-violet">✕</button>
-              </div>
-            ) : (
-              <button onClick={enrichAll} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-violet/30 text-violet hover:bg-violet/10 transition-all"><Zap size={16}/> Enrich alle</button>
-            )}
             <button onClick={()=>{setSaveName(searchName);setShowSaveModal(true)}} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all"><Bookmark size={16}/> Lagre liste</button>
             <button onClick={exportCSV} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all"><Download size={16}/> Eksporter CSV</button>
           </>)}
@@ -701,10 +691,20 @@ export default function SearchPage() {
                 )}
               </div>
             </div>
+            {saveProgress && (
+              <div className="mb-4 p-3 bg-violet/5 border border-violet/20 rounded-lg">
+                <div className="flex items-center gap-2 text-[0.82rem] text-violet font-medium mb-2">
+                  <Loader2 size={14} className="animate-spin"/> Enricher kontaktinfo og regnskap... {saveProgress.done}/{saveProgress.total}
+                </div>
+                <div className="h-1.5 bg-surface-sunken rounded-full overflow-hidden">
+                  <div className="h-full bg-violet rounded-full transition-all duration-300" style={{ width: `${(saveProgress.done / saveProgress.total) * 100}%` }}/>
+                </div>
+              </div>
+            )}
             <div className="flex gap-3 justify-end">
-              <button onClick={()=>setShowSaveModal(false)} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all">Avbryt</button>
-              <button onClick={handleSave} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium bg-coral text-white hover:bg-coral-hover transition-all">
-                Lagre {selectedRows.size > 0 ? selectedRows.size : filtered.length} leads
+              <button onClick={()=>setShowSaveModal(false)} disabled={saving} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken disabled:opacity-40 transition-all">Avbryt</button>
+              <button onClick={handleSave} disabled={saving} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium bg-coral text-white hover:bg-coral-hover disabled:opacity-60 transition-all">
+                {saving ? <><Loader2 size={14} className="animate-spin inline mr-1.5"/>Enricher og lagrer...</> : `Lagre ${selectedRows.size > 0 ? selectedRows.size : filtered.length} leads`}
               </button>
             </div>
           </div>

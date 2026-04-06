@@ -99,6 +99,26 @@ export function usePipeline() {
     return added
   }
 
+  // Add a note to a pipeline lead
+  function addNote(orgNumber, text) {
+    if (!text.trim() || !pipeline[orgNumber]) return
+    const updated = { ...pipeline }
+    const lead = { ...updated[orgNumber] }
+    const note = { id: crypto.randomUUID(), text: text.trim(), createdAt: new Date().toISOString() }
+    lead.notes = [...(lead.notes || []), note]
+    updated[orgNumber] = lead
+    persist(updated)
+  }
+
+  function removeNote(orgNumber, noteId) {
+    if (!pipeline[orgNumber]) return
+    const updated = { ...pipeline }
+    const lead = { ...updated[orgNumber] }
+    lead.notes = (lead.notes || []).filter(n => n.id !== noteId)
+    updated[orgNumber] = lead
+    persist(updated)
+  }
+
   // Auto-advance: move to 'contacted' if currently 'new'
   function autoAdvanceToContacted(orgNumber) {
     const current = pipeline[orgNumber]
@@ -118,6 +138,8 @@ export function usePipeline() {
     getLeadsForStage,
     getStageCounts,
     addListToPipeline,
+    addNote,
+    removeNote,
     autoAdvanceToContacted,
     STAGES,
   }

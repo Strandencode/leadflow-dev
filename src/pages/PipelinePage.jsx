@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { usePipeline, STAGES } from '../hooks/usePipeline'
 import { useSavedLists } from '../hooks/useSavedLists'
-import { Plus, GripVertical, Mail, Phone, X, ChevronDown, ArrowRight, Trash2, Filter, Check } from 'lucide-react'
+import { Plus, GripVertical, Mail, Phone, X, ChevronDown, ArrowRight, Trash2, Filter, Check, StickyNote, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const EXCLUDE_FILTERS = [
@@ -9,7 +9,7 @@ const EXCLUDE_FILTERS = [
 ]
 
 export default function PipelinePage() {
-  const { pipeline, getLeadsForStage, getStageCounts, moveToStage, addListToPipeline, removeFromPipeline } = usePipeline()
+  const { pipeline, getLeadsForStage, getStageCounts, moveToStage, addListToPipeline, removeFromPipeline, addNote, removeNote } = usePipeline()
   const { lists } = useSavedLists()
   const [dragItem, setDragItem] = useState(null)
   const [dragOverStage, setDragOverStage] = useState(null)
@@ -17,6 +17,8 @@ export default function PipelinePage() {
   const [activeFilters, setActiveFilters] = useState(new Set())
   const [selectedLeads, setSelectedLeads] = useState(new Set())
   const [showBulkMove, setShowBulkMove] = useState(false)
+  const [expandedCard, setExpandedCard] = useState(null) // orgNumber
+  const [noteText, setNoteText] = useState('')
 
   function toggleSelectLead(orgNumber, e) {
     e.stopPropagation()
@@ -275,11 +277,43 @@ export default function PipelinePage() {
                             <Mail size={13} />
                           </a>
                         )}
+                        <button onClick={(e) => { e.stopPropagation(); setExpandedCard(expandedCard === lead.orgNumber ? null : lead.orgNumber); setNoteText('') }}
+                          className={`p-1.5 rounded-lg transition-all ${expandedCard === lead.orgNumber ? 'bg-violet/10 text-violet' : 'text-txt-tertiary hover:bg-violet/10 hover:text-violet'}`} title="Notater">
+                          <StickyNote size={13} />
+                        </button>
+                        {(lead.notes || []).length > 0 && expandedCard !== lead.orgNumber && (
+                          <span className="text-[0.62rem] text-txt-tertiary">{lead.notes.length}</span>
+                        )}
                         <button onClick={() => removeFromPipeline(lead.orgNumber)}
                           className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-400 transition-all ml-auto opacity-0 group-hover:opacity-100">
                           <Trash2 size={13} />
                         </button>
                       </div>
+
+                      {/* Expandable notes section */}
+                      {expandedCard === lead.orgNumber && (
+                        <div className="mt-2 pt-2 border-t border-surface-sunken" onClick={e => e.stopPropagation()}>
+                          <div className="flex gap-1.5 mb-2">
+                            <input type="text" value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Legg til notat..." className="flex-1 px-2.5 py-1.5 bg-surface border border-bdr rounded-lg text-[0.75rem] outline-none focus:border-violet" onKeyDown={e => { if (e.key === 'Enter' && noteText.trim()) { addNote(lead.orgNumber, noteText); setNoteText(''); toast.success('Notat lagt til') }}}/>
+                            <button onClick={() => { if (noteText.trim()) { addNote(lead.orgNumber, noteText); setNoteText(''); toast.success('Notat lagt til') }}} disabled={!noteText.trim()} className="p-1.5 rounded-lg bg-violet text-white disabled:opacity-30 hover:bg-violet/90 transition-all">
+                              <Send size={11}/>
+                            </button>
+                          </div>
+                          {(lead.notes || []).length > 0 && (
+                            <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                              {[...(lead.notes || [])].reverse().map(note => (
+                                <div key={note.id} className="p-2 bg-surface-sunken/50 rounded-lg group/note">
+                                  <p className="text-[0.72rem] text-txt-secondary">{note.text}</p>
+                                  <div className="flex items-center justify-between mt-1">
+                                    <span className="text-[0.6rem] text-txt-tertiary">{new Date(note.createdAt).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}</span>
+                                    <button onClick={() => removeNote(lead.orgNumber, note.id)} className="text-txt-tertiary hover:text-red-400 opacity-0 group-hover/note:opacity-100 transition-all"><X size={10}/></button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
