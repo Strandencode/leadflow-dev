@@ -36,7 +36,9 @@ export default function SavedPage() {
   const [expandedId, setExpandedId] = useState(null)
   const [visibleCount, setVisibleCount] = useState({})
   const [selectedRows, setSelectedRows] = useState({})
-  const [composerList, setComposerList] = useState(null) // list id for email composer // { listId: Set of orgNumbers }
+  const [composerList, setComposerList] = useState(null)
+  const [listSearch, setListSearch] = useState({}) // { [listId]: searchString }
+  const [listFilter, setListFilter] = useState({}) // { [listId]: 'all'|'emailed'|'not_emailed'|'called'|'not_contacted' }
 
   function fmt(iso) { return iso ? new Date(iso).toLocaleDateString('nb-NO',{day:'numeric',month:'short',year:'numeric'}) : '—' }
 
@@ -185,15 +187,39 @@ export default function SavedPage() {
                   )}
 
                   {/* Expanded table */}
-                  {expandedId===list.id && list.companies?.length > 0 && (
+                  {expandedId===list.id && list.companies?.length > 0 && (()=>{
+                    const q = (listSearch[list.id] || '').toLowerCase()
+                    const flt = listFilter[list.id] || 'all'
+                    const filteredCompanies = list.companies.filter(c => {
+                      // Text search
+                      if (q && !`${c.name} ${c.contactName} ${c.email} ${c.industry} ${c.municipality}`.toLowerCase().includes(q)) return false
+                      // Status filter
+                      const t = getTracking(c.orgNumber)
+                      if (flt === 'emailed' && !t.emailed) return false
+                      if (flt === 'not_emailed' && t.emailed) return false
+                      if (flt === 'called' && !t.called) return false
+                      if (flt === 'not_contacted' && (t.emailed || t.called)) return false
+                      if (flt === 'has_email' && !c.email) return false
+                      return true
+                    })
+                    return (
                     <div className="border-t border-bdr">
                       {/* Quick actions bar */}
-                      <div className="px-4 py-2 bg-surface-sunken flex items-center gap-2 text-[0.78rem]">
+                      <div className="px-4 py-2.5 bg-surface-sunken flex items-center gap-2 text-[0.78rem] flex-wrap">
+                        <input type="text" value={listSearch[list.id]||''} onChange={e=>setListSearch(p=>({...p,[list.id]:e.target.value}))} placeholder="Søk i listen..." className="px-2.5 py-1.5 bg-surface border border-bdr rounded-lg text-[0.78rem] outline-none focus:border-violet w-44"/>
+                        {[
+                          {id:'all',label:'Alle'},
+                          {id:'not_contacted',label:'Ikke kontaktet'},
+                          {id:'emailed',label:'Sendt'},
+                          {id:'not_emailed',label:'Ikke sendt'},
+                          {id:'called',label:'Ringt'},
+                          {id:'has_email',label:'Har e-post'},
+                        ].map(f=>(
+                          <button key={f.id} onClick={()=>setListFilter(p=>({...p,[list.id]:f.id}))} className={`px-2.5 py-1 rounded border transition-all font-medium ${flt===f.id?'border-violet text-violet bg-violet/5':'border-bdr text-txt-secondary hover:border-violet/30'}`}>{f.label}</button>
+                        ))}
+                        <span className="text-txt-tertiary ml-auto">{filteredCompanies.length} av {list.companies.length}</span>
                         <button onClick={()=>selectAllOnList(list)} className="px-2.5 py-1 rounded border border-bdr text-txt-secondary hover:border-violet hover:text-violet transition-all font-medium">
                           {sel.size===list.companies.length ? 'Fjern markering' : 'Velg alle'}
-                        </button>
-                        <button onClick={()=>selectAllWithEmail(list)} className="px-2.5 py-1 rounded border border-bdr text-txt-secondary hover:border-violet hover:text-violet transition-all font-medium">
-                          Velg med e-post ({st.withEmail})
                         </button>
                       </div>
 
@@ -210,7 +236,7 @@ export default function SavedPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {list.companies.slice(0, visibleCount[list.id]||20).map(c => {
+                            {filteredCompanies.slice(0, visibleCount[list.id]||20).map(c => {
                               const t = getTracking(c.orgNumber)
                               const isWon = isCustomer(c.orgNumber)
                               return (
@@ -260,13 +286,13 @@ export default function SavedPage() {
                           </tbody>
                         </table>
                       </div>
-                      {list.companies.length > (visibleCount[list.id]||20) && (
+                      {filteredCompanies.length > (visibleCount[list.id]||20) && (
                         <button onClick={e=>{e.stopPropagation();setVisibleCount(p=>({...p,[list.id]:(p[list.id]||20)+30}))}} className="w-full py-3 text-center text-[0.85rem] text-violet font-medium hover:bg-violet-soft border-t border-surface-sunken transition-all">
-                          Vis flere ({list.companies.length-(visibleCount[list.id]||20)} gjenstår) ↓
+                          Vis flere ({filteredCompanies.length-(visibleCount[list.id]||20)} gjenstår) ↓
                         </button>
                       )}
                     </div>
-                  )}
+                  )})()}
                 </div>
               )
             })}

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { usePipeline, STAGES } from '../hooks/usePipeline'
 import { useSavedLists } from '../hooks/useSavedLists'
-import { Plus, GripVertical, Mail, Phone, X, ChevronDown, ArrowRight, Trash2, Filter } from 'lucide-react'
+import { Plus, GripVertical, Mail, Phone, X, ChevronDown, ArrowRight, Trash2, Filter, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const EXCLUDE_FILTERS = [
@@ -15,6 +15,43 @@ export default function PipelinePage() {
   const [dragOverStage, setDragOverStage] = useState(null)
   const [showImport, setShowImport] = useState(false)
   const [activeFilters, setActiveFilters] = useState(new Set())
+  const [selectedLeads, setSelectedLeads] = useState(new Set())
+  const [showBulkMove, setShowBulkMove] = useState(false)
+
+  function toggleSelectLead(orgNumber, e) {
+    e.stopPropagation()
+    setSelectedLeads(prev => {
+      const next = new Set(prev)
+      next.has(orgNumber) ? next.delete(orgNumber) : next.add(orgNumber)
+      return next
+    })
+  }
+
+  function bulkMoveToStage(targetStageId) {
+    if (!selectedLeads.size) return
+    selectedLeads.forEach(orgNumber => moveToStage(orgNumber, targetStageId))
+    const stageName = STAGES.find(s => s.id === targetStageId)?.label
+    toast.success(`${selectedLeads.size} leads flyttet til ${stageName}`)
+    setSelectedLeads(new Set())
+    setShowBulkMove(false)
+  }
+
+  function bulkRemove() {
+    if (!selectedLeads.size) return
+    selectedLeads.forEach(orgNumber => removeFromPipeline(orgNumber))
+    toast.success(`${selectedLeads.size} leads fjernet`)
+    setSelectedLeads(new Set())
+  }
+
+  function selectAllInStage(stageId) {
+    const leads = getLeadsForStage(stageId)
+    setSelectedLeads(prev => {
+      const next = new Set(prev)
+      const allSelected = leads.every(l => next.has(l.orgNumber))
+      leads.forEach(l => allSelected ? next.delete(l.orgNumber) : next.add(l.orgNumber))
+      return next
+    })
+  }
   const counts = getStageCounts()
   const totalLeads = Object.values(counts).reduce((s, c) => s + c, 0)
 
@@ -135,6 +172,33 @@ export default function PipelinePage() {
         </div>
       </div>
 
+      {/* Bulk action bar */}
+      {selectedLeads.size > 0 && (
+        <div className="mx-6 mt-2 bg-ink text-white rounded-xl px-5 py-3 flex items-center justify-between shadow-lg animate-in">
+          <span className="text-[0.88rem] font-medium">✓ {selectedLeads.size} valgt</span>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <button onClick={() => setShowBulkMove(!showBulkMove)} className="px-3 py-1.5 rounded-lg text-[0.82rem] font-medium bg-white/10 hover:bg-white/20 transition-all flex items-center gap-1.5">
+                <ArrowRight size={13}/> Flytt til...
+              </button>
+              {showBulkMove && (
+                <div className="absolute bottom-full mb-2 left-0 w-48 bg-surface-raised text-txt-primary border border-bdr rounded-xl shadow-xl z-50 overflow-hidden">
+                  {STAGES.map(s => (
+                    <button key={s.id} onClick={() => bulkMoveToStage(s.id)} className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-[0.82rem] hover:bg-surface-sunken transition-colors">
+                      <span>{s.emoji}</span> {s.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button onClick={bulkRemove} className="px-3 py-1.5 rounded-lg text-[0.82rem] font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-all flex items-center gap-1.5">
+              <Trash2 size={13}/> Fjern
+            </button>
+            <button onClick={() => setSelectedLeads(new Set())} className="px-2 py-1.5 text-white/50 hover:text-white transition-all">✕</button>
+          </div>
+        </div>
+      )}
+
       {/* Kanban Board */}
       <div className="flex-1 overflow-x-auto p-6">
         <div className="flex gap-5 h-full min-w-max">
@@ -158,9 +222,14 @@ export default function PipelinePage() {
                     <h3 className="text-[0.88rem] font-semibold">{stage.label}</h3>
                     <span className="text-[0.72rem] font-bold px-2 py-0.5 rounded-full"
                       style={{ backgroundColor: `${stage.color}15`, color: stage.color }}>
-                      {counts[stage.id]}
+                      {leads.length}
                     </span>
                   </div>
+                  {leads.length > 0 && (
+                    <button onClick={() => selectAllInStage(stage.id)} className="p-1.5 rounded-lg hover:bg-surface-sunken text-txt-tertiary hover:text-violet transition-all" title="Velg alle">
+                      <Check size={14}/>
+                    </button>
+                  )}
                 </div>
 
                 {/* Cards */}
@@ -177,12 +246,15 @@ export default function PipelinePage() {
                       draggable
                       onDragStart={e => handleDragStart(e, lead.orgNumber, stage.id)}
                       onDragEnd={handleDragEnd}
-                      className="kanban-card group bg-surface-raised border border-bdr rounded-xl p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                      className={`kanban-card group bg-surface-raised border rounded-xl p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${selectedLeads.has(lead.orgNumber) ? 'border-violet ring-1 ring-violet/30' : 'border-bdr'}`}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[0.88rem] font-semibold truncate">{lead.name}</div>
-                          <div className="text-[0.72rem] text-txt-tertiary truncate">{lead.industry || 'Ukjent bransje'}</div>
+                        <div className="flex items-start gap-2 flex-1 min-w-0">
+                          <input type="checkbox" checked={selectedLeads.has(lead.orgNumber)} onChange={e => toggleSelectLead(lead.orgNumber, e)} className="accent-violet w-3.5 h-3.5 mt-0.5 cursor-pointer flex-shrink-0"/>
+                          <div className="min-w-0">
+                            <div className="text-[0.88rem] font-semibold truncate">{lead.name}</div>
+                            <div className="text-[0.72rem] text-txt-tertiary truncate">{lead.industry || 'Ukjent bransje'}</div>
+                          </div>
                         </div>
                         <GripVertical size={14} className="text-txt-tertiary/40 flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>

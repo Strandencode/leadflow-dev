@@ -107,7 +107,18 @@ export default function AnalyticsPage() {
 
     const pipelineCounts = getStageCounts()
 
-    return { totalLeads, emailed, called, contacted, won, listStats, days, pipelineCounts }
+    // Top industries
+    const industryMap = {}
+    for (const c of allCompanies) {
+      const ind = c.industry || 'Ukjent'
+      if (!industryMap[ind]) industryMap[ind] = { name: ind, count: 0, contacted: 0 }
+      industryMap[ind].count++
+      const t = getTracking(c.orgNumber)
+      if (t.emailed || t.called) industryMap[ind].contacted++
+    }
+    const topIndustries = Object.values(industryMap).sort((a, b) => b.count - a.count).slice(0, 8)
+
+    return { totalLeads, emailed, called, contacted, won, listStats, days, pipelineCounts, topIndustries }
   }, [lists, customers, getTracking, getStageCounts])
 
   const conversionRate = stats.totalLeads > 0 ? ((stats.won / stats.totalLeads) * 100).toFixed(1) : '0'
@@ -220,8 +231,8 @@ export default function AnalyticsPage() {
         {/* Pipeline stages */}
         <div className="animate-in delay-5 bg-surface-raised border border-bdr rounded-2xl p-6 mb-8">
           <h3 className="font-display text-lg font-semibold mb-6">Pipeline-fordeling</h3>
-          <div className="grid grid-cols-4 gap-4">
-            {STAGES.map(stage => {
+          <div className="grid grid-cols-6 gap-3">
+            {STAGES.map((stage, i) => {
               const count = stats.pipelineCounts[stage.id] || 0
               const total = Object.values(stats.pipelineCounts).reduce((s, c) => s + c, 0) || 1
               const pct = Math.round((count / total) * 100)
@@ -231,11 +242,40 @@ export default function AnalyticsPage() {
                   <div className="font-display text-2xl font-bold" style={{ color: stage.color }}>{count}</div>
                   <div className="text-[0.78rem] text-txt-secondary font-medium">{stage.label}</div>
                   <div className="text-[0.68rem] text-txt-tertiary">{pct}%</div>
+                  {i < STAGES.length - 1 && count > 0 && (
+                    <div className="text-[0.62rem] text-txt-tertiary mt-1">
+                      → {Math.round(((stats.pipelineCounts[STAGES[i+1]?.id] || 0) / count) * 100)}%
+                    </div>
+                  )}
                 </div>
               )
             })}
           </div>
         </div>
+
+        {/* Top industries */}
+        {stats.topIndustries.length > 0 && (
+          <div className="animate-in delay-5 bg-surface-raised border border-bdr rounded-2xl p-6 mb-8">
+            <h3 className="font-display text-lg font-semibold mb-6">Toppbransjer</h3>
+            <div className="space-y-3">
+              {stats.topIndustries.map((ind, i) => {
+                const maxCount = stats.topIndustries[0].count
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-[0.82rem] text-txt-secondary w-40 truncate">{ind.name}</span>
+                    <div className="flex-1 h-6 bg-surface-sunken rounded-lg overflow-hidden">
+                      <div className="h-full rounded-lg flex items-center px-3 transition-all duration-700"
+                        style={{ width: `${Math.max((ind.count / maxCount) * 100, 8)}%`, background: `linear-gradient(135deg, #7C5CFC, #A78BFA)` }}>
+                        <span className="text-white text-[0.68rem] font-semibold">{ind.count}</span>
+                      </div>
+                    </div>
+                    <span className="text-[0.72rem] text-txt-tertiary w-12 text-right">{ind.contacted} kontaktet</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Top Lists */}
         {stats.listStats.length > 0 && (
@@ -278,7 +318,7 @@ export default function AnalyticsPage() {
             <BarChart3 size={48} className="mx-auto text-txt-tertiary/30 mb-4" />
             <h3 className="font-display text-lg font-semibold text-txt-secondary mb-2">Ingen data enda</h3>
             <p className="text-txt-tertiary text-[0.9rem] max-w-md mx-auto">
-              Sok etter leads, lagre lister og begynn a ta kontakt. Statistikken oppdateres automatisk.
+              Søk etter leads, lagre lister og begynn å ta kontakt. Statistikken oppdateres automatisk.
             </p>
           </div>
         )}

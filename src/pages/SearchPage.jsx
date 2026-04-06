@@ -64,6 +64,9 @@ export default function SearchPage() {
   const [searchName, setSearchName] = useState('')
   const [enrichAllProgress, setEnrichAllProgress] = useState(null) // { done, total } or null
   const enrichAllAbort = useRef(false)
+  const [searchHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('leadflow_search_history') || '[]') } catch { return [] }
+  })
   const { saveList, markEmailed: _markEmailed, markCalled: _markCalled, getTracking, getListsForOrg } = useSavedLists()
   const { autoAdvanceToContacted } = usePipeline()
   const { addCustomer, isCustomer } = useCustomers()
@@ -185,6 +188,16 @@ export default function SearchPage() {
       const enriched = await enrichCompanies(first)
       const cache = {}; enriched.forEach(c => { cache[c.orgNumber] = c })
       setEnrichedCache(cache)
+
+      // Save to search history
+      const sName = name || searchName || 'Egendefinert søk'
+      const nace = NACE_CODES.find(n => n.value === f.industrikode)
+      const histEntry = { name: sName, filters: { ...f }, results: stats.total, date: new Date().toISOString(), naceLabel: nace?.label?.split(' — ')[1] || '' }
+      try {
+        const prev = JSON.parse(localStorage.getItem('leadflow_search_history') || '[]')
+        const updated = [histEntry, ...prev.filter(h => h.name !== sName)].slice(0, 10)
+        localStorage.setItem('leadflow_search_history', JSON.stringify(updated))
+      } catch {}
     } catch(e) { toast.error('Søket feilet.'); console.error(e) }
     finally { setLoading(false); setLoadMsg('') }
   }
@@ -493,7 +506,27 @@ export default function SearchPage() {
             )}
 
             {/* Empty / Loading states */}
-            {!hasResults && !loading && <div className="bg-surface-raised border border-bdr rounded-xl p-16 text-center"><Search size={48} className="mx-auto text-txt-tertiary/40 mb-4"/><h3 className="font-display text-lg font-semibold text-txt-secondary mb-2">Velg et foreslått søk</h3><p className="text-txt-tertiary text-[0.9rem] max-w-md mx-auto">Klikk på et foreslått søk over, eller bruk filtrene til venstre.</p></div>}
+            {!hasResults && !loading && (
+              <div className="bg-surface-raised border border-bdr rounded-xl p-16 text-center">
+                <Search size={48} className="mx-auto text-txt-tertiary/40 mb-4"/>
+                <h3 className="font-display text-lg font-semibold text-txt-secondary mb-2">Velg et foreslått søk</h3>
+                <p className="text-txt-tertiary text-[0.9rem] max-w-md mx-auto mb-6">Klikk på et foreslått søk over, eller bruk filtrene til venstre.</p>
+                {searchHistory.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-bdr">
+                    <h4 className="text-[0.78rem] text-txt-tertiary uppercase tracking-wide font-semibold mb-3">Siste søk</h4>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {searchHistory.slice(0, 5).map((h, i) => (
+                        <button key={i} onClick={() => { setFilters(h.filters); handleSearch(0, h.filters, h.name) }}
+                          className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-bdr text-[0.82rem] text-txt-secondary hover:border-violet hover:text-violet transition-all">
+                          <span className="font-medium">{h.name}</span>
+                          <span className="text-[0.72rem] text-txt-tertiary">{h.results} treff</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             {loading && <div className="bg-surface-raised border border-bdr rounded-xl p-16 text-center"><Loader2 size={36} className="mx-auto text-coral animate-spin mb-4"/><p className="text-txt-secondary text-[0.9rem]">{loadMsg}</p></div>}
 
             {/* Results table */}
