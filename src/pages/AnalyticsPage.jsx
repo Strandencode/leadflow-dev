@@ -2,7 +2,9 @@ import { useMemo } from 'react'
 import { useSavedLists } from '../hooks/useSavedLists'
 import { useCustomers } from '../hooks/useCustomers'
 import { usePipeline, STAGES } from '../hooks/usePipeline'
-import { TrendingUp, Users, Mail, Phone, Trophy, ArrowUpRight, ArrowDownRight, BarChart3 } from 'lucide-react'
+import { usePlan } from '../hooks/usePlan'
+import { GatedOverlay } from '../components/UpgradePrompt'
+import { TrendingUp, Users, Mail, Phone, Trophy, ArrowUpRight, ArrowDownRight, BarChart3, Lock } from 'lucide-react'
 
 function FunnelBar({ label, count, total, color, emoji }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0
@@ -51,6 +53,7 @@ export default function AnalyticsPage() {
   const { lists, getTracking } = useSavedLists()
   const { customers } = useCustomers()
   const { getStageCounts } = usePipeline()
+  const { canUseAnalytics } = usePlan()
 
   const stats = useMemo(() => {
     const allCompanies = lists.flatMap(l => l.companies || [])
@@ -123,6 +126,38 @@ export default function AnalyticsPage() {
 
   const conversionRate = stats.totalLeads > 0 ? ((stats.won / stats.totalLeads) * 100).toFixed(1) : '0'
   const contactRate = stats.totalLeads > 0 ? Math.round((stats.contacted / stats.totalLeads) * 100) : 0
+
+  if (!canUseAnalytics) {
+    return (
+      <div>
+        <div className="px-8 py-6 bg-surface-raised border-b border-bdr sticky top-0 z-40">
+          <h1 className="font-display text-2xl font-semibold tracking-tight">Analytics</h1>
+          <p className="text-txt-secondary text-[0.9rem] mt-0.5">Oversikt over salgsaktivitet og konvertering</p>
+        </div>
+        <div className="p-8 flex items-center justify-center min-h-[60vh]">
+          <div className="bg-surface-raised border border-bdr rounded-2xl shadow-xl p-10 max-w-md text-center">
+            <div className="w-14 h-14 rounded-xl bg-violet/10 flex items-center justify-center mx-auto mb-5">
+              <Lock size={28} className="text-violet" />
+            </div>
+            <h3 className="font-display text-xl font-semibold mb-3">Analytics krever Professional</h3>
+            <p className="text-[0.88rem] text-txt-secondary mb-6">
+              Få full oversikt over salgsaktivitet, konverteringsrater og pipeline-fordeling med Professional eller høyere.
+            </p>
+            <GatedOverlay locked={true} feature="Analytics" planNeeded="Professional">
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                {[{ l: 'Leads', v: '—' }, { l: 'Kontaktet', v: '—' }, { l: 'Won', v: '—' }].map((k, i) => (
+                  <div key={i} className="bg-surface-sunken rounded-xl p-3">
+                    <div className="text-[0.72rem] text-txt-tertiary">{k.l}</div>
+                    <div className="font-display text-xl font-bold">{k.v}</div>
+                  </div>
+                ))}
+              </div>
+            </GatedOverlay>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div>

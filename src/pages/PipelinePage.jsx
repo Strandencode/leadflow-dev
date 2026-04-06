@@ -1,7 +1,9 @@
 import { useState, useRef } from 'react'
 import { usePipeline, STAGES } from '../hooks/usePipeline'
 import { useSavedLists } from '../hooks/useSavedLists'
-import { Plus, GripVertical, Mail, Phone, X, ChevronDown, ArrowRight, Trash2, Filter, Check, StickyNote, Send } from 'lucide-react'
+import { usePlan } from '../hooks/usePlan'
+import { UpgradePrompt } from '../components/UpgradePrompt'
+import { Plus, GripVertical, Mail, Phone, X, ChevronDown, ArrowRight, Trash2, Filter, Check, StickyNote, Send, Lock } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const EXCLUDE_FILTERS = [
@@ -11,6 +13,7 @@ const EXCLUDE_FILTERS = [
 export default function PipelinePage() {
   const { pipeline, getLeadsForStage, getStageCounts, moveToStage, addListToPipeline, removeFromPipeline, addNote, removeNote } = usePipeline()
   const { lists } = useSavedLists()
+  const { canAddToPipeline, limits } = usePlan()
   const [dragItem, setDragItem] = useState(null)
   const [dragOverStage, setDragOverStage] = useState(null)
   const [showImport, setShowImport] = useState(false)
@@ -111,6 +114,11 @@ export default function PipelinePage() {
   function handleImportList(listId) {
     const list = lists.find(l => l.id === listId)
     if (!list) return
+    if (!canAddToPipeline(totalLeads)) {
+      toast.error(`Pipeline-grensen er nådd (${limits.pipelineLeads} leads). Oppgrader for flere.`)
+      setShowImport(false)
+      return
+    }
     const added = addListToPipeline(list.companies || [])
     setShowImport(false)
     if (added > 0) toast.success(`${added} leads lagt til i pipeline`)
@@ -124,7 +132,7 @@ export default function PipelinePage() {
         <div>
           <h1 className="font-display text-2xl font-semibold tracking-tight">Pipeline</h1>
           <p className="text-txt-secondary text-[0.9rem] mt-0.5">
-            {totalLeads > 0 ? `${totalLeads} leads i pipeline` : 'Dra leads mellom kolonner for a oppdatere status'}
+            {totalLeads > 0 ? `${totalLeads}${limits.pipelineLeads !== Infinity ? `/${limits.pipelineLeads}` : ''} leads i pipeline` : 'Dra leads mellom kolonner for å oppdatere status'}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -173,6 +181,13 @@ export default function PipelinePage() {
         </div>
         </div>
       </div>
+
+      {/* Pipeline limit banner */}
+      {!canAddToPipeline(totalLeads) && (
+        <div className="mx-6 mt-2">
+          <UpgradePrompt feature={`Pipeline-grensen nådd (${limits.pipelineLeads} leads)`} planNeeded="Professional" inline />
+        </div>
+      )}
 
       {/* Bulk action bar */}
       {selectedLeads.size > 0 && (

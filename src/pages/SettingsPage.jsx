@@ -1,170 +1,81 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { usePlan } from '../hooks/usePlan'
+import { useWorkspace } from '../hooks/useWorkspace'
 import { useSavedLists } from '../hooks/useSavedLists'
-import { useUsage } from '../hooks/useUsage'
 import TEMPLATES, { getActiveTemplate, applyTemplate } from '../config/templates'
+import { PLANS, PLAN_ORDER } from '../config/plans'
 import toast from 'react-hot-toast'
-import { Crown, Zap, Rocket, Check } from 'lucide-react'
-
-const PLAN_KEY = 'leadflow_user_plan'
-
-const PLANS = [
-  {
-    id: 'free',
-    name: 'Gratis',
-    price: '0',
-    priceLabel: 'Gratis',
-    icon: Zap,
-    color: 'border-bdr',
-    btnClass: 'border border-bdr text-txt-secondary hover:bg-surface-sunken',
-    btnText: 'Nåværende plan',
-    limits: { emails: 20, phones: 20 },
-    features: ['20 e-poster sendt/mnd', '20 telefonnumre funnet/mnd', 'Ubegrenset søk', 'ICP-profil', 'E-postmaler'],
-    missing: ['AI e-postgenerering', 'Kundesegment-maler', 'Prioritert support'],
-    popular: false,
-  },
-  {
-    id: 'starter',
-    name: 'Starter',
-    price: '49',
-    priceLabel: '49 kr',
-    icon: Crown,
-    color: 'border-coral',
-    btnClass: 'bg-coral text-white hover:bg-coral-hover',
-    btnText: 'Oppgrader',
-    limits: { emails: 1000, phones: 1000 },
-    features: ['1 000 e-poster sendt/mnd', '1 000 telefonnumre funnet/mnd', 'Ubegrenset søk', 'ICP-profil', 'AI e-postgenerering', 'Alle kundesegment-maler'],
-    missing: ['Prioritert support'],
-    popular: true,
-  },
-  {
-    id: 'unlimited',
-    name: 'Unlimited',
-    price: '149',
-    priceLabel: '149 kr',
-    icon: Rocket,
-    color: 'border-violet',
-    btnClass: 'bg-violet text-white hover:bg-[#6A4AE8]',
-    btnText: 'Oppgrader',
-    limits: { emails: Infinity, phones: Infinity },
-    features: ['Alt ubegrenset', 'Ubegrenset e-poster', 'Ubegrenset telefonnumre', 'AI e-postgenerering', 'Alle kundesegment-maler', 'Prioritert support', 'Tidlig tilgang til nye funksjoner'],
-    missing: [],
-    popular: false,
-  },
-]
+import { Check, Crown, Users, Mail, Trash2, Plus, Shield, X } from 'lucide-react'
 
 export default function SettingsPage() {
   const { user, profile } = useAuth()
+  const { planId, plan, usage, changePlan, enrichmentsLeft } = usePlan()
+  const { workspace, createWorkspace, inviteMember, removeMember, cancelInvite, acceptInvite, updateMemberRole } = useWorkspace()
   const { getStats } = useSavedLists()
   const stats = useMemo(() => getStats(), [getStats])
-  const usageData = useUsage()
 
   const [fullName, setFullName] = useState(profile?.full_name || user?.user_metadata?.full_name || '')
   const [email, setEmail] = useState(user?.email || '')
   const [company, setCompany] = useState(profile?.company_name || user?.user_metadata?.company_name || '')
   const [phone, setPhone] = useState(profile?.phone || '')
-  const [currentPlan, setCurrentPlan] = useState('free')
-  const [cancelledAt, setCancelledAt] = useState(null) // ISO date when cancelled
-  const [planExpiresAt, setPlanExpiresAt] = useState(null) // ISO date when plan expires
   const [showCancelModal, setShowCancelModal] = useState(false)
-  const [showDowngradeModal, setShowDowngradeModal] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteName, setInviteName] = useState('')
+  const [inviteRole, setInviteRole] = useState('member')
+  const [showInviteForm, setShowInviteForm] = useState(false)
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(PLAN_KEY)
-      if (stored) setCurrentPlan(stored)
-      const cancelled = localStorage.getItem('leadflow_cancelled_at')
-      if (cancelled) setCancelledAt(cancelled)
-      const expires = localStorage.getItem('leadflow_plan_expires')
-      if (expires) setPlanExpiresAt(expires)
-
-      // Check if plan has expired
-      if (expires && new Date(expires) < new Date()) {
-        setCurrentPlan('free')
-        localStorage.setItem(PLAN_KEY, 'free')
-        localStorage.removeItem('leadflow_cancelled_at')
-        localStorage.removeItem('leadflow_plan_expires')
-        setCancelledAt(null)
-        setPlanExpiresAt(null)
-      }
-    } catch {}
-  }, [])
+  const enrichLimit = plan.limits.enrichments
+  const enrichUsed = usage.enrichments || 0
+  const enrichPct = enrichLimit === Infinity ? 0 : Math.min(100, Math.round((enrichUsed / enrichLimit) * 100))
 
   function handleSaveProfile() {
     toast.success('Profil oppdatert!')
   }
 
-  function handleSelectPlan(planId) {
-    if (planId === currentPlan && !cancelledAt) return
-    if (planId === 'free') {
-      setShowDowngradeModal(true)
+  function handleSelectPlan(newPlanId) {
+    if (newPlanId === planId) return
+    if (newPlanId === 'starter' && planId !== 'starter') {
+      setShowCancelModal(true)
       return
     }
-
-    const stripeLinks = {
-      starter: 'https://buy.stripe.com/test_7sY8wIgelgpl1pjcWuak001',
-      unlimited: 'https://buy.stripe.com/test_eVq7sEbY53Cz8RL6y6ak002',
+    if (newPlanId === 'enterprise') {
+      window.open('mailto:kontakt@leadflow.no?subject=Enterprise-plan', '_blank')
+      return
     }
-
-    const url = stripeLinks[planId]
-    if (url) {
-      setCancelledAt(null)
-      setPlanExpiresAt(null)
-      localStorage.removeItem('leadflow_cancelled_at')
-      localStorage.removeItem('leadflow_plan_expires')
-      setCurrentPlan(planId)
-      localStorage.setItem(PLAN_KEY, planId)
-      window.open(url, '_blank')
-      toast.success('Stripe Checkout åpnet i ny fane')
-    }
+    // In production: redirect to Stripe checkout
+    changePlan(newPlanId)
+    toast.success(`Oppgradert til ${PLANS[newPlanId].name}! 🎉`)
   }
 
   function handleCancelSubscription() {
-    const now = new Date()
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
-    setCancelledAt(now.toISOString())
-    setPlanExpiresAt(endOfMonth.toISOString())
-    localStorage.setItem('leadflow_cancelled_at', now.toISOString())
-    localStorage.setItem('leadflow_plan_expires', endOfMonth.toISOString())
+    changePlan('starter')
     setShowCancelModal(false)
-    toast.success(`Kansellert. Du beholder ${activePlan.name}-tilgang til ${endOfMonth.toLocaleDateString('nb-NO')}.`)
+    toast.success('Nedgradert til Starter')
   }
 
-  function handleDowngradeToFree() {
-    const now = new Date()
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
-    setCancelledAt(now.toISOString())
-    setPlanExpiresAt(endOfMonth.toISOString())
-    localStorage.setItem('leadflow_cancelled_at', now.toISOString())
-    localStorage.setItem('leadflow_plan_expires', endOfMonth.toISOString())
-    setShowDowngradeModal(false)
-    toast.success(`Nedgradert. ${activePlan.name}-tilgang til ${endOfMonth.toLocaleDateString('nb-NO')}.`)
+  function handleCreateWorkspace() {
+    createWorkspace(company || 'Mitt Workspace', email, fullName || 'Eier')
+    toast.success('Workspace opprettet!')
   }
 
-  function handleReactivate() {
-    setCancelledAt(null)
-    setPlanExpiresAt(null)
-    localStorage.removeItem('leadflow_cancelled_at')
-    localStorage.removeItem('leadflow_plan_expires')
-    toast.success('Abonnementet er reaktivert!')
+  function handleInvite() {
+    if (!inviteEmail.trim()) return
+    const result = inviteMember(inviteEmail.trim(), inviteName.trim(), inviteRole)
+    if (result === 'already_member') { toast.error('Allerede medlem'); return }
+    if (result === 'already_invited') { toast.error('Allerede invitert'); return }
+    toast.success(`Invitasjon sendt til ${inviteEmail}`)
+    setInviteEmail(''); setInviteName(''); setShowInviteForm(false)
   }
-
-  const activePlan = PLANS.find(p => p.id === currentPlan) || PLANS[0]
-  const emailUsage = usageData.emailsUsed
-  const phoneUsage = usageData.phonesUsed
-  const emailLimit = activePlan.limits.emails
-  const phoneLimit = activePlan.limits.phones
-  const emailPct = emailLimit === Infinity ? 0 : Math.min(100, Math.round((emailUsage / emailLimit) * 100))
-  const phonePct = phoneLimit === Infinity ? 0 : Math.min(100, Math.round((phoneUsage / phoneLimit) * 100))
 
   return (
     <div>
       <div className="px-8 py-6 bg-surface-raised border-b border-bdr sticky top-0 z-40">
         <h1 className="font-display text-2xl font-semibold tracking-tight">Innstillinger</h1>
-        <p className="text-txt-secondary text-[0.9rem] mt-0.5">Administrer konto og abonnement</p>
+        <p className="text-txt-secondary text-[0.9rem] mt-0.5">Administrer konto, abonnement og workspace</p>
       </div>
 
-      <div className="p-8 max-w-[780px]">
+      <div className="p-8 max-w-[900px]">
         {/* Active template */}
         <div className="animate-in bg-white border border-gray-100 rounded-lg p-6 mb-6">
           <h3 className="font-display text-[1.05rem] font-normal mb-1 text-ink">Bransjemal</h3>
@@ -174,7 +85,7 @@ export default function SettingsPage() {
               const isActive = getActiveTemplate().id === t.id
               return (
                 <button key={t.id}
-                  onClick={() => { applyTemplate(t.id); toast.success(`${t.name}-malen er aktivert! Last siden på nytt for å se endringene.`); }}
+                  onClick={() => { applyTemplate(t.id); toast.success(`${t.name}-malen er aktivert!`); }}
                   className={`flex items-center gap-3 p-3.5 rounded-lg border text-left transition-all ${
                     isActive ? 'border-gold bg-gold/[0.04]' : 'border-gray-100 hover:border-gray-200'
                   }`}>
@@ -192,114 +103,235 @@ export default function SettingsPage() {
 
         {/* Current plan + usage */}
         <div className="animate-in delay-1 bg-surface-raised border border-bdr rounded-xl p-8 mb-6">
-          <h3 className="font-display text-lg font-semibold mb-6">Abonnement</h3>
-
-          <div className="flex justify-between items-center py-4 border-b border-surface-sunken">
-            <div>
-              <h4 className="text-[0.92rem] font-medium">Gjeldende plan</h4>
-              <p className="text-[0.82rem] text-txt-secondary mt-0.5">
-                {activePlan.name} — {activePlan.limits.emails === Infinity ? 'Alt ubegrenset' : `${activePlan.limits.emails} e-poster & ${activePlan.limits.phones} telefonnumre per mnd`}
-              </p>
-            </div>
-            <span className={`px-4 py-1.5 rounded-full text-[0.82rem] font-semibold ${
-              currentPlan === 'unlimited' ? 'bg-violet-soft text-violet' :
-              currentPlan === 'starter' ? 'bg-coral-glow text-coral' :
-              'bg-surface-sunken text-txt-secondary'
-            }`}>
-              {activePlan.name}
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-display text-lg font-semibold">Abonnement</h3>
+            <span className="flex items-center gap-2 px-4 py-1.5 rounded-full text-[0.82rem] font-semibold" style={{ backgroundColor: `${plan.color}15`, color: plan.color }}>
+              {plan.icon} {plan.name}
             </span>
           </div>
 
-          {/* Usage bars */}
-          <div className="py-4 border-b border-surface-sunken space-y-3">
-            <div>
-              <div className="flex justify-between text-[0.82rem] mb-1.5">
-                <span className="text-txt-secondary">E-poster sendt</span>
-                <span className="font-medium">{emailUsage} / {emailLimit === Infinity ? '∞' : emailLimit}</span>
-              </div>
-              <div className="h-2 bg-surface-sunken rounded-full overflow-hidden">
-                <div className={`h-full rounded-full transition-all ${emailPct > 80 ? 'bg-red-500' : 'bg-coral'}`} style={{ width: emailLimit === Infinity ? '2%' : `${emailPct}%` }} />
-              </div>
-              {emailPct > 80 && emailLimit !== Infinity && (
-                <p className="text-[0.75rem] text-red-500 mt-1">Nærmer seg grensen — vurder å oppgradere</p>
-              )}
+          {/* Usage */}
+          <div className="p-4 bg-surface rounded-xl mb-5">
+            <div className="flex justify-between text-[0.82rem] mb-2">
+              <span className="text-txt-secondary">Enrichments brukt denne måneden</span>
+              <span className="font-medium">{enrichUsed} / {enrichLimit === Infinity ? '∞' : enrichLimit}</span>
             </div>
-            <div>
-              <div className="flex justify-between text-[0.82rem] mb-1.5">
-                <span className="text-txt-secondary">Telefonnumre funnet</span>
-                <span className="font-medium">{phoneUsage} / {phoneLimit === Infinity ? '∞' : phoneLimit}</span>
-              </div>
-              <div className="h-2 bg-surface-sunken rounded-full overflow-hidden">
-                <div className={`h-full rounded-full transition-all ${phonePct > 80 ? 'bg-red-500' : 'bg-teal'}`} style={{ width: phoneLimit === Infinity ? '2%' : `${phonePct}%` }} />
-              </div>
+            <div className="h-2.5 bg-surface-sunken rounded-full overflow-hidden">
+              <div className={`h-full rounded-full transition-all duration-500 ${enrichPct > 80 ? 'bg-red-500' : 'bg-violet'}`}
+                style={{ width: enrichLimit === Infinity ? '2%' : `${Math.max(enrichPct, 2)}%` }} />
+            </div>
+            {enrichPct > 80 && enrichLimit !== Infinity && (
+              <p className="text-[0.75rem] text-red-500 mt-1.5">Nærmer seg grensen — vurder å oppgradere</p>
+            )}
+            <div className="flex gap-4 mt-3 text-[0.78rem] text-txt-tertiary">
+              <span>{stats.totalLists} lister lagret</span>
+              <span>{stats.totalLeads} totalt leads</span>
+              <span>{stats.emailsSent} e-poster sendt</span>
             </div>
           </div>
 
-          {currentPlan !== 'free' && (
-            <div className="py-4 space-y-4">
-              {/* Cancellation banner */}
-              {cancelledAt && (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-[0.88rem] font-semibold text-amber-800">Abonnement kansellert</h4>
-                      <p className="text-[0.82rem] text-amber-700 mt-1">
-                        Du beholder {activePlan.name}-tilgang til <strong>{planExpiresAt ? new Date(planExpiresAt).toLocaleDateString('nb-NO') : 'slutten av måneden'}</strong>. Etter dette går du automatisk over til Gratis-planen.
-                      </p>
+          {planId !== 'starter' && (
+            <div className="flex items-center justify-between pt-3 border-t border-surface-sunken">
+              <div className="text-[0.82rem] text-txt-secondary">
+                Fakturering: <strong className="text-txt-primary">{plan.priceLabel}/mnd</strong>
+              </div>
+              <button onClick={() => setShowCancelModal(true)} className="text-[0.82rem] text-red-400 hover:text-red-500 transition-colors">
+                Kanseller abonnement
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Pricing plans */}
+        <div className="animate-in delay-2 bg-surface-raised border border-bdr rounded-xl p-8 mb-6">
+          <h3 className="font-display text-lg font-semibold mb-2">Prisplaner</h3>
+          <p className="text-[0.85rem] text-txt-secondary mb-6">Velg planen som passer din bedrift</p>
+
+          <div className="grid grid-cols-4 gap-4">
+            {PLAN_ORDER.map(id => {
+              const p = PLANS[id]
+              const isCurrent = planId === id
+              return (
+                <div key={id} className={`p-5 rounded-xl relative ${p.popular ? 'border-2 border-coral' : `border ${isCurrent ? 'border-violet' : 'border-bdr'}`}`}>
+                  {p.popular && (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-coral text-white text-[0.62rem] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider">
+                      Mest populær
                     </div>
-                    <button
-                      onClick={handleReactivate}
-                      className="flex-shrink-0 px-4 py-2 bg-amber-600 text-white rounded-lg text-[0.82rem] font-semibold hover:bg-amber-700 transition-all"
-                    >
-                      Reaktiver
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Billing row */}
-              {!cancelledAt && (
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="text-[0.92rem] font-medium">Fakturering</h4>
-                    <p className="text-[0.82rem] text-txt-secondary mt-0.5">Neste faktura: 1. april 2026 — {activePlan.priceLabel}/mnd</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Manage subscription actions */}
-              {!cancelledAt && (
-                <div className="flex items-center gap-3 pt-2 border-t border-surface-sunken">
-                  {currentPlan === 'unlimited' && (
-                    <button
-                      onClick={() => handleSelectPlan('starter')}
-                      className="px-4 py-2 rounded-lg text-[0.82rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all"
-                    >
-                      Nedgrader til Starter (49 kr/mnd)
-                    </button>
                   )}
-                  {currentPlan === 'starter' && (
-                    <button
-                      onClick={() => handleSelectPlan('unlimited')}
-                      className="px-4 py-2 rounded-lg text-[0.82rem] font-medium bg-violet text-white hover:bg-[#6A4AE8] transition-all"
-                    >
-                      Oppgrader til Unlimited (149 kr/mnd)
-                    </button>
-                  )}
+
+                  <div className="text-center mb-4">
+                    <span className="text-xl">{p.icon}</span>
+                    <div className="text-[0.72rem] uppercase tracking-wider text-txt-tertiary font-semibold mt-1">{p.name}</div>
+                    {p.price === 0 ? (
+                      <div className="font-display text-2xl font-bold mt-1">Gratis</div>
+                    ) : (
+                      <>
+                        <div className="font-display text-2xl font-bold mt-1">{p.priceLabel}</div>
+                        <div className="text-[0.75rem] text-txt-secondary">/måned</div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="text-[0.78rem] text-txt-secondary space-y-1.5 mb-5">
+                    {p.features.map(f => (
+                      <div key={f} className="flex items-start gap-1.5">
+                        <span className="text-green-500 flex-shrink-0 text-[0.7rem] mt-0.5">✓</span>
+                        <span>{f}</span>
+                      </div>
+                    ))}
+                    {(p.missing || []).map(f => (
+                      <div key={f} className="flex items-start gap-1.5 text-txt-tertiary">
+                        <span className="flex-shrink-0 text-[0.7rem] mt-0.5">—</span>
+                        <span>{f}</span>
+                      </div>
+                    ))}
+                  </div>
+
                   <button
-                    onClick={() => setShowCancelModal(true)}
-                    className="px-4 py-2 rounded-lg text-[0.82rem] font-medium text-red-400 hover:text-red-500 hover:bg-red-50 transition-all ml-auto"
+                    onClick={() => handleSelectPlan(id)}
+                    disabled={isCurrent}
+                    className={`w-full py-2.5 rounded-lg text-[0.82rem] font-semibold transition-all ${
+                      isCurrent ? 'bg-surface-sunken text-txt-tertiary cursor-default' : p.ctaStyle
+                    }`}
                   >
-                    Kanseller abonnement
+                    {isCurrent ? '✓ Nåværende' : p.cta}
                   </button>
                 </div>
+              )
+            })}
+          </div>
+
+          <div className="mt-5 p-3 bg-surface rounded-xl text-center text-[0.78rem] text-txt-tertiary">
+            Betaling via Stripe. Kanseller når som helst — du beholder tilgang ut måneden. 14 dagers gratis prøveperiode på alle betalte planer.
+          </div>
+        </div>
+
+        {/* Workspace / Team */}
+        <div className="animate-in delay-3 bg-surface-raised border border-bdr rounded-xl p-8 mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="font-display text-lg font-semibold">Workspace</h3>
+              <p className="text-[0.85rem] text-txt-secondary mt-0.5">Samarbeid med teamet — del lister, pipeline og kunder</p>
+            </div>
+            {!plan.limits.workspace && (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-violet/10 text-violet rounded-lg text-[0.78rem] font-medium">
+                <Crown size={13}/> Krever Business
+              </span>
+            )}
+          </div>
+
+          {!plan.limits.workspace ? (
+            <div className="p-6 border border-dashed border-bdr rounded-xl text-center">
+              <Users size={32} className="mx-auto text-txt-tertiary/40 mb-3"/>
+              <h4 className="text-[0.92rem] font-medium mb-1">Team-funksjoner krever Business-planen</h4>
+              <p className="text-[0.82rem] text-txt-tertiary mb-4">Oppgrader for å invitere teammedlemmer og dele lister.</p>
+              <button onClick={() => handleSelectPlan('business')} className="px-5 py-2.5 bg-violet text-white rounded-xl text-[0.85rem] font-medium hover:bg-violet/90 transition-all">
+                Oppgrader til Business (999 kr/mnd)
+              </button>
+            </div>
+          ) : !workspace ? (
+            <div className="p-6 border border-dashed border-bdr rounded-xl text-center">
+              <Users size={32} className="mx-auto text-txt-tertiary/40 mb-3"/>
+              <h4 className="text-[0.92rem] font-medium mb-2">Opprett et workspace</h4>
+              <p className="text-[0.82rem] text-txt-tertiary mb-4">Start et workspace for å invitere teammedlemmer.</p>
+              <button onClick={handleCreateWorkspace} className="px-5 py-2.5 bg-violet text-white rounded-xl text-[0.85rem] font-medium hover:bg-violet/90 transition-all">
+                <Plus size={14} className="inline mr-1"/> Opprett workspace
+              </button>
+            </div>
+          ) : (
+            <div>
+              {/* Workspace info */}
+              <div className="flex items-center justify-between p-4 bg-surface rounded-xl mb-4">
+                <div>
+                  <div className="text-[0.88rem] font-medium">{workspace.name}</div>
+                  <div className="text-[0.75rem] text-txt-tertiary">{workspace.members.length} medlem{workspace.members.length > 1 ? 'mer' : ''} · Opptil {plan.limits.maxUsers === Infinity ? 'ubegrenset' : plan.limits.maxUsers} brukere</div>
+                </div>
+              </div>
+
+              {/* Members list */}
+              <div className="space-y-2 mb-4">
+                {workspace.members.map(m => (
+                  <div key={m.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-sunken/50 transition-colors">
+                    <div className="w-9 h-9 rounded-full bg-violet/10 flex items-center justify-center text-violet font-semibold text-[0.82rem]">
+                      {(m.name || m.email)[0].toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[0.85rem] font-medium">{m.name || m.email.split('@')[0]}</div>
+                      <div className="text-[0.72rem] text-txt-tertiary">{m.email}</div>
+                    </div>
+                    <select
+                      value={m.role}
+                      onChange={e => updateMemberRole(m.id, e.target.value)}
+                      disabled={m.role === 'owner'}
+                      className="px-2.5 py-1 bg-surface border border-bdr rounded-lg text-[0.75rem] outline-none disabled:opacity-50"
+                    >
+                      <option value="owner">Eier</option>
+                      <option value="admin">Admin</option>
+                      <option value="member">Medlem</option>
+                    </select>
+                    {m.role !== 'owner' && (
+                      <button onClick={() => { removeMember(m.id); toast.success('Medlem fjernet') }} className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all">
+                        <Trash2 size={14}/>
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                {/* Pending invites */}
+                {workspace.pendingInvites.map(inv => (
+                  <div key={inv.id} className="flex items-center gap-3 p-3 rounded-lg bg-amber-50/50 border border-amber-100">
+                    <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                      <Mail size={14}/>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[0.85rem] font-medium text-amber-800">{inv.email}</div>
+                      <div className="text-[0.72rem] text-amber-600">Venter på svar</div>
+                    </div>
+                    <button onClick={() => { acceptInvite(inv.id); toast.success('Invitasjon godkjent (demo)') }} className="px-2.5 py-1 rounded-lg text-[0.72rem] font-medium bg-green-500 text-white hover:bg-green-600 transition-all">
+                      Simuler godkjenning
+                    </button>
+                    <button onClick={() => { cancelInvite(inv.id); toast.success('Invitasjon trukket tilbake') }} className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all">
+                      <X size={14}/>
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Invite form */}
+              {showInviteForm ? (
+                <div className="p-4 border border-bdr rounded-xl space-y-3">
+                  <h4 className="text-[0.85rem] font-semibold">Inviter nytt medlem</h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="E-post" className="px-3 py-2 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none focus:border-violet col-span-1"/>
+                    <input type="text" value={inviteName} onChange={e => setInviteName(e.target.value)} placeholder="Navn (valgfritt)" className="px-3 py-2 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none focus:border-violet"/>
+                    <select value={inviteRole} onChange={e => setInviteRole(e.target.value)} className="px-3 py-2 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none">
+                      <option value="member">Medlem</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <button onClick={() => setShowInviteForm(false)} className="px-3 py-1.5 text-[0.82rem] text-txt-secondary hover:text-txt-primary transition-colors">Avbryt</button>
+                    <button onClick={handleInvite} disabled={!inviteEmail.trim()} className="px-4 py-1.5 bg-violet text-white rounded-lg text-[0.82rem] font-medium hover:bg-violet/90 disabled:opacity-40 transition-all">
+                      Send invitasjon
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowInviteForm(true)}
+                  disabled={workspace.members.length >= plan.limits.maxUsers}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-bdr rounded-xl text-[0.82rem] text-txt-secondary hover:border-violet hover:text-violet disabled:opacity-40 transition-all"
+                >
+                  <Plus size={14}/> Inviter nytt medlem
+                  {plan.limits.maxUsers !== Infinity && ` (${workspace.members.length}/${plan.limits.maxUsers})`}
+                </button>
               )}
             </div>
           )}
         </div>
 
         {/* Profile */}
-        <div className="animate-in delay-2 bg-surface-raised border border-bdr rounded-xl p-8 mb-6">
+        <div className="animate-in delay-4 bg-surface-raised border border-bdr rounded-xl p-8">
           <h3 className="font-display text-lg font-semibold mb-6">Profil</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -325,136 +357,21 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
-
-        {/* Pricing plans */}
-        <div className="animate-in delay-3 bg-surface-raised border border-bdr rounded-xl p-8">
-          <h3 className="font-display text-lg font-semibold mb-2">Prisplaner</h3>
-          <p className="text-[0.85rem] text-txt-secondary mb-6">Velg planen som passer din bedrift</p>
-
-          <div className="grid grid-cols-3 gap-5">
-            {PLANS.map(plan => {
-              const Icon = plan.icon
-              const isCurrent = currentPlan === plan.id
-              return (
-                <div key={plan.id} className={`p-6 rounded-xl text-center relative ${plan.popular ? 'border-2 border-coral' : `border ${isCurrent ? plan.color : 'border-bdr'}`}`}>
-                  {plan.popular && (
-                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-coral text-white text-[0.68rem] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider">
-                      Mest populær
-                    </div>
-                  )}
-
-                  <Icon size={24} className={`mx-auto mb-2 ${
-                    plan.id === 'unlimited' ? 'text-violet' : plan.id === 'starter' ? 'text-coral' : 'text-txt-tertiary'
-                  }`} />
-
-                  <div className="text-[0.78rem] uppercase tracking-wider text-txt-tertiary font-semibold">{plan.name}</div>
-
-                  {plan.price === '0' ? (
-                    <div className="font-display text-3xl font-bold mt-2">Gratis</div>
-                  ) : (
-                    <>
-                      <div className="font-display text-3xl font-bold mt-2">{plan.price} <span className="text-lg font-medium text-txt-secondary">kr</span></div>
-                      <div className="text-[0.82rem] text-txt-secondary">/måned</div>
-                    </>
-                  )}
-
-                  <div className="text-[0.82rem] text-txt-secondary text-left mt-5 space-y-1.5">
-                    {plan.features.map(f => (
-                      <div key={f} className="flex items-start gap-2 py-0.5">
-                        <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
-                        <span>{f}</span>
-                      </div>
-                    ))}
-                    {plan.missing.map(f => (
-                      <div key={f} className="flex items-start gap-2 py-0.5 text-txt-tertiary">
-                        <span className="mt-0.5 flex-shrink-0">✗</span>
-                        <span>{f}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => handleSelectPlan(plan.id)}
-                    disabled={isCurrent}
-                    className={`w-full mt-5 py-2.5 rounded-lg text-[0.85rem] font-semibold transition-all ${
-                      isCurrent
-                        ? 'bg-surface-sunken text-txt-tertiary cursor-default'
-                        : plan.btnClass
-                    }`}
-                  >
-                    {isCurrent ? '✓ Nåværende plan' : plan.btnText}
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-
-          <div className="mt-6 p-4 bg-surface rounded-xl text-center">
-            <p className="text-[0.82rem] text-txt-secondary">
-              Alle planer inkluderer ubegrenset søk i Brønnøysundregistrene, ICP-profil og lagrede lister.
-              <br />
-              <span className="text-txt-tertiary">Betaling håndteres sikkert via Stripe. Kanseller når som helst — du beholder tilgang ut måneden.</span>
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Cancel modal */}
       {showCancelModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4" onClick={() => setShowCancelModal(false)}>
           <div className="bg-surface-raised rounded-2xl shadow-xl w-full max-w-md p-8" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-xl font-semibold mb-2">Kanseller abonnement?</h3>
+            <h3 className="font-display text-xl font-semibold mb-2">Nedgrader til Starter?</h3>
             <p className="text-[0.88rem] text-txt-secondary mb-6">
-              Du kan kansellere når som helst. Du beholder <strong>{activePlan.name}</strong>-tilgang ut inneværende måned ({new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString('nb-NO')}), og går deretter over til Gratis-planen.
+              Du mister tilgang til enrichment, ubegrensede resultater, CSV-eksport og workspace.
             </p>
-
-            <div className="p-4 bg-surface rounded-xl mb-6">
-              <h4 className="text-[0.82rem] font-semibold mb-2">Du mister tilgang til:</h4>
-              <div className="text-[0.82rem] text-txt-secondary space-y-1">
-                {currentPlan === 'unlimited' && <div>• Ubegrensede e-poster og telefonnumre</div>}
-                {currentPlan === 'starter' && <div>• 1 000 e-poster og telefonnumre per mnd</div>}
-                <div>• AI e-postgenerering</div>
-                <div>• Kundesegment-maler</div>
-              </div>
-              <p className="text-[0.82rem] text-txt-tertiary mt-3">Med Gratis-planen får du 20 e-poster og 20 telefonnumre per mnd.</p>
-            </div>
-
             <div className="flex gap-3 justify-end">
               <button onClick={() => setShowCancelModal(false)} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all">
-                Behold abonnement
+                Behold plan
               </button>
               <button onClick={handleCancelSubscription} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium bg-red-500 text-white hover:bg-red-600 transition-all">
-                Kanseller
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Downgrade modal */}
-      {showDowngradeModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4" onClick={() => setShowDowngradeModal(false)}>
-          <div className="bg-surface-raised rounded-2xl shadow-xl w-full max-w-md p-8" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-xl font-semibold mb-2">Nedgrader til Gratis?</h3>
-            <p className="text-[0.88rem] text-txt-secondary mb-6">
-              Du beholder <strong>{activePlan.name}</strong>-tilgang ut inneværende måned ({new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString('nb-NO')}), og går deretter over til Gratis-planen automatisk.
-            </p>
-
-            <div className="p-4 bg-surface rounded-xl mb-6 text-[0.82rem] text-txt-secondary">
-              <strong className="text-txt-primary">Gratis-planen inkluderer:</strong>
-              <div className="mt-2 space-y-1">
-                <div>✓ 20 e-poster sendt per mnd</div>
-                <div>✓ 20 telefonnumre funnet per mnd</div>
-                <div>✓ Ubegrenset søk og ICP-profil</div>
-                <div className="text-txt-tertiary">✗ AI e-postgenerering</div>
-              </div>
-            </div>
-
-            <div className="flex gap-3 justify-end">
-              <button onClick={() => setShowDowngradeModal(false)} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all">
-                Avbryt
-              </button>
-              <button onClick={handleDowngradeToFree} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium bg-red-500 text-white hover:bg-red-600 transition-all">
                 Nedgrader
               </button>
             </div>

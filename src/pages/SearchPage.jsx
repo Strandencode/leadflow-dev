@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react'
-import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, ChevronDown, Mail, ExternalLink, Globe, Phone, Trophy } from 'lucide-react'
+import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, ChevronDown, Mail, ExternalLink, Globe, Phone, Trophy, Lock } from 'lucide-react'
 import { fetchAllBasic, enrichCompanies, NACE_CODES, MUNICIPALITIES, EMPLOYEE_RANGES, formatNOK } from '../api/brreg'
 import { useSavedLists } from '../hooks/useSavedLists'
 import { usePipeline } from '../hooks/usePipeline'
 import { useCustomers } from '../hooks/useCustomers'
+import { usePlan } from '../hooks/usePlan'
+import { UpgradePrompt } from '../components/UpgradePrompt'
 import TEMPLATES, { getActiveTemplate, applyTemplate } from '../config/templates'
 import EmailComposerModal from '../components/EmailComposerModal'
 import toast from 'react-hot-toast'
@@ -66,9 +68,10 @@ export default function SearchPage() {
   const [searchHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem('leadflow_search_history') || '[]') } catch { return [] }
   })
-  const { saveList, markEmailed: _markEmailed, markCalled: _markCalled, getTracking, getListsForOrg } = useSavedLists()
+  const { lists: savedLists, saveList, markEmailed: _markEmailed, markCalled: _markCalled, getTracking, getListsForOrg } = useSavedLists()
   const { autoAdvanceToContacted } = usePipeline()
   const { addCustomer, isCustomer } = useCustomers()
+  const { planId, canEnrich, enrichmentsLeft, canExportCSV, maxVisibleResults, canSaveList, trackEnrichment, limits } = usePlan()
 
   // Wrap markEmailed/markCalled to auto-advance pipeline
   function markEmailed(orgNumber, value = true) {
@@ -137,8 +140,12 @@ export default function SearchPage() {
     return sortDir === 'asc' ? '↑' : '↓'
   }
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const pageSlice = filtered.slice(currentPage * PAGE_SIZE, (currentPage+1) * PAGE_SIZE)
+  // Apply result visibility gating (free users see only maxVisibleResults)
+  const isResultsGated = maxVisibleResults !== Infinity && filtered.length > maxVisibleResults
+  const visibleFiltered = isResultsGated ? filtered.slice(0, maxVisibleResults) : filtered
+
+  const totalPages = Math.max(1, Math.ceil(visibleFiltered.length / PAGE_SIZE))
+  const pageSlice = visibleFiltered.slice(currentPage * PAGE_SIZE, (currentPage+1) * PAGE_SIZE)
 
   // Merge enriched data into page slice
   const displayCompanies = pageSlice.map(c => enrichedCache[c.orgNumber] || c)
@@ -264,9 +271,18 @@ export default function SearchPage() {
     if (!toSave.length) return
     const nm = saveName.trim() || searchName || 'Uten navn'
 
-    // Enrich all unenriched leads before saving
-    const needsEnrich = toSave.filter(c => !enrichedCache[c.orgNumber])
+    // Enrich all unenriched leads before saving (gated by plan)
+    let needsEnrich = toSave.filter(c => !enrichedCache[c.orgNumber])
     let localCache = { ...enrichedCache }
+    // Gate: limit enrichment to what the plan allows
+    if (!canEnrich()) needsEnrich = []
+    else if (limits.enrichments !== Infinity) {
+      const left = enrichmentsLeft()
+      if (needsEnrich.length > left) {
+        needsEnrich = needsEnrich.slice(0, left)
+        toast(`Planen din tillater ${left} enrichments til denne måneden`, { icon: '⚠️' })
+      }
+    }
     if (needsEnrich.length > 0) {
       setSaving(true)
       setSaveProgress({ done: 0, total: needsEnrich.length })
@@ -284,6 +300,9 @@ export default function SearchPage() {
       } catch (e) { console.error(e) }
     }
 
+    // Track enrichment usage
+    if (needsEnrich.length > 0) trackEnrichment(needsEnrich.length)
+
     const nace = NACE_CODES.find(n=>n.value===filters.industrikode)
     const muni = MUNICIPALITIES.find(m=>m.value===filters.kommunenummer)
     const emp = EMPLOYEE_RANGES.find(r=>r.value===filters.employeeRange)
@@ -298,6 +317,7 @@ export default function SearchPage() {
   function toggleAll() { if(!displayCompanies.length)return; selectedRows.size===displayCompanies.length?setSelectedRows(new Set()):setSelectedRows(new Set(displayCompanies.map(c=>c.orgNumber))) }
 
   function exportCSV() {
+    if (!canExportCSV) { toast.error('CSV-eksport krever Professional eller høyere'); return }
     if (!filtered.length) return
     const rows = (selectedRows.size > 0 ? filtered.filter(c=>selectedRows.has(c.orgNumber)) : filtered).map(c => enrichedCache[c.orgNumber] ? { ...c, ...enrichedCache[c.orgNumber] } : c)
     const h = ['Org Nr','Navn','Bransje','NACE','Adresse','Kommune','Ansatte','Stiftet','E-post','Telefon','Nettside','Kontakt','Omsetning','Driftsresultat']
@@ -366,8 +386,11 @@ export default function SearchPage() {
         </div>
         <div className="flex gap-2">
           {hasResults && (<>
-            <button onClick={()=>{setSaveName(searchName);setShowSaveModal(true)}} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all"><Bookmark size={16}/> Lagre liste</button>
-            <button onClick={exportCSV} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all"><Download size={16}/> Eksporter CSV</button>
+            <button onClick={()=>{
+              if (!canSaveList(savedLists.length)) { toast.error(`Listegrensen nådd (${limits.savedLists}). Oppgrader for flere.`); return }
+              setSaveName(searchName);setShowSaveModal(true)
+            }} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all ${!canSaveList(savedLists.length) ? 'opacity-50' : ''}`}>{canSaveList(savedLists.length) ? <Bookmark size={16}/> : <Lock size={16}/>} Lagre liste{!canSaveList(savedLists.length) ? ' 🔒' : ''}</button>
+            <button onClick={exportCSV} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all ${!canExportCSV ? 'opacity-50' : ''}`}>{canExportCSV ? <Download size={16}/> : <Lock size={16}/>} Eksporter CSV{!canExportCSV ? ' 🔒' : ''}</button>
           </>)}
           <button onClick={()=>handleSearch(0)} disabled={loading} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium text-white hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-60" style={{background:'linear-gradient(135deg, #FF6B4A 0%, #FF8F6B 100%)'}}>
             {loading?<Loader2 size={16} className="animate-spin"/>:<Search size={16}/>} {loading?'Søker...':'Søk'}
@@ -639,10 +662,24 @@ export default function SearchPage() {
                   </table>
                 </div>
 
+                {/* Results gating banner */}
+                {isResultsGated && (
+                  <div className="px-6 py-4 border-t border-violet/20 bg-gradient-to-r from-violet/5 to-coral/5">
+                    <div className="flex items-center gap-3">
+                      <Lock size={16} className="text-violet flex-shrink-0" />
+                      <div className="flex-1">
+                        <span className="text-[0.85rem] font-medium">Viser {maxVisibleResults} av {filtered.length} resultater.</span>
+                        <span className="text-[0.82rem] text-txt-secondary ml-1">Oppgrader for å se alle.</span>
+                      </div>
+                      <UpgradePrompt feature="Alle søkeresultater" planNeeded="Professional" inline />
+                    </div>
+                  </div>
+                )}
+
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between px-6 py-3 border-t border-bdr text-[0.85rem] text-txt-secondary">
-                    <span>Side {currentPage+1} av {totalPages} ({filtered.length} selskaper)</span>
+                    <span>Side {currentPage+1} av {totalPages} ({visibleFiltered.length} selskaper{isResultsGated ? ` av ${filtered.length}` : ''})</span>
                     <div className="flex gap-1">
                       <button onClick={()=>goToPage(currentPage-1)} disabled={currentPage===0||enriching} className="px-3 py-1.5 rounded-lg border border-bdr text-[0.85rem] font-medium hover:border-violet hover:text-violet disabled:opacity-30 transition-all">← Forrige</button>
                       <button onClick={()=>goToPage(currentPage+1)} disabled={currentPage>=totalPages-1||enriching} className="px-3 py-1.5 rounded-lg border border-bdr text-[0.85rem] font-medium hover:border-violet hover:text-violet disabled:opacity-30 transition-all">Neste →</button>
@@ -691,6 +728,24 @@ export default function SearchPage() {
                 )}
               </div>
             </div>
+            {/* Enrichment quota notice */}
+            {limits.enrichments !== Infinity && (
+              <div className="mb-4 p-3 bg-surface-sunken rounded-lg text-[0.82rem]">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-txt-secondary">Enrichment-kvote denne måneden</span>
+                  <span className="font-medium">{enrichmentsLeft()} av {limits.enrichments} igjen</span>
+                </div>
+                <div className="h-1.5 bg-surface rounded-full overflow-hidden">
+                  <div className="h-full bg-violet rounded-full transition-all" style={{ width: `${Math.min(100, ((limits.enrichments - enrichmentsLeft()) / limits.enrichments) * 100)}%` }}/>
+                </div>
+                {!canEnrich() && <p className="text-coral text-[0.78rem] mt-1.5">Kvoten er brukt opp. Listen lagres uten enrichment.</p>}
+              </div>
+            )}
+            {planId === 'starter' && (
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[0.82rem] text-amber-800">
+                ⚡ Starter-planen inkluderer ikke enrichment. Listen lagres uten kontaktinfo og regnskap.
+              </div>
+            )}
             {saveProgress && (
               <div className="mb-4 p-3 bg-violet/5 border border-violet/20 rounded-lg">
                 <div className="flex items-center gap-2 text-[0.82rem] text-violet font-medium mb-2">

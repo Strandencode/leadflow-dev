@@ -19,9 +19,10 @@ const STATS = [
 ]
 
 const PLANS = [
-  { id: 'starter', name: 'Starter', price: '0', period: '', features: ['20 oppslag/mnd', 'Grunnleggende søk', 'ICP-profil', 'E-postmaler'], cta: 'Kom i gang' },
-  { id: 'professional', name: 'Professional', price: '490', period: '/mnd', features: ['1 000 oppslag/mnd', 'Avansert filtrering', 'AI e-postgenerering', 'Pipeline CRM', 'Analytics dashboard'], popular: true, cta: 'Start prov' },
-  { id: 'enterprise', name: 'Enterprise', price: 'Tilpasset', period: '', features: ['Ubegrenset oppslag', 'Dedikert kundeansvarlig', 'API-tilgang', 'SSO & SAML', 'Custom integrasjoner'], cta: 'Kontakt oss' },
+  { id: 'starter', name: 'Starter', price: '0', period: '', features: ['Søk i Brønnøysundregistrene', 'Se 10 resultater per søk', '1 lagret liste', '10 leads i pipeline', 'E-postmaler (visning)'], cta: 'Kom i gang gratis' },
+  { id: 'professional', name: 'Professional', price: '199', period: '/mnd', features: ['200 enrichments/mnd', 'Alle søkeresultater', '10 lagrede lister', 'Ubegrenset pipeline', 'E-post + CSV-eksport', 'Analytics dashboard'], popular: true, cta: 'Start 14 dagers prøveperiode' },
+  { id: 'business', name: 'Business', price: '999', period: '/mnd', features: ['Ubegrenset enrichment', 'Ubegrenset lister', 'Workspace — opptil 5 brukere', 'Delte lister og pipeline', 'Avansert analytics', 'Kundenotater + kontrakter'], cta: 'Start 14 dagers prøveperiode' },
+  { id: 'enterprise', name: 'Enterprise', price: '4 999', period: '/mnd', features: ['Alt i Business', 'Ubegrenset brukere', 'API-tilgang', 'SSO & SAML', 'Dedikert onboarding', 'Prioritert support'], cta: 'Kontakt oss' },
 ]
 
 const CLIENTS = ['DNB', 'Storebrand', 'SpareBank 1', 'Nordic Semiconductor', 'Mowi', 'Equinor', 'Telenor', 'Vipps']
@@ -269,7 +270,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-4 gap-5">
             {PLANS.map((plan, i) => (
               <div key={plan.id}
                 className={`relative p-8 rounded-lg border transition-all duration-600 ${

@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Trash2, Download, BookmarkX, ChevronDown, ChevronRight, Mail, Trophy, Phone as PhoneIcon, Check, X } from 'lucide-react'
+import { Trash2, Download, BookmarkX, ChevronDown, ChevronRight, Mail, Trophy, Phone as PhoneIcon, Check, X, Lock } from 'lucide-react'
 import { useSavedLists } from '../hooks/useSavedLists'
 import { usePipeline } from '../hooks/usePipeline'
 import { useCustomers } from '../hooks/useCustomers'
+import { usePlan } from '../hooks/usePlan'
+import { UpgradePrompt } from '../components/UpgradePrompt'
 import EmailComposerModal from '../components/EmailComposerModal'
 import toast from 'react-hot-toast'
 
@@ -23,6 +25,7 @@ export default function SavedPage() {
   const { lists, deleteList, markEmailed: _markEmailed, markCalled: _markCalled, getTracking } = useSavedLists()
   const { autoAdvanceToContacted } = usePipeline()
   const { addCustomer, isCustomer } = useCustomers()
+  const { canExportCSV, canSaveList, limits } = usePlan()
 
   // Wrap to auto-advance pipeline
   function markEmailed(orgNumber, value = true) {
@@ -85,6 +88,7 @@ export default function SavedPage() {
 
   function handleExportList(list, e) {
     e.stopPropagation()
+    if (!canExportCSV) { toast.error('CSV-eksport krever Professional eller høyere'); return }
     if (!list.companies?.length) return
     const h = ['Org Nr','Navn','Bransje','Adresse','Kommune','Kontakt','Rolle','E-post','Telefon','Sendt e-post','Ringt']
     const csv = [h.join(';'), ...list.companies.map(c => {
@@ -120,12 +124,18 @@ export default function SavedPage() {
         <div>
           <h1 className="font-display text-2xl font-semibold tracking-tight">Lagrede lister</h1>
           <p className="text-txt-secondary text-[0.9rem] mt-0.5">
-            {lists.length > 0 ? `${lists.length} lister — ${lists.reduce((s,l)=>s+l.leadCount,0)} leads totalt` : 'Dine lagrede søk'}
+            {lists.length > 0 ? `${lists.length}${limits.savedLists !== Infinity ? `/${limits.savedLists}` : ''} lister — ${lists.reduce((s,l)=>s+l.leadCount,0)} leads totalt` : 'Dine lagrede søk'}
           </p>
         </div>
       </div>
 
       <div className="p-8">
+        {/* List limit banner */}
+        {!canSaveList(lists.length) && (
+          <div className="mb-6">
+            <UpgradePrompt feature={`Du har brukt alle ${limits.savedLists} listeplasser`} planNeeded="Professional" inline />
+          </div>
+        )}
         {lists.length === 0 ? (
           <div className="text-center py-20">
             <BookmarkX size={48} className="mx-auto text-txt-tertiary/40 mb-4"/>
@@ -162,7 +172,7 @@ export default function SavedPage() {
                     <span className="text-[0.78rem] text-txt-tertiary whitespace-nowrap">{fmt(list.createdAt)}</span>
 
                     <div className="flex gap-1">
-                      <button onClick={e=>handleExportList(list,e)} className="p-2 rounded-lg hover:bg-surface-sunken text-txt-tertiary hover:text-txt-primary transition-all" title="CSV"><Download size={16}/></button>
+                      <button onClick={e=>handleExportList(list,e)} className={`p-2 rounded-lg hover:bg-surface-sunken text-txt-tertiary hover:text-txt-primary transition-all ${!canExportCSV ? 'opacity-40' : ''}`} title={canExportCSV ? 'CSV' : 'Krever Professional'}>{canExportCSV ? <Download size={16}/> : <Lock size={16}/>}</button>
                       <button onClick={e=>handleDelete(list,e)} className="p-2 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all" title="Slett"><Trash2 size={16}/></button>
                     </div>
 
