@@ -306,7 +306,7 @@ export const NACE_CODES = [
   { value: '74', label: '74 — Design og foto' },
   { value: '82', label: '82 — Kontortjenester' },
   { value: '47.11', label: '47.11 — Dagligvare' },
-  { value: '47.29', label: '47.29 — Helsekost og naturkost' },
+  { value: '47.270', label: '47.270 — Helsekost og naturkost' },
   { value: '47.64', label: '47.64 — Sport og fritidsutstyr' },
   { value: '47.73', label: '47.73 — Apotek' },
   { value: '47.76', label: '47.76 — Dyrebutikker og blomster' },

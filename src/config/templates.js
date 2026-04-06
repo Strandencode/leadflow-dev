@@ -44,7 +44,7 @@ const TEMPLATES = [
         filters: { industrikode: '75', kommunenummer: '', employeeRange: '' }, color: 'from-emerald-500 to-teal-500',
         include: /veterin|dyreklinikk|dyrlege|dyre.?hospital|smådyr|hest/i, exclude: null },
       { id: 'helsekost', emoji: '🌿', name: 'Helsekost & naturkost', description: 'Naturkostbutikker med økologiske produkter',
-        filters: { industrikode: '47.29', kommunenummer: '', employeeRange: '' }, color: 'from-green-500 to-emerald-500',
+        filters: { industrikode: '47.270', kommunenummer: '', employeeRange: '' }, color: 'from-green-500 to-emerald-500',
         include: /helsekost|naturkost|økolog|helse.?butikk|vitamin|kosttilskudd|naturlig/i, exclude: null },
       { id: 'apotek', emoji: '💊', name: 'Apotek', description: 'Uavhengige apotek',
         filters: { industrikode: '47.73', kommunenummer: '', employeeRange: '' }, color: 'from-blue-500 to-indigo-500',
