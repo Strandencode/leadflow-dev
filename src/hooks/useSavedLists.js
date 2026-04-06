@@ -127,5 +127,17 @@ export function useSavedLists() {
     }
   }, [lists, tracking])
 
-  return { lists, saveList, deleteList, getList, markEmailed, markCalled, getTracking, getStats }
+  // Check which lists a company appears in
+  function getListsForOrg(orgNumber) {
+    return lists.filter(l => (l.companies || []).some(c => c.orgNumber === orgNumber)).map(l => l.name)
+  }
+
+  // Get all unique org numbers across all lists
+  function getAllOrgNumbers() {
+    const orgs = new Set()
+    lists.forEach(l => (l.companies || []).forEach(c => orgs.add(c.orgNumber)))
+    return orgs
+  }
+
+  return { lists, saveList, deleteList, getList, markEmailed, markCalled, getTracking, getStats, getListsForOrg, getAllOrgNumbers }
 }

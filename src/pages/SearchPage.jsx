@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
-import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, ChevronDown, Mail, ExternalLink, Globe, Phone, Trophy } from 'lucide-react'
+import { useState, useMemo, useRef } from 'react'
+import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, ChevronDown, Mail, ExternalLink, Globe, Phone, Trophy, Zap } from 'lucide-react'
 import { fetchAllBasic, enrichCompanies, NACE_CODES, MUNICIPALITIES, EMPLOYEE_RANGES, formatNOK } from '../api/brreg'
 import { useSavedLists } from '../hooks/useSavedLists'
+import { usePipeline } from '../hooks/usePipeline'
 import { useCustomers } from '../hooks/useCustomers'
 import TEMPLATES, { getActiveTemplate, applyTemplate } from '../config/templates'
 import EmailComposerModal from '../components/EmailComposerModal'
@@ -61,8 +62,21 @@ export default function SearchPage() {
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [saveName, setSaveName] = useState('')
   const [searchName, setSearchName] = useState('')
-  const { saveList, markEmailed, markCalled, getTracking } = useSavedLists()
+  const [enrichAllProgress, setEnrichAllProgress] = useState(null) // { done, total } or null
+  const enrichAllAbort = useRef(false)
+  const { saveList, markEmailed: _markEmailed, markCalled: _markCalled, getTracking, getListsForOrg } = useSavedLists()
+  const { autoAdvanceToContacted } = usePipeline()
   const { addCustomer, isCustomer } = useCustomers()
+
+  // Wrap markEmailed/markCalled to auto-advance pipeline
+  function markEmailed(orgNumber, value = true) {
+    _markEmailed(orgNumber, value)
+    if (value) autoAdvanceToContacted(orgNumber)
+  }
+  function markCalled(orgNumber, value) {
+    _markCalled(orgNumber, value)
+    if (value) autoAdvanceToContacted(orgNumber)
+  }
 
   // Get suggested searches from active template, or use defaults
   const [activeTemplateId, setActiveTemplateId] = useState(() => localStorage.getItem('leadflow_template') || 'general')
@@ -225,6 +239,30 @@ export default function SearchPage() {
     }
   }
 
+  // Enrich ALL companies in background
+  async function enrichAll() {
+    const needsEnrich = filtered.filter(c => !enrichedCache[c.orgNumber])
+    if (!needsEnrich.length) { toast.success('Alle leads er allerede enrichet!'); return }
+    enrichAllAbort.current = false
+    setEnrichAllProgress({ done: 0, total: needsEnrich.length })
+    const BATCH = 10
+    let done = 0
+    try {
+      for (let i = 0; i < needsEnrich.length; i += BATCH) {
+        if (enrichAllAbort.current) { toast('Enrichment avbrutt', { icon: '⏹' }); break }
+        const batch = needsEnrich.slice(i, i + BATCH)
+        const enriched = await enrichCompanies(batch)
+        setEnrichedCache(prev => { const n = { ...prev }; enriched.forEach(c => { n[c.orgNumber] = c }); return n })
+        done += enriched.length
+        setEnrichAllProgress({ done, total: needsEnrich.length })
+      }
+      if (!enrichAllAbort.current) toast.success(`Enrichet ${done} leads med kontaktinfo og regnskap!`)
+    } catch (e) { console.error(e); toast.error('Enrichment feilet delvis') }
+    finally { setEnrichAllProgress(null) }
+  }
+
+  function cancelEnrichAll() { enrichAllAbort.current = true }
+
   function handleSuggestedSearch(s) {
     const f = { query:'', industrikode:s.filters.industrikode||'', kommunenummer:s.filters.kommunenummer||'', employeeRange:s.filters.employeeRange||'', fraRegistreringsdato:'', tilRegistreringsdato:'' }
     setFilters(f); handleSearch(0, f, s.name, { include: s.include || null, exclude: s.exclude || null })
@@ -316,6 +354,15 @@ export default function SearchPage() {
         </div>
         <div className="flex gap-2">
           {hasResults && (<>
+            {enrichAllProgress ? (
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[0.82rem] font-medium bg-violet/10 text-violet border border-violet/20">
+                <Loader2 size={14} className="animate-spin"/>
+                <span>Enricher {enrichAllProgress.done}/{enrichAllProgress.total}</span>
+                <button onClick={cancelEnrichAll} className="ml-1 text-violet/60 hover:text-violet">✕</button>
+              </div>
+            ) : (
+              <button onClick={enrichAll} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-violet/30 text-violet hover:bg-violet/10 transition-all"><Zap size={16}/> Enrich alle</button>
+            )}
             <button onClick={()=>{setSaveName(searchName);setShowSaveModal(true)}} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all"><Bookmark size={16}/> Lagre liste</button>
             <button onClick={exportCSV} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all"><Download size={16}/> Eksporter CSV</button>
           </>)}
@@ -478,7 +525,7 @@ export default function SearchPage() {
                       {displayCompanies.map(c=>(<>
                         <tr key={c.orgNumber} className={`border-b border-surface-sunken hover:bg-surface/50 transition-colors cursor-pointer ${expandedRow===c.orgNumber?'bg-surface/50':''}`} onClick={()=>setExpandedRow(expandedRow===c.orgNumber?null:c.orgNumber)}>
                           <td className="px-4 py-3" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={selectedRows.has(c.orgNumber)} onChange={()=>toggleRow(c.orgNumber)} className="accent-coral w-4 h-4 cursor-pointer"/></td>
-                          <td className="px-4 py-3"><div className="font-medium text-[0.88rem]">{c.name}</div><div className="text-[0.75rem] text-txt-tertiary">{c.industry}</div></td>
+                          <td className="px-4 py-3"><div className="font-medium text-[0.88rem]">{c.name}{(()=>{const ll=getListsForOrg(c.orgNumber);return ll.length>0?<span className="ml-2 inline-flex items-center px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded text-[0.62rem] font-medium" title={`Finnes i: ${ll.join(', ')}`}>📋 {ll.length} liste{ll.length>1?'r':''}</span>:null})()}</div><div className="text-[0.75rem] text-txt-tertiary">{c.industry}</div></td>
                           <td className="px-4 py-3"><div className="text-[0.85rem] font-medium">{c.contactName||'—'}</div><div className="text-[0.75rem] text-txt-tertiary">{c.contactRole||''}</div></td>
                           <td className="px-4 py-3">
                             {c.email&&<div><a href={`mailto:${c.email}`} onClick={e=>e.stopPropagation()} className="text-[0.8rem] text-violet hover:underline">{c.email}</a></div>}

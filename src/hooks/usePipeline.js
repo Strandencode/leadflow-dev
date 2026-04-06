@@ -99,6 +99,16 @@ export function usePipeline() {
     return added
   }
 
+  // Auto-advance: move to 'contacted' if currently 'new'
+  function autoAdvanceToContacted(orgNumber) {
+    const current = pipeline[orgNumber]
+    if (current && current.stageId === 'new') {
+      moveToStage(orgNumber, 'contacted')
+      return true
+    }
+    return false
+  }
+
   return {
     pipeline,
     getStage,
@@ -108,6 +118,7 @@ export function usePipeline() {
     getLeadsForStage,
     getStageCounts,
     addListToPipeline,
+    autoAdvanceToContacted,
     STAGES,
   }
 }

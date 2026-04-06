@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Trash2, Download, BookmarkX, ChevronDown, ChevronRight, Mail, Trophy, Phone as PhoneIcon, Check, X } from 'lucide-react'
 import { useSavedLists } from '../hooks/useSavedLists'
+import { usePipeline } from '../hooks/usePipeline'
 import { useCustomers } from '../hooks/useCustomers'
 import EmailComposerModal from '../components/EmailComposerModal'
 import toast from 'react-hot-toast'
@@ -19,8 +20,19 @@ function buildOutlookUrl(c) {
 
 export default function SavedPage() {
   const navigate = useNavigate()
-  const { lists, deleteList, markEmailed, markCalled, getTracking } = useSavedLists()
+  const { lists, deleteList, markEmailed: _markEmailed, markCalled: _markCalled, getTracking } = useSavedLists()
+  const { autoAdvanceToContacted } = usePipeline()
   const { addCustomer, isCustomer } = useCustomers()
+
+  // Wrap to auto-advance pipeline
+  function markEmailed(orgNumber, value = true) {
+    _markEmailed(orgNumber, value)
+    if (value) autoAdvanceToContacted(orgNumber)
+  }
+  function markCalled(orgNumber, value) {
+    _markCalled(orgNumber, value)
+    if (value) autoAdvanceToContacted(orgNumber)
+  }
   const [expandedId, setExpandedId] = useState(null)
   const [visibleCount, setVisibleCount] = useState({})
   const [selectedRows, setSelectedRows] = useState({})
