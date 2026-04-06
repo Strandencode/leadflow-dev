@@ -193,7 +193,7 @@ export default function SavedPage() {
                               <th className="text-left px-4 py-2 text-[0.7rem] uppercase tracking-wider text-txt-tertiary font-semibold">Selskap</th>
                               <th className="text-left px-4 py-2 text-[0.7rem] uppercase tracking-wider text-txt-tertiary font-semibold">Kontakt</th>
                               <th className="text-left px-4 py-2 text-[0.7rem] uppercase tracking-wider text-txt-tertiary font-semibold">E-post / Tlf</th>
-                              <th className="text-left px-4 py-2 text-[0.7rem] uppercase tracking-wider text-txt-tertiary font-semibold">Status</th>
+                              <th className="text-left px-4 py-2 text-[0.7rem] uppercase tracking-wider text-txt-tertiary font-semibold">Sendt / Ringt</th>
                               <th className="text-left px-4 py-2 text-[0.7rem] uppercase tracking-wider text-txt-tertiary font-semibold">Handlinger</th>
                             </tr>
                           </thead>
@@ -218,31 +218,27 @@ export default function SavedPage() {
                                     {!c.email&&!c.phone&&<span className="text-[0.8rem] text-txt-tertiary">—</span>}
                                   </td>
                                   <td className="px-4 py-2.5">
-                                    <div className="flex flex-wrap gap-1">
-                                      {t.emailed&&<span className="px-2 py-0.5 bg-green-50 text-green-600 rounded text-[0.68rem] font-medium">✉ {fmt(t.emailedAt)}</span>}
-                                      {t.called&&<span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[0.68rem] font-medium">📱 {fmt(t.calledAt)}</span>}
-                                      {isWon&&<span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[0.68rem] font-semibold">🏆 Won</span>}
-                                      {!t.emailed&&!t.called&&!isWon&&<span className="text-[0.75rem] text-txt-tertiary">—</span>}
+                                    <div className="flex items-center gap-2">
+                                      <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-green-50 cursor-pointer transition-all border border-transparent hover:border-green-100" title="Sendt e-post" onClick={e=>e.stopPropagation()}>
+                                        <input type="checkbox" checked={t.emailed} onChange={e=>markEmailed(c.orgNumber,e.target.checked)} className="accent-green-500 w-3.5 h-3.5"/>
+                                        <span className={`text-[0.72rem] font-medium ${t.emailed?'text-green-600':'text-txt-tertiary'}`}>Sendt</span>
+                                      </label>
+                                      <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-blue-50 cursor-pointer transition-all border border-transparent hover:border-blue-100" title="Ringt" onClick={e=>e.stopPropagation()}>
+                                        <input type="checkbox" checked={t.called} onChange={e=>markCalled(c.orgNumber,e.target.checked)} className="accent-blue-500 w-3.5 h-3.5"/>
+                                        <span className={`text-[0.72rem] font-medium ${t.called?'text-blue-600':'text-txt-tertiary'}`}>Ringt</span>
+                                      </label>
+                                      {isWon&&<span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[0.68rem] font-semibold">Won</span>}
                                     </div>
                                   </td>
                                   <td className="px-4 py-2.5">
-                                    <div className="flex items-center gap-1">
-                                      {c.email&&<>
-                                        <a href={buildGmailUrl(c)} target="_blank" rel="noopener" onClick={()=>markEmailed(c.orgNumber)} className="px-2 py-1 bg-red-500 text-white rounded text-[0.68rem] font-semibold hover:bg-red-600 transition-all" title="Gmail">📧</a>
-                                        <a href={buildOutlookUrl(c)} target="_blank" rel="noopener" onClick={()=>markEmailed(c.orgNumber)} className="px-2 py-1 bg-blue-500 text-white rounded text-[0.68rem] font-semibold hover:bg-blue-600 transition-all" title="Outlook">📨</a>
-                                      </>}
-                                      <label className="flex items-center gap-1 px-2 py-1 rounded hover:bg-surface-sunken cursor-pointer transition-all" title="Sendt e-post">
-                                        <input type="checkbox" checked={t.emailed} onChange={e=>markEmailed(c.orgNumber,e.target.checked)} className="accent-green-500 w-3.5 h-3.5"/>
-                                        <span className="text-[0.68rem] text-txt-tertiary">✉</span>
-                                      </label>
-                                      <label className="flex items-center gap-1 px-2 py-1 rounded hover:bg-surface-sunken cursor-pointer transition-all" title="Ringt">
-                                        <input type="checkbox" checked={t.called} onChange={e=>markCalled(c.orgNumber,e.target.checked)} className="accent-blue-500 w-3.5 h-3.5"/>
-                                        <span className="text-[0.68rem] text-txt-tertiary">📱</span>
-                                      </label>
+                                    <div className="flex items-center gap-1.5">
+                                      {c.email&&
+                                        <a href={buildGmailUrl(c)} target="_blank" rel="noopener" onClick={()=>markEmailed(c.orgNumber)} className="flex items-center gap-1 px-2.5 py-1.5 bg-violet/10 text-violet rounded-lg text-[0.72rem] font-medium hover:bg-violet/20 transition-all" title="Send e-post"><Mail size={12}/> E-post</a>
+                                      }
                                       {!isWon ? (
-                                        <button onClick={()=>{addCustomer({orgNumber:c.orgNumber,name:c.name,contactName:c.contactName,contactRole:c.contactRole,email:c.email,phone:c.phone,industry:c.industry,municipality:c.municipality,revenue:c.revenue});toast.success(`${c.name} → Won!`)}} className="px-2 py-1 rounded text-[0.68rem] font-medium text-green-600 hover:bg-green-50 transition-all" title="Closed Won">🏆</button>
+                                        <button onClick={()=>{addCustomer({orgNumber:c.orgNumber,name:c.name,contactName:c.contactName,contactRole:c.contactRole,email:c.email,phone:c.phone,industry:c.industry,municipality:c.municipality,revenue:c.revenue});toast.success(`${c.name} → Won!`)}} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[0.72rem] font-medium text-green-600 hover:bg-green-50 transition-all" title="Closed Won"><Trophy size={12}/> Won</button>
                                       ) : (
-                                        <span className="px-2 py-1 text-[0.68rem] text-green-500" title="Kunde">✓</span>
+                                        <span className="px-2 py-1 text-[0.72rem] text-green-500 font-medium">✓ Kunde</span>
                                       )}
                                     </div>
                                   </td>

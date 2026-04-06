@@ -525,22 +525,25 @@ export default function SearchPage() {
 
                                   {(()=>{const t=getTracking(c.orgNumber);return(
                                     <div className="mt-3 pt-3 border-t border-surface-sunken">
-                                      <div className="flex items-center gap-2 flex-wrap mb-2">
-                                        {t.emailed&&<span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-600 rounded-md text-[0.72rem] font-medium">✉ Sendt {new Date(t.emailedAt).toLocaleDateString('nb-NO')}</span>}
-                                        {t.called&&<span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 rounded-md text-[0.72rem] font-medium">📱 Ringt {new Date(t.calledAt).toLocaleDateString('nb-NO')}</span>}
-                                        {!t.emailed&&!t.called&&<span className="text-[0.78rem] text-txt-tertiary">Ikke kontaktet</span>}
+                                      <div className="flex items-center gap-3 mb-3">
+                                        <label className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-green-50 cursor-pointer transition-all border border-transparent hover:border-green-100" onClick={e=>e.stopPropagation()}>
+                                          <input type="checkbox" checked={t.emailed} onChange={e=>markEmailed(c.orgNumber,e.target.checked)} className="accent-green-500 w-4 h-4 rounded"/>
+                                          <span className={`text-[0.82rem] font-medium ${t.emailed?'text-green-600':'text-txt-secondary'}`}>Sendt e-post</span>
+                                          {t.emailed&&t.emailedAt&&<span className="text-[0.7rem] text-green-500">{new Date(t.emailedAt).toLocaleDateString('nb-NO')}</span>}
+                                        </label>
+                                        <label className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-blue-50 cursor-pointer transition-all border border-transparent hover:border-blue-100" onClick={e=>e.stopPropagation()}>
+                                          <input type="checkbox" checked={t.called} onChange={e=>markCalled(c.orgNumber,e.target.checked)} className="accent-blue-500 w-4 h-4 rounded"/>
+                                          <span className={`text-[0.82rem] font-medium ${t.called?'text-blue-600':'text-txt-secondary'}`}>Ringt</span>
+                                          {t.called&&t.calledAt&&<span className="text-[0.7rem] text-blue-500">{new Date(t.calledAt).toLocaleDateString('nb-NO')}</span>}
+                                        </label>
                                       </div>
-                                      <label className="flex items-center gap-2 cursor-pointer text-[0.82rem] text-txt-secondary hover:text-txt-primary" onClick={e=>e.stopPropagation()}>
-                                        <input type="checkbox" checked={t.called} onChange={e=>markCalled(c.orgNumber,e.target.checked)} className="accent-blue-500 w-4 h-4 rounded"/> Ringt denne kunden
-                                      </label>
                                     </div>
                                   )})()}
 
                                   <div className="mt-4 flex flex-col gap-2">
-                                    {c.email&&(<>
-                                      <a href={buildGmailUrl(c)} target="_blank" rel="noopener" onClick={e=>{e.stopPropagation();markEmailed(c.orgNumber);toast.success('Markert som sendt')}} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-lg text-[0.82rem] font-semibold hover:bg-red-600 transition-all"><Mail size={14}/> Åpne i Gmail</a>
-                                      <a href={buildOutlookUrl(c)} target="_blank" rel="noopener" onClick={e=>{e.stopPropagation();markEmailed(c.orgNumber);toast.success('Markert som sendt')}} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-[0.82rem] font-semibold hover:bg-blue-700 transition-all"><Mail size={14}/> Åpne i Outlook</a>
-                                    </>)}
+                                    {c.email&&(
+                                      <a href={buildGmailUrl(c)} target="_blank" rel="noopener" onClick={e=>{e.stopPropagation();markEmailed(c.orgNumber,true);toast.success('Markert som sendt')}} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-violet text-white rounded-lg text-[0.82rem] font-semibold hover:bg-violet/90 transition-all"><Mail size={14}/> Send e-post</a>
+                                    )}
                                     {!c.email&&<div className="text-[0.82rem] text-txt-tertiary italic p-3 bg-surface-sunken rounded-lg text-center">Ingen e-post registrert</div>}
                                     <div className="flex gap-2 mt-2">
                                       {c.contactName&&c.contactName!=='—'&&<a href={`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(c.contactName)}`} target="_blank" rel="noopener" onClick={e=>e.stopPropagation()} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 border border-bdr rounded-lg text-[0.75rem] font-medium text-txt-secondary hover:border-violet hover:text-violet transition-all"><ExternalLink size={11}/> LinkedIn</a>}
