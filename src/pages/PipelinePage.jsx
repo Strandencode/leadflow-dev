@@ -1,8 +1,12 @@
 import { useState, useRef } from 'react'
 import { usePipeline, STAGES } from '../hooks/usePipeline'
 import { useSavedLists } from '../hooks/useSavedLists'
-import { Plus, GripVertical, Mail, Phone, X, ChevronDown, ArrowRight, Trash2 } from 'lucide-react'
+import { Plus, GripVertical, Mail, Phone, X, ChevronDown, ArrowRight, Trash2, Filter } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+const EXCLUDE_FILTERS = [
+  { id: 'blomster', label: 'Skjul blomsterbutikker', pattern: /blomster|florist|gartn/i },
+]
 
 export default function PipelinePage() {
   const { pipeline, getLeadsForStage, getStageCounts, moveToStage, addListToPipeline, removeFromPipeline } = usePipeline()
@@ -10,8 +14,28 @@ export default function PipelinePage() {
   const [dragItem, setDragItem] = useState(null)
   const [dragOverStage, setDragOverStage] = useState(null)
   const [showImport, setShowImport] = useState(false)
+  const [activeFilters, setActiveFilters] = useState(new Set())
   const counts = getStageCounts()
   const totalLeads = Object.values(counts).reduce((s, c) => s + c, 0)
+
+  function toggleFilter(filterId) {
+    setActiveFilters(prev => {
+      const next = new Set(prev)
+      next.has(filterId) ? next.delete(filterId) : next.add(filterId)
+      return next
+    })
+  }
+
+  function filterLeads(leads) {
+    if (activeFilters.size === 0) return leads
+    return leads.filter(lead => {
+      for (const fId of activeFilters) {
+        const f = EXCLUDE_FILTERS.find(ef => ef.id === fId)
+        if (f && f.pattern.test(lead.name || '') || f && f.pattern.test(lead.industry || '')) return false
+      }
+      return true
+    })
+  }
 
   function handleDragStart(e, orgNumber, stageId) {
     setDragItem({ orgNumber, fromStage: stageId })
@@ -64,7 +88,19 @@ export default function PipelinePage() {
             {totalLeads > 0 ? `${totalLeads} leads i pipeline` : 'Dra leads mellom kolonner for a oppdatere status'}
           </p>
         </div>
-        <div className="relative">
+        <div className="flex items-center gap-2">
+          {/* Filter buttons */}
+          {EXCLUDE_FILTERS.map(f => (
+            <button key={f.id} onClick={() => toggleFilter(f.id)}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[0.82rem] font-medium border transition-all ${
+                activeFilters.has(f.id)
+                  ? 'bg-violet/10 border-violet/30 text-violet'
+                  : 'border-bdr text-txt-secondary hover:border-violet/20'
+              }`}>
+              <Filter size={13} /> {f.label}
+            </button>
+          ))}
+          <div className="relative">
           <button onClick={() => setShowImport(!showImport)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium text-white hover:shadow-lg hover:-translate-y-0.5 transition-all"
             style={{ background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8F6B 100%)' }}>
@@ -96,13 +132,14 @@ export default function PipelinePage() {
             </div>
           )}
         </div>
+        </div>
       </div>
 
       {/* Kanban Board */}
       <div className="flex-1 overflow-x-auto p-6">
         <div className="flex gap-5 h-full min-w-max">
           {STAGES.map((stage) => {
-            const leads = getLeadsForStage(stage.id)
+            const leads = filterLeads(getLeadsForStage(stage.id))
             const isOver = dragOverStage === stage.id
 
             return (

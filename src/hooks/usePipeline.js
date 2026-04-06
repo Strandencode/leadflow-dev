@@ -5,8 +5,10 @@ const STORAGE_KEY = 'leadflow_pipeline'
 const STAGES = [
   { id: 'new', label: 'Ny Lead', color: '#9E98B5', emoji: '🆕' },
   { id: 'contacted', label: 'Kontaktet', color: '#7C5CFC', emoji: '📧' },
-  { id: 'meeting', label: 'Mote Booket', color: '#FF6B4A', emoji: '📅' },
+  { id: 'meeting', label: 'Møte Booket', color: '#FF6B4A', emoji: '📅' },
+  { id: 'contract', label: 'Sendt Kontrakt', color: '#F59E0B', emoji: '📝' },
   { id: 'won', label: 'Closed Won', color: '#22C55E', emoji: '🏆' },
+  { id: 'lost', label: 'Closed Lost', color: '#EF4444', emoji: '❌' },
 ]
 
 export { STAGES }

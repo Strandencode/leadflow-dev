@@ -231,6 +231,10 @@ export default function SavedPage() {
                                         <a href={buildGmailUrl(c)} target="_blank" rel="noopener" onClick={()=>markEmailed(c.orgNumber)} className="px-2 py-1 bg-red-500 text-white rounded text-[0.68rem] font-semibold hover:bg-red-600 transition-all" title="Gmail">📧</a>
                                         <a href={buildOutlookUrl(c)} target="_blank" rel="noopener" onClick={()=>markEmailed(c.orgNumber)} className="px-2 py-1 bg-blue-500 text-white rounded text-[0.68rem] font-semibold hover:bg-blue-600 transition-all" title="Outlook">📨</a>
                                       </>}
+                                      <label className="flex items-center gap-1 px-2 py-1 rounded hover:bg-surface-sunken cursor-pointer transition-all" title="Sendt e-post">
+                                        <input type="checkbox" checked={t.emailed} onChange={e=>markEmailed(c.orgNumber,e.target.checked)} className="accent-green-500 w-3.5 h-3.5"/>
+                                        <span className="text-[0.68rem] text-txt-tertiary">✉</span>
+                                      </label>
                                       <label className="flex items-center gap-1 px-2 py-1 rounded hover:bg-surface-sunken cursor-pointer transition-all" title="Ringt">
                                         <input type="checkbox" checked={t.called} onChange={e=>markCalled(c.orgNumber,e.target.checked)} className="accent-blue-500 w-3.5 h-3.5"/>
                                         <span className="text-[0.68rem] text-txt-tertiary">📱</span>

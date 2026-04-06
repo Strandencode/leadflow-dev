@@ -52,10 +52,10 @@ export function useSavedLists() {
   }
 
   // === Contact tracking ===
-  function markEmailed(orgNumber) {
+  function markEmailed(orgNumber, value = true) {
     const now = new Date().toISOString()
     const prev = tracking[orgNumber] || {}
-    persistTracking({ ...tracking, [orgNumber]: { ...prev, emailed: true, emailedAt: now } })
+    persistTracking({ ...tracking, [orgNumber]: { ...prev, emailed: value, emailedAt: value ? now : prev.emailedAt } })
   }
 
   function markCalled(orgNumber, value) {

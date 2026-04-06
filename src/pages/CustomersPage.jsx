@@ -6,11 +6,12 @@ import { formatNOK } from '../api/brreg'
 import toast from 'react-hot-toast'
 
 export default function CustomersPage() {
-  const { customers, removeCustomer, updateCustomerNotes, addContract, removeContract } = useCustomers()
+  const { customers, removeCustomer, updateCustomerNotes, addNoteEntry, removeNoteEntry, addContract, removeContract } = useCustomers()
   const navigate = useNavigate()
   const [expandedId, setExpandedId] = useState(null)
   const [editingNotes, setEditingNotes] = useState(null)
   const [notesText, setNotesText] = useState('')
+  const [newNoteText, setNewNoteText] = useState('')
   const fileInputRef = useRef(null)
   const [uploadTarget, setUploadTarget] = useState(null)
 
@@ -198,41 +199,56 @@ export default function CustomersPage() {
                         )}
                       </div>
 
-                      {/* Notes */}
+                      {/* Notes Log */}
                       <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-[0.72rem] uppercase tracking-wider text-txt-tertiary font-semibold">Notater</h4>
-                          {editingNotes !== customer.id && (
-                            <button onClick={(e) => { e.stopPropagation(); startEditNotes(customer) }} className="text-[0.72rem] text-violet hover:underline">Rediger</button>
-                          )}
+                        <h4 className="text-[0.72rem] uppercase tracking-wider text-txt-tertiary font-semibold mb-3">Notatlogg</h4>
+
+                        {/* Add new note */}
+                        <div onClick={e => e.stopPropagation()} className="mb-3">
+                          <textarea
+                            value={newNoteText}
+                            onChange={e => setNewNoteText(e.target.value)}
+                            placeholder="Skriv et nytt notat..."
+                            className="w-full min-h-[60px] p-3 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none resize-y focus:border-violet focus:ring-2 focus:ring-violet-soft transition-all"
+                          />
+                          <div className="flex justify-end mt-1.5">
+                            <button
+                              onClick={() => { addNoteEntry(customer.id, newNoteText); setNewNoteText(''); toast.success('Notat lagt til') }}
+                              disabled={!newNoteText.trim()}
+                              className="px-3 py-1.5 bg-coral text-white rounded-md text-[0.78rem] font-medium hover:bg-coral-hover disabled:opacity-40 transition-all"
+                            >
+                              <Plus size={12} className="inline mr-1" />Legg til
+                            </button>
+                          </div>
                         </div>
 
-                        {editingNotes === customer.id ? (
-                          <div onClick={e => e.stopPropagation()}>
-                            <textarea
-                              value={notesText}
-                              onChange={e => setNotesText(e.target.value)}
-                              placeholder="Skriv notater om kunden, avtalen, oppfølgingspunkter..."
-                              className="w-full min-h-[120px] p-3 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none resize-y focus:border-violet focus:ring-2 focus:ring-violet-soft transition-all"
-                              autoFocus
-                            />
-                            <div className="flex gap-2 mt-2 justify-end">
-                              <button onClick={() => setEditingNotes(null)} className="px-3 py-1.5 text-[0.78rem] text-txt-secondary hover:text-txt-primary transition-colors">Avbryt</button>
-                              <button onClick={() => saveNotes(customer.id)} className="px-3 py-1.5 bg-coral text-white rounded-md text-[0.78rem] font-medium hover:bg-coral-hover transition-all">Lagre</button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div
-                            className="min-h-[80px] p-3 bg-surface rounded-lg border border-surface-sunken cursor-pointer hover:border-violet/30 transition-all"
-                            onClick={(e) => { e.stopPropagation(); startEditNotes(customer) }}
-                          >
-                            {customer.notes ? (
+                        {/* Notes list */}
+                        <div className="space-y-2 max-h-[250px] overflow-y-auto">
+                          {(customer.notesLog || []).length === 0 && !customer.notes && (
+                            <p className="text-[0.82rem] text-txt-tertiary italic flex items-center gap-1 p-3"><StickyNote size={14} /> Ingen notater enda</p>
+                          )}
+                          {/* Show legacy notes as first entry if exists */}
+                          {customer.notes && !(customer.notesLog || []).length && (
+                            <div className="p-3 bg-surface rounded-lg border border-surface-sunken">
                               <p className="text-[0.85rem] text-txt-secondary whitespace-pre-line">{customer.notes}</p>
-                            ) : (
-                              <p className="text-[0.82rem] text-txt-tertiary italic flex items-center gap-1"><StickyNote size={14} /> Klikk for å legge til notater...</p>
-                            )}
-                          </div>
-                        )}
+                              <div className="text-[0.68rem] text-txt-tertiary mt-1.5">Eldre notat</div>
+                            </div>
+                          )}
+                          {[...(customer.notesLog || [])].reverse().map(note => (
+                            <div key={note.id} className="p-3 bg-surface rounded-lg border border-surface-sunken group">
+                              <p className="text-[0.85rem] text-txt-secondary whitespace-pre-line">{note.text}</p>
+                              <div className="flex items-center justify-between mt-1.5">
+                                <span className="text-[0.68rem] text-txt-tertiary">{formatDate(note.createdAt)}</span>
+                                <button
+                                  onClick={e => { e.stopPropagation(); removeNoteEntry(customer.id, note.id) }}
+                                  className="p-1 rounded hover:bg-red-50 text-txt-tertiary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
 
                         <button
                           onClick={(e) => { e.stopPropagation(); if (confirm(`Fjerne ${customer.name} fra kunder?`)) { removeCustomer(customer.id); toast.success('Kunde fjernet') } }}

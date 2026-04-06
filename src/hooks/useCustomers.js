@@ -54,6 +54,22 @@ export function useCustomers() {
     persist(customers.map(c => c.id === id ? { ...c, notes } : c))
   }
 
+  function addNoteEntry(id, text) {
+    if (!text.trim()) return
+    persist(customers.map(c => {
+      if (c.id !== id) return c
+      const entry = { id: crypto.randomUUID(), text: text.trim(), createdAt: new Date().toISOString() }
+      return { ...c, notesLog: [...(c.notesLog || []), entry] }
+    }))
+  }
+
+  function removeNoteEntry(customerId, noteId) {
+    persist(customers.map(c => {
+      if (c.id !== customerId) return c
+      return { ...c, notesLog: (c.notesLog || []).filter(n => n.id !== noteId) }
+    }))
+  }
+
   function addContract(customerId, { fileName, fileSize, fileType, fileData }) {
     persist(customers.map(c => {
       if (c.id !== customerId) return c
@@ -82,5 +98,5 @@ export function useCustomers() {
     return customers.some(c => c.orgNumber === orgNumber)
   }
 
-  return { customers, addCustomer, removeCustomer, updateCustomerNotes, addContract, removeContract, isCustomer }
+  return { customers, addCustomer, removeCustomer, updateCustomerNotes, addNoteEntry, removeNoteEntry, addContract, removeContract, isCustomer }
 }
