@@ -237,7 +237,9 @@ export default function SearchPage() {
     const muni = MUNICIPALITIES.find(m=>m.value===filters.kommunenummer)
     const emp = EMPLOYEE_RANGES.find(r=>r.value===filters.employeeRange)
     const parts = [nace?.label?.split(' — ')[1]||'', muni?.label||'', emp?.label||''].filter(Boolean)
-    saveList({ name:nm, filters:{...filters}, filterLabels:parts.join(' · ')||'Alle filtre', companies:filtered, totalResults:filtered.length })
+    // Merge enriched data (revenue, contacts) into companies before saving
+    const companiesWithEnrichment = filtered.map(c => enrichedCache[c.orgNumber] ? { ...c, ...enrichedCache[c.orgNumber] } : c)
+    saveList({ name:nm, filters:{...filters}, filterLabels:parts.join(' · ')||'Alle filtre', companies:companiesWithEnrichment, totalResults:filtered.length })
     toast.success(`"${nm}" lagret med ${filtered.length} leads!`)
     setShowSaveModal(false); setSaveName('')
   }
@@ -247,9 +249,9 @@ export default function SearchPage() {
 
   function exportCSV() {
     if (!filtered.length) return
-    const rows = selectedRows.size > 0 ? filtered.filter(c=>selectedRows.has(c.orgNumber)) : filtered
-    const h = ['Org Nr','Navn','Bransje','NACE','Adresse','Kommune','Ansatte','Stiftet','E-post','Telefon','Nettside']
-    const csv = [h.join(';'), ...rows.map(c=>[c.orgNumber,c.name,c.industry,c.industryCode,c.address,c.municipality,c.employees??'',c.foundedDate,c.email||'',c.phone||'',c.website||''].map(v=>`"${v}"`).join(';'))].join('\n')
+    const rows = (selectedRows.size > 0 ? filtered.filter(c=>selectedRows.has(c.orgNumber)) : filtered).map(c => enrichedCache[c.orgNumber] ? { ...c, ...enrichedCache[c.orgNumber] } : c)
+    const h = ['Org Nr','Navn','Bransje','NACE','Adresse','Kommune','Ansatte','Stiftet','E-post','Telefon','Nettside','Kontakt','Omsetning','Driftsresultat']
+    const csv = [h.join(';'), ...rows.map(c=>[c.orgNumber,c.name,c.industry,c.industryCode,c.address,c.municipality,c.employees??'',c.foundedDate,c.email||'',c.phone||'',c.website||'',c.contactName||'',c.revenue??'',c.operatingProfit??''].map(v=>`"${v}"`).join(';'))].join('\n')
     const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'})
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url
     a.download = `leadflow-${(searchName||'export').toLowerCase().replace(/\s+/g,'-')}-${contactFilter!=='all'?contactFilter+'-':''}${new Date().toISOString().slice(0,10)}.csv`
