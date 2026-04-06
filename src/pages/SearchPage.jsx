@@ -231,16 +231,16 @@ export default function SearchPage() {
   }
 
   function handleSave() {
-    if (!filtered.length) return
+    const toSave = selectedRows.size > 0 ? filtered.filter(c => selectedRows.has(c.orgNumber)) : filtered
+    if (!toSave.length) return
     const nm = saveName.trim() || searchName || 'Uten navn'
     const nace = NACE_CODES.find(n=>n.value===filters.industrikode)
     const muni = MUNICIPALITIES.find(m=>m.value===filters.kommunenummer)
     const emp = EMPLOYEE_RANGES.find(r=>r.value===filters.employeeRange)
     const parts = [nace?.label?.split(' — ')[1]||'', muni?.label||'', emp?.label||''].filter(Boolean)
-    // Merge enriched data (revenue, contacts) into companies before saving
-    const companiesWithEnrichment = filtered.map(c => enrichedCache[c.orgNumber] ? { ...c, ...enrichedCache[c.orgNumber] } : c)
-    saveList({ name:nm, filters:{...filters}, filterLabels:parts.join(' · ')||'Alle filtre', companies:companiesWithEnrichment, totalResults:filtered.length })
-    toast.success(`"${nm}" lagret med ${filtered.length} leads!`)
+    const companiesWithEnrichment = toSave.map(c => enrichedCache[c.orgNumber] ? { ...c, ...enrichedCache[c.orgNumber] } : c)
+    saveList({ name:nm, filters:{...filters}, filterLabels:parts.join(' · ')||'Alle filtre', companies:companiesWithEnrichment, totalResults:toSave.length })
+    toast.success(`"${nm}" lagret med ${toSave.length} leads!`)
     setShowSaveModal(false); setSaveName('')
   }
 
@@ -589,12 +589,43 @@ export default function SearchPage() {
       {showSaveModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4" onClick={()=>setShowSaveModal(false)}>
           <div className="bg-surface-raised rounded-2xl shadow-xl w-full max-w-md p-8" onClick={e=>e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-6"><h3 className="font-display text-xl font-semibold">Lagre leadliste</h3><button onClick={()=>setShowSaveModal(false)} className="p-1 rounded-lg hover:bg-surface-sunken"><X size={20} className="text-txt-tertiary"/></button></div>
-            <div className="mb-4"><label className="block text-[0.78rem] font-semibold uppercase tracking-wide text-txt-secondary mb-2">Navn på listen</label><input type="text" value={saveName} onChange={e=>setSaveName(e.target.value)} placeholder="f.eks. Dyrebutikker hele Norge" autoFocus className="w-full px-3.5 py-3 bg-surface border border-bdr rounded-lg text-[0.95rem] outline-none focus:border-violet focus:ring-2 focus:ring-violet-soft transition-all" onKeyDown={e=>e.key==='Enter'&&handleSave()}/></div>
-            <div className="p-3 bg-surface-sunken rounded-lg mb-6 text-[0.85rem] text-txt-secondary"><strong className="text-txt-primary">{filtered.length}</strong> leads vil bli lagret{contactFilter!=='all'&&` (filtrert: ${contactFilter})`}</div>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-display text-xl font-semibold">Lagre leadliste</h3>
+              <button onClick={()=>setShowSaveModal(false)} className="p-1 rounded-lg hover:bg-surface-sunken"><X size={20} className="text-txt-tertiary"/></button>
+            </div>
+            <div className="mb-4">
+              <label className="block text-[0.78rem] font-semibold uppercase tracking-wide text-txt-secondary mb-2">Navn på listen</label>
+              <input type="text" value={saveName} onChange={e=>setSaveName(e.target.value)} placeholder="f.eks. Dyrebutikker hele Norge" autoFocus className="w-full px-3.5 py-3 bg-surface border border-bdr rounded-lg text-[0.95rem] outline-none focus:border-violet focus:ring-2 focus:ring-violet-soft transition-all" onKeyDown={e=>e.key==='Enter'&&handleSave()}/>
+            </div>
+            {/* Selection info */}
+            <div className="p-4 bg-surface-sunken rounded-lg mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[0.85rem] text-txt-secondary">
+                  {selectedRows.size > 0
+                    ? <><strong className="text-txt-primary">{selectedRows.size}</strong> av {filtered.length} valgt</>
+                    : <><strong className="text-txt-primary">{filtered.length}</strong> leads vil bli lagret</>
+                  }
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={()=>setSelectedRows(new Set(filtered.map(c=>c.orgNumber)))} className={`px-3 py-1.5 rounded-lg text-[0.78rem] font-medium transition-all ${selectedRows.size===filtered.length?'bg-violet text-white':'border border-bdr text-txt-secondary hover:border-violet hover:text-violet'}`}>
+                  Velg alle ({filtered.length})
+                </button>
+                <button onClick={()=>setSelectedRows(new Set(filtered.filter(c=>c.email).map(c=>c.orgNumber)))} className={`px-3 py-1.5 rounded-lg text-[0.78rem] font-medium border border-bdr text-txt-secondary hover:border-violet hover:text-violet transition-all`}>
+                  Kun med e-post ({filtered.filter(c=>c.email).length})
+                </button>
+                {selectedRows.size > 0 && (
+                  <button onClick={()=>setSelectedRows(new Set())} className="px-3 py-1.5 rounded-lg text-[0.78rem] font-medium text-txt-tertiary hover:text-txt-secondary transition-all">
+                    Fjern valg
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="flex gap-3 justify-end">
               <button onClick={()=>setShowSaveModal(false)} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all">Avbryt</button>
-              <button onClick={handleSave} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium bg-coral text-white hover:bg-coral-hover transition-all">Lagre liste</button>
+              <button onClick={handleSave} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium bg-coral text-white hover:bg-coral-hover transition-all">
+                Lagre {selectedRows.size > 0 ? selectedRows.size : filtered.length} leads
+              </button>
             </div>
           </div>
         </div>
