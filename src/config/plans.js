@@ -20,7 +20,7 @@ export const PLANS = {
     color: '#9E98B5',
     limits: {
       enrichments: 0,         // No enrichment — sees company name only
-      visibleResults: 10,     // Only 10 results shown, rest blurred
+      visibleResults: 30,     // Only 30 results shown, rest blurred
       savedLists: 1,          // 1 saved list
       pipelineLeads: 10,      // 10 leads in pipeline
       emailTemplates: true,   // Can view, not copy/send
@@ -31,7 +31,7 @@ export const PLANS = {
     },
     features: [
       'Søk i Brønnøysundregistrene',
-      'Se 10 resultater per søk',
+      'Se 30 resultater per søk',
       '1 lagret liste',
       '10 leads i pipeline',
       'E-postmaler (visning)',

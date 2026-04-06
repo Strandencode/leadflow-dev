@@ -19,7 +19,7 @@ const STATS = [
 ]
 
 const PLANS = [
-  { id: 'starter', name: 'Starter', price: '0', period: '', features: ['Søk i Brønnøysundregistrene', 'Se 10 resultater per søk', '1 lagret liste', '10 leads i pipeline', 'E-postmaler (visning)'], cta: 'Kom i gang gratis' },
+  { id: 'starter', name: 'Starter', price: '0', period: '', features: ['Søk i Brønnøysundregistrene', 'Se 30 resultater per søk', '1 lagret liste', '10 leads i pipeline', 'E-postmaler (visning)'], cta: 'Kom i gang gratis' },
   { id: 'professional', name: 'Professional', price: '199', period: '/mnd', features: ['200 enrichments/mnd', 'Alle søkeresultater', '10 lagrede lister', 'Ubegrenset pipeline', 'E-post + CSV-eksport', 'Analytics dashboard'], popular: true, cta: 'Start 14 dagers prøveperiode' },
   { id: 'business', name: 'Business', price: '999', period: '/mnd', features: ['Ubegrenset enrichment', 'Ubegrenset lister', 'Workspace — opptil 5 brukere', 'Delte lister og pipeline', 'Avansert analytics', 'Kundenotater + kontrakter'], cta: 'Start 14 dagers prøveperiode' },
   { id: 'enterprise', name: 'Enterprise', price: '4 999', period: '/mnd', features: ['Alt i Business', 'Ubegrenset brukere', 'API-tilgang', 'SSO & SAML', 'Dedikert onboarding', 'Prioritert support'], cta: 'Kontakt oss' },
