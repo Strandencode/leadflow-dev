@@ -5,7 +5,7 @@ import { Search, Target, Mail, Kanban, BarChart3, Trophy, ArrowRight, Check, Shi
 const FEATURES = [
   { icon: Search, title: 'Prospektering', desc: 'Søk i hele Brønnøysundregistrene. Filtrer på bransje, geografi, storrelse og omsetning.', tag: 'DATA' },
   { icon: Target, title: 'ICP-analyse', desc: 'Definer din ideelle kundeprofil og motta automatisk kvalifiserte leads.', tag: 'AI' },
-  { icon: Mail, title: 'Outreach', desc: 'Generer tilpassede e-postmaler med intelligent flettefelt-teknologi.', tag: 'AUTOMATION' },
+  { icon: Mail, title: 'E-postmaler', desc: 'Generer tilpassede e-postmaler med intelligent flettefelt-teknologi.', tag: 'AUTOMATION' },
   { icon: Kanban, title: 'Pipeline CRM', desc: 'Visuell pipeline-styring fra første kontakt til lukket avtale.', tag: 'CRM' },
   { icon: BarChart3, title: 'Analytics', desc: 'Konverteringsrater, aktivitetsmetrikker og portefoljeanalyse i sanntid.', tag: 'INSIGHTS' },
   { icon: Trophy, title: 'Kundeportefolje', desc: 'Komplett oversikt over vunnede kunder med kontrakter og historikk.', tag: 'MANAGEMENT' },
@@ -98,7 +98,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-[1.05rem] text-white/35 max-w-xl mx-auto mb-12 leading-relaxed font-light">
-              Komplett tilgang til Brønnøysundregistrene med AI-drevet enrichment, pipeline-styring og outreach-automatisering.
+              Komplett tilgang til Brønnøysundregistrene med AI-drevet enrichment, pipeline-styring og e-postautomatisering.
             </p>
 
             <div className="flex items-center justify-center gap-4">
@@ -136,7 +136,7 @@ export default function LandingPage() {
                     { label: 'Pipeline-verdi', value: '24.8M', change: '+12.4%' },
                     { label: 'Aktive leads', value: '1,847', change: '+89' },
                     { label: 'Konverteringsrate', value: '23.4%', change: '+2.1pp' },
-                    { label: 'Svar pa outreach', value: '34.2%', change: '+5.8pp' },
+                    { label: 'Svar på e-post', value: '34.2%', change: '+5.8pp' },
                   ].map((m, i) => (
                     <div key={i} className="p-4 rounded border border-white/[0.04] bg-white/[0.015]">
                       <div className="text-[0.65rem] text-white/25 uppercase tracking-wider mb-1 font-medium">{m.label}</div>

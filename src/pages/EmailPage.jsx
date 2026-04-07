@@ -7,7 +7,7 @@ const MERGE_TAGS = ['{{contact_name}}', '{{company_name}}', '{{industry}}', '{{c
 const TEMPLATES_KEY = 'leadflow_saved_templates'
 
 const DEFAULT_SEGMENTS = [
-  { id: 'general', name: 'Generell', emoji: '📧', description: 'Standard outreach-mal' },
+  { id: 'general', name: 'Generell', emoji: '📧', description: 'Standard e-postmal' },
 ]
 
 // Generate email from template config, injecting ICP data into the text
@@ -146,7 +146,7 @@ export default function EmailPage() {
     setBody(generated.body)
 
     const segment = SEGMENTS.find(s => s.id === selectedSegment)
-    setTemplateName(`${segment?.emoji} ${segment?.name || 'Generell'} outreach`)
+    setTemplateName(`${segment?.emoji} ${segment?.name || 'Generell'} e-postmal`)
     setActiveTemplateId(null)
     setGenerating(false)
     toast.success(`Mal generert for ${segment?.name || 'generell'}!`)
@@ -170,7 +170,7 @@ export default function EmailPage() {
     <div>
       <div className="px-8 py-5 bg-white border-b border-gray-100 flex items-center justify-between sticky top-0 z-40">
         <div>
-          <h1 className="font-display text-[1.6rem] font-normal tracking-tight text-ink">Outreach</h1>
+          <h1 className="font-display text-[1.6rem] font-normal tracking-tight text-ink">E-postmaler</h1>
           <p className="text-txt-tertiary text-[0.82rem] mt-0.5 font-light">
             {savedTemplates.length > 0
               ? `${savedTemplates.length} lagrede maler — velg segment og generer`

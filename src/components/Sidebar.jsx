@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { label: 'Prospektering', icon: Search, path: '/search' },
   { label: 'Pipeline', icon: Kanban, path: '/pipeline' },
   { label: 'ICP-analyse', icon: Target, path: '/icp' },
-  { label: 'Outreach', icon: Mail, path: '/email' },
+  { label: 'E-postmaler', icon: Mail, path: '/email' },
   { label: 'Lagrede lister', icon: Bookmark, path: '/saved' },
   { label: 'Kunder', icon: Users, path: '/customers' },
   { label: 'Analytics', icon: BarChart3, path: '/analytics' },

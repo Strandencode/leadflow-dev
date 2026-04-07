@@ -66,7 +66,7 @@ const TEMPLATES = [
         include: null, exclude: null },
     ],
     emailSegments: [
-      { id: 'general', name: 'Generell', emoji: '📧', description: 'Standard outreach' },
+      { id: 'general', name: 'Generell', emoji: '📧', description: 'Standard e-postmal' },
       { id: 'dyrebutikker', name: 'Dyrebutikker', emoji: '🐕', description: 'Butikker med kjæledyrutstyr' },
       { id: 'veterinarer', name: 'Veterinærklinikker', emoji: '🏥', description: 'Dyreklinikker' },
       { id: 'helsekost', name: 'Helsekost & naturkost', emoji: '🌿', description: 'Naturkostbutikker' },
@@ -187,7 +187,7 @@ Vennlig hilsen,
         include: /kontor.?hotell|cowork|co-work|kontorfellesskap|felles.?kontor/i, exclude: null },
     ],
     emailSegments: [
-      { id: 'general', name: 'Generell', emoji: '📧', description: 'Standard outreach' },
+      { id: 'general', name: 'Generell', emoji: '📧', description: 'Standard e-postmal' },
       { id: 'hoteller', name: 'Hoteller', emoji: '🏨', description: 'Hoteller' },
       { id: 'restauranter', name: 'Restauranter', emoji: '🍽️', description: 'Restauranter' },
       { id: 'barer', name: 'Barer & puber', emoji: '🍸', description: 'Barer og puber' },
