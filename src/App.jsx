@@ -13,6 +13,7 @@ import CustomersPage from './pages/CustomersPage'
 import PipelinePage from './pages/PipelinePage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import SettingsPage from './pages/SettingsPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 
 function ProtectedLayout() {
   const { user, loading } = useAuth()
@@ -72,6 +73,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/*" element={<ProtectedLayout />} />
     </Routes>
   )

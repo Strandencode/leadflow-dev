@@ -90,8 +90,28 @@ export function AuthProvider({ children }) {
     setIsDemo(false)
   }
 
+  /** Send password reset email */
+  async function resetPassword(email) {
+    if (!isSupabaseConfigured()) {
+      return { error: null } // Demo mode — pretend it worked
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    return { error }
+  }
+
+  /** Update password (called from reset-password page after clicking email link) */
+  async function updatePassword(newPassword) {
+    if (!isSupabaseConfigured()) {
+      return { error: null }
+    }
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    return { error }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, isDemo, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, isDemo, signUp, signIn, signOut, resetPassword, updatePassword }}>
       {children}
     </AuthContext.Provider>
   )
