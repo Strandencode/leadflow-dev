@@ -83,9 +83,9 @@ export const PLANS = {
   enterprise: {
     id: 'enterprise',
     name: 'Enterprise',
-    price: 4999,
-    priceLabel: '4 999 kr',
-    period: '/mnd',
+    price: null,
+    priceLabel: 'Custom',
+    period: '',
     icon: '💎',
     color: '#22C55E',
     trialDays: 0,

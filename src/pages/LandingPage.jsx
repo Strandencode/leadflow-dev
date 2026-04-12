@@ -14,7 +14,7 @@ const FEATURES = [
 const PLANS = [
   { id: 'professional', name: 'Professional', price: '199', period: '/mnd', features: ['200 enrichments/mnd', 'Alle søkeresultater', '10 lagrede lister', 'Ubegrenset pipeline', 'E-post + CSV-eksport', 'Analytics dashboard'], popular: true, cta: 'Prøv gratis i 14 dager' },
   { id: 'business', name: 'Business', price: '499', period: '/mnd', features: ['Ubegrenset enrichment', 'Ubegrenset lister', 'Workspace — opptil 5 brukere', 'Delte lister og pipeline', 'Avansert analytics', 'Kundenotater + kontrakter'], cta: 'Prøv gratis i 14 dager' },
-  { id: 'enterprise', name: 'Enterprise', price: '4 999', period: '/mnd', features: ['Alt i Business', 'Ubegrenset brukere', 'API-tilgang', 'SSO & SAML', 'Dedikert onboarding', 'Prioritert support'], cta: 'Kontakt oss' },
+  { id: 'enterprise', name: 'Enterprise', price: 'Custom', period: '', features: ['Alt i Business', 'Ubegrenset brukere', 'API-tilgang', 'SSO & SAML', 'Dedikert onboarding', 'Prioritert support'], cta: 'Kontakt oss' },
 ]
 
 function useInView(threshold = 0.15) {
@@ -239,12 +239,16 @@ export default function LandingPage() {
                 <div className="text-[0.78rem] text-gray-400 font-semibold uppercase tracking-wider mb-3">{plan.name}</div>
 
                 <div className="mb-6">
-                  <div className="flex items-baseline gap-1">
-                    <span className="font-display text-[2rem] font-bold">{plan.price}</span>
-                    <span className="text-[0.88rem] text-gray-400">kr{plan.period}</span>
-                  </div>
-                  {plan.id !== 'enterprise' && (
-                    <div className="text-[0.78rem] text-green-600 font-medium mt-1">14 dager gratis</div>
+                  {plan.price === 'Custom' ? (
+                    <div className="font-display text-[2rem] font-bold">Custom</div>
+                  ) : (
+                    <>
+                      <div className="flex items-baseline gap-1">
+                        <span className="font-display text-[2rem] font-bold">{plan.price}</span>
+                        <span className="text-[0.88rem] text-gray-400">kr{plan.period}</span>
+                      </div>
+                      <div className="text-[0.78rem] text-green-600 font-medium mt-1">14 dager gratis</div>
+                    </>
                   )}
                 </div>
 

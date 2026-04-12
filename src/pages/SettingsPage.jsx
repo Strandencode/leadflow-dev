@@ -165,7 +165,7 @@ export default function SettingsPage() {
                     <span className="text-xl">{p.icon}</span>
                     <div className="text-[0.72rem] uppercase tracking-wider text-txt-tertiary font-semibold mt-1">{p.name}</div>
                     <div className="font-display text-2xl font-bold mt-1">{p.priceLabel}</div>
-                    <div className="text-[0.75rem] text-txt-secondary">/måned</div>
+                    {p.period && <div className="text-[0.75rem] text-txt-secondary">/måned</div>}
                     {p.trialDays > 0 && (
                       <div className="text-[0.72rem] text-green-500 font-medium mt-0.5">{p.trialDays} dager gratis</div>
                     )}
