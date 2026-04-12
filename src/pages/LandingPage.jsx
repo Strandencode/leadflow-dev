@@ -1,21 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Target, Mail, Kanban, BarChart3, Trophy, ArrowRight, Check, Shield, ChevronRight, TrendingUp, Building2, Globe, Lock } from 'lucide-react'
+import { Search, Target, Mail, Kanban, BarChart3, Trophy, ArrowRight, Check, Shield, ChevronRight, Building2, Globe, Lock, Users, Zap } from 'lucide-react'
 
 const FEATURES = [
-  { icon: Search, title: 'Prospektering', desc: 'Søk i hele Brønnøysundregistrene. Filtrer på bransje, geografi, storrelse og omsetning.', tag: 'DATA' },
-  { icon: Target, title: 'ICP-analyse', desc: 'Definer din ideelle kundeprofil og motta automatisk kvalifiserte leads.', tag: 'AI' },
-  { icon: Mail, title: 'E-postmaler', desc: 'Generer tilpassede e-postmaler med intelligent flettefelt-teknologi.', tag: 'AUTOMATION' },
-  { icon: Kanban, title: 'Pipeline CRM', desc: 'Visuell pipeline-styring fra første kontakt til lukket avtale.', tag: 'CRM' },
-  { icon: BarChart3, title: 'Analytics', desc: 'Konverteringsrater, aktivitetsmetrikker og portefoljeanalyse i sanntid.', tag: 'INSIGHTS' },
-  { icon: Trophy, title: 'Kundeportefolje', desc: 'Komplett oversikt over vunnede kunder med kontrakter og historikk.', tag: 'MANAGEMENT' },
-]
-
-const STATS = [
-  { value: '847K', label: 'Registrerte foretak' },
-  { value: '99.9%', label: 'Oppetid' },
-  { value: '2.4s', label: 'Gj.sn. responstid' },
-  { value: 'SOC2', label: 'Sertifisert' },
+  { icon: Search, title: 'Prospektering', desc: 'Tilgang til hele Brønnøysundregistrene. Filtrer på bransje, geografi, selskapsstørrelse og omsetning.' },
+  { icon: Zap, title: 'Enrichment', desc: 'Automatisk kontaktinfo, regnskapsdata og nøkkelpersoner — klar til bruk på sekunder.' },
+  { icon: Mail, title: 'E-postmaler', desc: 'Ferdigskrevne bransjetilpassede maler med flettefelt. Generer og send direkte.' },
+  { icon: Kanban, title: 'Pipeline', desc: 'Visuell Kanban-tavle fra første kontakt til lukket avtale. Dra og slipp.' },
+  { icon: BarChart3, title: 'Analytics', desc: 'Konverteringsrater, kontaktrate og aktivitetsmetrikker — oppdatert i sanntid.' },
+  { icon: Users, title: 'Workspace', desc: 'Inviter teamet, del lister og pipeline. Samarbeid med felles oversikt.' },
 ]
 
 const PLANS = [
@@ -24,8 +17,6 @@ const PLANS = [
   { id: 'business', name: 'Business', price: '999', period: '/mnd', features: ['Ubegrenset enrichment', 'Ubegrenset lister', 'Workspace — opptil 5 brukere', 'Delte lister og pipeline', 'Avansert analytics', 'Kundenotater + kontrakter'], cta: 'Start 14 dagers prøveperiode' },
   { id: 'enterprise', name: 'Enterprise', price: '4 999', period: '/mnd', features: ['Alt i Business', 'Ubegrenset brukere', 'API-tilgang', 'SSO & SAML', 'Dedikert onboarding', 'Prioritert support'], cta: 'Kontakt oss' },
 ]
-
-const CLIENTS = ['DNB', 'Storebrand', 'SpareBank 1', 'Nordic Semiconductor', 'Mowi', 'Equinor', 'Telenor', 'Vipps']
 
 function useInView(threshold = 0.15) {
   const ref = useRef(null)
@@ -44,131 +35,103 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const [heroRef, heroInView] = useInView(0)
   const [featRef, featInView] = useInView()
-  const [statsRef, statsInView] = useInView()
   const [priceRef, priceInView] = useInView()
+  const [trustRef, trustInView] = useInView()
 
   return (
-    <div className="min-h-screen bg-ink text-white overflow-hidden">
+    <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass-dark">
-        <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded flex items-center justify-center border border-gold/30"
-              style={{ background: 'linear-gradient(135deg, rgba(0,81,168,0.15) 0%, rgba(0,81,168,0.05) 100%)' }}>
-              <span className="font-display text-gold text-sm font-semibold">L</span>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-900">
+              <span className="font-display text-white text-sm font-semibold">L</span>
             </div>
-            <span className="font-display text-[1.15rem] tracking-wide">
-              Lead<span className="text-gold">Flow</span>
+            <span className="font-display text-[1.15rem] tracking-tight font-semibold">
+              LeadFlow
             </span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.82rem] text-white/40 hover:text-white/80 transition-colors tracking-wide uppercase">Produkt</button>
-            <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.82rem] text-white/40 hover:text-white/80 transition-colors tracking-wide uppercase">Priser</button>
+            <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors">Funksjoner</button>
+            <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors">Priser</button>
           </div>
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/login')} className="text-[0.82rem] text-white/50 hover:text-white transition-colors font-medium tracking-wide">
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate('/login')} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors font-medium">
               Logg inn
             </button>
-            <button onClick={() => navigate('/login')} className="px-5 py-2 rounded text-[0.82rem] font-medium text-ink bg-gold hover:bg-gold-light transition-all tracking-wide">
-              Opprett konto
+            <button onClick={() => navigate('/login')} className="px-5 py-2.5 rounded-lg text-[0.88rem] font-medium text-white bg-gray-900 hover:bg-gray-800 transition-all">
+              Kom i gang
             </button>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-20">
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 40%, rgba(0,81,168,0.04) 0%, transparent 100%)' }} />
-
-        {/* Fine grid pattern */}
-        <div className="absolute inset-0 hero-grid opacity-50" />
-
-        <div className="relative z-10 max-w-5xl mx-auto px-8 text-center">
-          <div className={`transition-all duration-1000 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-white/[0.06] bg-white/[0.02] mb-10">
-              <div className="w-1.5 h-1.5 rounded-full bg-gold" />
-              <span className="text-[0.75rem] text-white/40 tracking-wider uppercase font-medium">Norges ledende B2B-plattform</span>
+      <section ref={heroRef} className="pt-32 pb-20 md:pt-40 md:pb-28">
+        <div className="max-w-4xl mx-auto px-8 text-center">
+          <div className={`transition-all duration-700 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-50 border border-gray-200 mb-8">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+              <span className="text-[0.8rem] text-gray-500 font-medium">Brukt av 120+ norske bedrifter</span>
             </div>
 
-            <h1 className="font-display text-[3.2rem] md:text-[4.5rem] font-normal leading-[1.08] tracking-tight mb-8">
-              Intelligent<br />
-              <span className="gradient-text italic">prospektering</span>
-              <br />for profesjonelle
+            <h1 className="font-display text-[2.8rem] md:text-[3.8rem] font-bold leading-[1.1] tracking-tight mb-6 text-gray-900">
+              Finn dine neste kunder<br />
+              <span className="text-gray-400">direkte fra Brønnøysund</span>
             </h1>
 
-            <p className="text-[1.05rem] text-white/35 max-w-xl mx-auto mb-12 leading-relaxed font-light">
-              Komplett tilgang til Brønnøysundregistrene med AI-drevet enrichment, pipeline-styring og e-postautomatisering.
+            <p className="text-[1.1rem] text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
+              Søk i hele Brønnøysundregistrene, finn kontaktinfo automatisk, og følg opp med pipeline og e-postmaler. Alt du trenger for B2B-salg i Norge.
             </p>
 
             <div className="flex items-center justify-center gap-4">
               <button onClick={() => navigate('/login')}
-                className="group flex items-center gap-2.5 px-8 py-3.5 rounded text-[0.88rem] font-medium text-ink bg-gold hover:bg-gold-light transition-all"
-                style={{ letterSpacing: '0.03em' }}>
+                className="group flex items-center gap-2.5 px-7 py-3.5 rounded-lg text-[0.95rem] font-semibold text-white bg-gray-900 hover:bg-gray-800 transition-all shadow-sm">
                 Start gratis
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-8 py-3.5 rounded text-[0.88rem] font-medium border border-white/[0.08] text-white/50 hover:text-white/80 hover:border-white/[0.15] transition-all"
-                style={{ letterSpacing: '0.03em' }}>
-                Se oversikt
+                className="px-7 py-3.5 rounded-lg text-[0.95rem] font-medium text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all">
+                Les mer
               </button>
             </div>
           </div>
 
-          {/* Mock terminal/dashboard preview */}
-          <div className={`mt-20 transition-all duration-1000 delay-300 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-            <div className="relative mx-auto max-w-4xl rounded-lg overflow-hidden border border-white/[0.06]"
-              style={{ background: '#0E0E14' }}>
-              <div className="flex items-center gap-2 px-5 py-3 border-b border-white/[0.04]">
+          {/* Dashboard preview */}
+          <div className={`mt-16 transition-all duration-700 delay-200 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div className="relative mx-auto max-w-3xl rounded-xl overflow-hidden border border-gray-200 shadow-2xl shadow-gray-200/50 bg-white">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/50">
                 <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-white/[0.06]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-white/[0.06]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-white/[0.06]" />
+                  <div className="w-3 h-3 rounded-full bg-gray-200" />
+                  <div className="w-3 h-3 rounded-full bg-gray-200" />
+                  <div className="w-3 h-3 rounded-full bg-gray-200" />
                 </div>
                 <div className="flex-1 flex justify-center">
-                  <div className="px-4 py-1 rounded bg-white/[0.03] text-[0.7rem] text-white/20 font-mono">app.leadflow.no/dashboard</div>
+                  <div className="px-3 py-1 rounded-md bg-gray-100 text-[0.72rem] text-gray-400 font-mono">app.leadflow.no</div>
                 </div>
               </div>
-              <div className="p-6">
+              <div className="p-5">
                 <div className="grid grid-cols-4 gap-3 mb-4">
                   {[
-                    { label: 'Pipeline-verdi', value: '24.8M', change: '+12.4%' },
-                    { label: 'Aktive leads', value: '1,847', change: '+89' },
-                    { label: 'Konverteringsrate', value: '23.4%', change: '+2.1pp' },
-                    { label: 'Svar på e-post', value: '34.2%', change: '+5.8pp' },
+                    { label: 'Leads funnet', value: '1,847', sub: 'denne måneden' },
+                    { label: 'E-poster sendt', value: '342', sub: '+89 denne uken' },
+                    { label: 'Kontaktrate', value: '34%', sub: '+5.8pp' },
+                    { label: 'Kunder vunnet', value: '23', sub: '23.4% win-rate' },
                   ].map((m, i) => (
-                    <div key={i} className="p-4 rounded border border-white/[0.04] bg-white/[0.015]">
-                      <div className="text-[0.65rem] text-white/25 uppercase tracking-wider mb-1 font-medium">{m.label}</div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="font-mono text-xl font-medium text-white/80">{m.value}</span>
-                        <span className="text-[0.65rem] text-emerald-400/60 font-mono">{m.change}</span>
-                      </div>
+                    <div key={i} className="p-3.5 rounded-lg border border-gray-100 bg-gray-50/50">
+                      <div className="text-[0.65rem] text-gray-400 uppercase tracking-wider mb-1 font-medium">{m.label}</div>
+                      <div className="font-display text-xl font-bold text-gray-900">{m.value}</div>
+                      <div className="text-[0.65rem] text-green-600 mt-0.5">{m.sub}</div>
                     </div>
                   ))}
                 </div>
-                <div className="flex gap-3">
-                  <div className="flex-1 h-28 rounded border border-white/[0.04] bg-white/[0.015] p-4">
-                    <div className="text-[0.65rem] text-white/25 uppercase tracking-wider mb-3 font-medium">Pipeline fordeling</div>
-                    <div className="flex items-end gap-1 h-14">
-                      {[40, 65, 45, 80, 55, 70, 35, 60, 75, 50, 85, 42].map((h, i) => (
-                        <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i === 10 ? 'rgba(0,81,168,0.5)' : 'rgba(0,81,168,0.15)' }} />
-                      ))}
+                <div className="grid grid-cols-6 gap-2">
+                  {['Ny', 'Kontakt', 'Møte', 'Tilbud', 'Forhandling', 'Vunnet'].map((stage, i) => (
+                    <div key={i} className="p-2.5 rounded-lg bg-gray-50 border border-gray-100 text-center">
+                      <div className="text-[0.6rem] text-gray-400 uppercase tracking-wider mb-1">{stage}</div>
+                      <div className="font-display text-sm font-bold text-gray-700">{[12, 8, 5, 3, 2, 4][i]}</div>
                     </div>
-                  </div>
-                  <div className="w-48 h-28 rounded border border-white/[0.04] bg-white/[0.015] p-4">
-                    <div className="text-[0.65rem] text-white/25 uppercase tracking-wider mb-3 font-medium">Topp segmenter</div>
-                    <div className="space-y-2">
-                      {[{ name: 'IT & Software', pct: 34 }, { name: 'Consulting', pct: 28 }, { name: 'Finance', pct: 19 }].map((s, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <div className="flex-1 h-1 bg-white/[0.04] rounded-full overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${s.pct * 2.5}%`, background: 'rgba(0,81,168,0.4)' }} />
-                          </div>
-                          <span className="text-[0.6rem] text-white/25 font-mono w-8 text-right">{s.pct}%</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -176,58 +139,21 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Client ticker */}
-      <section className="py-10 border-y border-white/[0.04] overflow-hidden">
-        <div className="flex items-center gap-12 whitespace-nowrap ticker-track">
-          {[...CLIENTS, ...CLIENTS].map((c, i) => (
-            <span key={i} className="text-[0.78rem] text-white/15 font-medium tracking-[0.15em] uppercase">{c}</span>
-          ))}
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section ref={statsRef} className="py-20 relative">
+      {/* Trust bar */}
+      <section ref={trustRef} className="py-12 border-y border-gray-100">
         <div className="max-w-5xl mx-auto px-8">
-          <div className="grid grid-cols-4 gap-12">
-            {STATS.map((s, i) => (
-              <div key={i} className={`text-center transition-all duration-600 ${statsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-                style={{ transitionDelay: `${i * 100}ms` }}>
-                <div className="font-mono text-[2rem] font-medium text-white/80 mb-1">{s.value}</div>
-                <div className="text-[0.78rem] text-white/25 tracking-wider uppercase">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" ref={featRef} className="py-28 relative">
-        <div className="max-w-6xl mx-auto px-8">
-          <div className={`mb-20 transition-all duration-600 ${featInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-            <div className="text-[0.72rem] text-gold/60 uppercase tracking-[0.2em] font-medium mb-4">Plattformen</div>
-            <h2 className="font-display text-[2.5rem] font-normal mb-4">
-              Bygget for <span className="italic gradient-text">presisjon</span>
-            </h2>
-            <p className="text-[1rem] text-white/30 max-w-lg leading-relaxed font-light">
-              Hvert verktoy er designet for å gi deg et overtak i markedet.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-px bg-white/[0.04] rounded-lg overflow-hidden">
-            {FEATURES.map((f, i) => {
-              const Icon = f.icon
+          <div className={`flex items-center justify-center gap-10 md:gap-14 flex-wrap transition-all duration-600 ${trustInView ? 'opacity-100' : 'opacity-0'}`}>
+            {[
+              { icon: Shield, text: 'GDPR-kompatibel' },
+              { icon: Lock, text: 'Kryptert data' },
+              { icon: Building2, text: 'Norsk selskap' },
+              { icon: Globe, text: '847 000+ foretak' },
+            ].map((item, i) => {
+              const Icon = item.icon
               return (
-                <div key={i}
-                  className={`p-8 transition-all duration-600 hover:bg-white/[0.03] ${
-                    featInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-                  }`}
-                  style={{ transitionDelay: `${i * 80}ms`, background: '#0D0D13' }}>
-                  <div className="flex items-center gap-3 mb-5">
-                    <Icon size={18} className="text-gold/60" />
-                    <span className="text-[0.6rem] text-gold/40 tracking-[0.2em] uppercase font-medium border border-gold/10 px-2 py-0.5 rounded">{f.tag}</span>
-                  </div>
-                  <h3 className="font-display text-[1.15rem] mb-3 text-white/85">{f.title}</h3>
-                  <p className="text-[0.85rem] text-white/30 leading-relaxed font-light">{f.desc}</p>
+                <div key={i} className="flex items-center gap-2">
+                  <Icon size={16} className="text-gray-300" />
+                  <span className="text-[0.82rem] text-gray-400 font-medium">{item.text}</span>
                 </div>
               )
             })}
@@ -235,21 +161,53 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Trust / Security bar */}
-      <section className="py-16 border-y border-white/[0.04]">
-        <div className="max-w-5xl mx-auto px-8">
-          <div className="flex items-center justify-center gap-12">
+      {/* How it works */}
+      <section className="py-20 md:py-28">
+        <div className="max-w-4xl mx-auto px-8">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-[2rem] md:text-[2.5rem] font-bold tracking-tight mb-4">Slik fungerer det</h2>
+            <p className="text-gray-500 text-[1.05rem] max-w-lg mx-auto">Tre steg fra søk til kunde.</p>
+          </div>
+          <div className="grid grid-cols-3 gap-8">
             {[
-              { icon: Shield, text: 'GDPR-kompatibel' },
-              { icon: Lock, text: 'Ende-til-ende kryptert' },
-              { icon: Building2, text: 'Norsk selskap' },
-              { icon: Globe, text: '847K+ foretak indeksert' },
-            ].map((item, i) => {
-              const Icon = item.icon
+              { num: '1', title: 'Søk', desc: 'Velg bransje, geografi og størrelse. Vi henter alle treff fra Brønnøysundregistrene.' },
+              { num: '2', title: 'Kontakt', desc: 'Automatisk enrichment gir deg e-post, telefon og kontaktperson. Send e-post med ett klikk.' },
+              { num: '3', title: 'Lukk', desc: 'Følg opp i pipeline, legg til notater og marker kunden som vunnet.' },
+            ].map((step, i) => (
+              <div key={i} className="text-center">
+                <div className="w-12 h-12 rounded-full bg-gray-900 text-white font-display text-lg font-bold flex items-center justify-center mx-auto mb-5">
+                  {step.num}
+                </div>
+                <h3 className="font-display text-lg font-semibold mb-2">{step.title}</h3>
+                <p className="text-[0.9rem] text-gray-500 leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" ref={featRef} className="py-20 md:py-28 bg-gray-50">
+        <div className="max-w-5xl mx-auto px-8">
+          <div className={`text-center mb-16 transition-all duration-600 ${featInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+            <h2 className="font-display text-[2rem] md:text-[2.5rem] font-bold tracking-tight mb-4">Alt du trenger for B2B-salg</h2>
+            <p className="text-gray-500 text-[1.05rem] max-w-lg mx-auto">Én plattform, fra prospektering til lukket avtale.</p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            {FEATURES.map((f, i) => {
+              const Icon = f.icon
               return (
-                <div key={i} className="flex items-center gap-2.5">
-                  <Icon size={15} className="text-white/15" />
-                  <span className="text-[0.75rem] text-white/25 tracking-wider uppercase font-medium">{item.text}</span>
+                <div key={i}
+                  className={`p-6 rounded-xl bg-white border border-gray-100 transition-all duration-500 hover:shadow-md hover:border-gray-200 ${
+                    featInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+                  }`}
+                  style={{ transitionDelay: `${i * 80}ms` }}>
+                  <div className="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center mb-4">
+                    <Icon size={18} className="text-white" />
+                  </div>
+                  <h3 className="font-display text-[1.05rem] font-semibold mb-2">{f.title}</h3>
+                  <p className="text-[0.88rem] text-gray-500 leading-relaxed">{f.desc}</p>
                 </div>
               )
             })}
@@ -258,103 +216,94 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" ref={priceRef} className="py-28 relative">
+      <section id="pricing" ref={priceRef} className="py-20 md:py-28">
         <div className="max-w-5xl mx-auto px-8">
-          <div className={`mb-16 transition-all duration-600 ${priceInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-            <div className="text-[0.72rem] text-gold/60 uppercase tracking-[0.2em] font-medium mb-4">Priser</div>
-            <h2 className="font-display text-[2.5rem] font-normal mb-4">
-              Transparent <span className="italic gradient-text">prising</span>
-            </h2>
-            <p className="text-[1rem] text-white/30 max-w-lg leading-relaxed font-light">
-              Start gratis. Skaler når forretningen vokser.
-            </p>
+          <div className={`text-center mb-16 transition-all duration-600 ${priceInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+            <h2 className="font-display text-[2rem] md:text-[2.5rem] font-bold tracking-tight mb-4">Enkel og transparent prising</h2>
+            <p className="text-gray-500 text-[1.05rem] max-w-lg mx-auto">Start gratis. Oppgrader når du er klar.</p>
           </div>
 
-          <div className="grid grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {PLANS.map((plan, i) => (
               <div key={plan.id}
-                className={`relative p-8 rounded-lg border transition-all duration-600 ${
-                  plan.popular ? 'border-gold/20 bg-gold/[0.03]' : 'border-white/[0.06] bg-white/[0.015]'
+                className={`relative p-7 rounded-xl border transition-all duration-500 ${
+                  plan.popular ? 'border-gray-900 bg-white shadow-lg ring-1 ring-gray-900' : 'border-gray-200 bg-white'
                 } ${priceInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-                style={{ transitionDelay: `${i * 100}ms` }}
+                style={{ transitionDelay: `${i * 80}ms` }}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3 left-6 px-3 py-0.5 rounded text-[0.65rem] font-medium text-ink bg-gold tracking-wider uppercase">
-                    Anbefalt
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[0.7rem] font-semibold text-white bg-gray-900">
+                    Mest populær
                   </div>
                 )}
 
-                <div className="text-[0.72rem] uppercase tracking-[0.15em] text-white/25 font-medium mb-4">{plan.name}</div>
+                <div className="text-[0.78rem] text-gray-400 font-semibold uppercase tracking-wider mb-3">{plan.name}</div>
 
-                <div className="mb-8">
-                  {plan.price === 'Tilpasset' ? (
-                    <div className="font-display text-[2rem] text-white/80">Tilpasset</div>
-                  ) : plan.price === '0' ? (
-                    <div className="font-display text-[2rem] text-white/80">Gratis</div>
+                <div className="mb-6">
+                  {plan.price === '0' ? (
+                    <div className="font-display text-[2rem] font-bold">Gratis</div>
                   ) : (
                     <div className="flex items-baseline gap-1">
-                      <span className="font-display text-[2rem] text-white/80">{plan.price}</span>
-                      <span className="text-[0.85rem] text-white/25">kr{plan.period}</span>
+                      <span className="font-display text-[2rem] font-bold">{plan.price}</span>
+                      <span className="text-[0.88rem] text-gray-400">kr{plan.period}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="space-y-3 mb-8">
+                <div className="space-y-3 mb-7">
                   {plan.features.map(f => (
-                    <div key={f} className="flex items-center gap-2.5 text-[0.85rem] text-white/40">
-                      <Check size={14} className={plan.popular ? 'text-gold/60' : 'text-white/20'} />
+                    <div key={f} className="flex items-start gap-2.5 text-[0.85rem] text-gray-600">
+                      <Check size={15} className={`mt-0.5 flex-shrink-0 ${plan.popular ? 'text-gray-900' : 'text-gray-300'}`} />
                       {f}
                     </div>
                   ))}
                 </div>
 
                 <button onClick={() => navigate('/login')}
-                  className={`w-full py-3 rounded text-[0.82rem] font-medium transition-all tracking-wide ${
+                  className={`w-full py-3 rounded-lg text-[0.88rem] font-semibold transition-all ${
                     plan.popular
-                      ? 'bg-gold text-ink hover:bg-gold-light'
-                      : 'border border-white/[0.08] text-white/50 hover:text-white/80 hover:border-white/[0.15]'
+                      ? 'bg-gray-900 text-white hover:bg-gray-800'
+                      : 'border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
                   }`}>
                   {plan.cta}
                 </button>
               </div>
             ))}
           </div>
+
+          <p className="text-center text-[0.82rem] text-gray-400 mt-8">
+            14 dagers gratis prøveperiode på alle betalte planer. Ingen kredittkort kreves.
+          </p>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-28 relative">
+      <section className="py-20 md:py-28 bg-gray-900">
         <div className="max-w-3xl mx-auto px-8 text-center">
-          <div className="p-16 rounded-lg border border-white/[0.04] relative overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, rgba(0,81,168,0.03) 0%, rgba(10,10,15,0.5) 100%)' }}>
-            <div className="text-[0.72rem] text-gold/50 uppercase tracking-[0.2em] font-medium mb-6">Klar til å starte?</div>
-            <h2 className="font-display text-[2.2rem] font-normal mb-4 text-white/90">
-              Opprett konto på<br /><span className="italic gradient-text">under 30 sekunder</span>
-            </h2>
-            <p className="text-white/30 text-[0.95rem] mb-10 font-light">
-              Ingen kredittkort. Ingen bindingstid. Full tilgang til grunnleggende funksjoner.
-            </p>
-            <button onClick={() => navigate('/login')}
-              className="group inline-flex items-center gap-2.5 px-8 py-3.5 rounded text-[0.88rem] font-medium text-ink bg-gold hover:bg-gold-light transition-all"
-              style={{ letterSpacing: '0.03em' }}>
-              Opprett konto
-              <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
+          <h2 className="font-display text-[2rem] md:text-[2.5rem] font-bold text-white mb-4">
+            Klar til å finne dine neste kunder?
+          </h2>
+          <p className="text-gray-400 text-[1.05rem] mb-10 max-w-lg mx-auto">
+            Opprett konto på under 30 sekunder. Ingen kredittkort, ingen bindingstid.
+          </p>
+          <button onClick={() => navigate('/login')}
+            className="group inline-flex items-center gap-2.5 px-8 py-4 rounded-lg text-[0.95rem] font-semibold text-gray-900 bg-white hover:bg-gray-100 transition-all shadow-sm">
+            Opprett gratis konto
+            <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-10 border-t border-white/[0.04]">
-        <div className="max-w-7xl mx-auto px-8 flex items-center justify-between">
+      <footer className="py-10 border-t border-gray-100 bg-white">
+        <div className="max-w-6xl mx-auto px-8 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-5 h-5 rounded flex items-center justify-center border border-gold/20"
-              style={{ background: 'rgba(0,81,168,0.08)' }}>
-              <span className="font-display text-gold text-[0.5rem] font-semibold">L</span>
+            <div className="w-6 h-6 rounded-md flex items-center justify-center bg-gray-900">
+              <span className="font-display text-white text-[0.55rem] font-semibold">L</span>
             </div>
-            <span className="font-display text-[0.82rem] text-white/25">LeadFlow</span>
+            <span className="font-display text-[0.85rem] text-gray-400 font-medium">LeadFlow</span>
           </div>
-          <p className="text-[0.72rem] text-white/15 tracking-wider">
+          <p className="text-[0.78rem] text-gray-300">
             &copy; {new Date().getFullYear()} LeadFlow AS. Oslo, Norge.
           </p>
         </div>
