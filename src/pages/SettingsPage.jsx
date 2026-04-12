@@ -10,7 +10,7 @@ import { Check, Crown, Users, Mail, Trash2, Plus, Shield, X } from 'lucide-react
 
 export default function SettingsPage() {
   const { user, profile } = useAuth()
-  const { planId, plan, usage, changePlan, enrichmentsLeft } = usePlan()
+  const { planId, plan, usage, changePlan, enrichmentsLeft, isOnTrial, trialDaysLeft } = usePlan()
   const { workspace, createWorkspace, inviteMember, removeMember, cancelInvite, acceptInvite, updateMemberRole } = useWorkspace()
   const { getStats } = useSavedLists()
   const stats = useMemo(() => getStats(), [getStats])
@@ -35,23 +35,18 @@ export default function SettingsPage() {
 
   function handleSelectPlan(newPlanId) {
     if (newPlanId === planId) return
-    if (newPlanId === 'starter' && planId !== 'starter') {
-      setShowCancelModal(true)
-      return
-    }
     if (newPlanId === 'enterprise') {
       window.open('mailto:kontakt@leadflow.no?subject=Enterprise-plan', '_blank')
       return
     }
     // In production: redirect to Stripe checkout
     changePlan(newPlanId)
-    toast.success(`Oppgradert til ${PLANS[newPlanId].name}! 🎉`)
+    toast.success(`Byttet til ${PLANS[newPlanId].name}! 🎉`)
   }
 
   function handleCancelSubscription() {
-    changePlan('starter')
     setShowCancelModal(false)
-    toast.success('Nedgradert til Starter')
+    toast('Kontakt oss for å kansellere: kontakt@leadflow.no', { icon: '📧' })
   }
 
   function handleCreateWorkspace() {
@@ -105,9 +100,16 @@ export default function SettingsPage() {
         <div className="animate-in delay-1 bg-surface-raised border border-bdr rounded-xl p-8 mb-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-display text-lg font-semibold">Abonnement</h3>
-            <span className="flex items-center gap-2 px-4 py-1.5 rounded-full text-[0.82rem] font-semibold" style={{ backgroundColor: `${plan.color}15`, color: plan.color }}>
-              {plan.icon} {plan.name}
-            </span>
+            <div className="flex items-center gap-2">
+              {isOnTrial && (
+                <span className="px-3 py-1.5 rounded-full text-[0.78rem] font-semibold bg-green-50 text-green-600">
+                  Prøveperiode — {trialDaysLeft} dager igjen
+                </span>
+              )}
+              <span className="flex items-center gap-2 px-4 py-1.5 rounded-full text-[0.82rem] font-semibold" style={{ backgroundColor: `${plan.color}15`, color: plan.color }}>
+                {plan.icon} {plan.name}
+              </span>
+            </div>
           </div>
 
           {/* Usage */}
@@ -130,7 +132,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {planId !== 'starter' && (
+          {!isOnTrial && (
             <div className="flex items-center justify-between pt-3 border-t border-surface-sunken">
               <div className="text-[0.82rem] text-txt-secondary">
                 Fakturering: <strong className="text-txt-primary">{plan.priceLabel}/mnd</strong>
@@ -147,7 +149,7 @@ export default function SettingsPage() {
           <h3 className="font-display text-lg font-semibold mb-2">Prisplaner</h3>
           <p className="text-[0.85rem] text-txt-secondary mb-6">Velg planen som passer din bedrift</p>
 
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             {PLAN_ORDER.map(id => {
               const p = PLANS[id]
               const isCurrent = planId === id
@@ -162,13 +164,10 @@ export default function SettingsPage() {
                   <div className="text-center mb-4">
                     <span className="text-xl">{p.icon}</span>
                     <div className="text-[0.72rem] uppercase tracking-wider text-txt-tertiary font-semibold mt-1">{p.name}</div>
-                    {p.price === 0 ? (
-                      <div className="font-display text-2xl font-bold mt-1">Gratis</div>
-                    ) : (
-                      <>
-                        <div className="font-display text-2xl font-bold mt-1">{p.priceLabel}</div>
-                        <div className="text-[0.75rem] text-txt-secondary">/måned</div>
-                      </>
+                    <div className="font-display text-2xl font-bold mt-1">{p.priceLabel}</div>
+                    <div className="text-[0.75rem] text-txt-secondary">/måned</div>
+                    {p.trialDays > 0 && (
+                      <div className="text-[0.72rem] text-green-500 font-medium mt-0.5">{p.trialDays} dager gratis</div>
                     )}
                   </div>
 
@@ -202,7 +201,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="mt-5 p-3 bg-surface rounded-xl text-center text-[0.78rem] text-txt-tertiary">
-            Betaling via Stripe. Kanseller når som helst — du beholder tilgang ut måneden. 14 dagers gratis prøveperiode på alle betalte planer.
+            Betaling via Stripe. 14 dagers gratis prøveperiode. Kanseller når som helst — ingen binding.
           </div>
         </div>
 
@@ -363,16 +362,16 @@ export default function SettingsPage() {
       {showCancelModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4" onClick={() => setShowCancelModal(false)}>
           <div className="bg-surface-raised rounded-2xl shadow-xl w-full max-w-md p-8" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-xl font-semibold mb-2">Nedgrader til Starter?</h3>
+            <h3 className="font-display text-xl font-semibold mb-2">Kanseller abonnement?</h3>
             <p className="text-[0.88rem] text-txt-secondary mb-6">
-              Du mister tilgang til enrichment, ubegrensede resultater, CSV-eksport og workspace.
+              Send en e-post til <strong>kontakt@leadflow.no</strong> for å kansellere. Du beholder tilgang ut inneværende periode.
             </p>
             <div className="flex gap-3 justify-end">
               <button onClick={() => setShowCancelModal(false)} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all">
-                Behold plan
+                Lukk
               </button>
-              <button onClick={handleCancelSubscription} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium bg-red-500 text-white hover:bg-red-600 transition-all">
-                Nedgrader
+              <button onClick={handleCancelSubscription} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium bg-coral text-white hover:bg-coral-hover transition-all">
+                Send e-post
               </button>
             </div>
           </div>

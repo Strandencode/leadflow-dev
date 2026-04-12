@@ -22,7 +22,7 @@ export default function Sidebar() {
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Bruker'
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  const plan = profile?.plan || 'starter'
+  const plan = profile?.plan || 'professional'
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-ink flex flex-col border-r border-white/[0.04] z-50">

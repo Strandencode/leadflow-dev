@@ -741,9 +741,9 @@ export default function SearchPage() {
                 {!canEnrich() && <p className="text-coral text-[0.78rem] mt-1.5">Kvoten er brukt opp. Listen lagres uten enrichment.</p>}
               </div>
             )}
-            {planId === 'starter' && (
+            {!canEnrich() && (
               <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[0.82rem] text-amber-800">
-                ⚡ Starter-planen inkluderer ikke enrichment. Listen lagres uten kontaktinfo og regnskap.
+                ⚠️ Enrichment-kvoten er brukt opp. Listen lagres uten ny kontaktinfo og regnskap.
               </div>
             )}
             {saveProgress && (

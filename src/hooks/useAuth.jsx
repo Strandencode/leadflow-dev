@@ -53,7 +53,7 @@ export function AuthProvider({ children }) {
     if (!isSupabaseConfigured()) {
       // Demo mode
       setUser({ ...DEMO_USER, email, user_metadata: { full_name: fullName, company_name: companyName } })
-      setProfile({ full_name: fullName, company_name: companyName, email, plan: 'starter' })
+      setProfile({ full_name: fullName, company_name: companyName, email, plan: 'professional' })
       setIsDemo(true)
       return { error: null }
     }

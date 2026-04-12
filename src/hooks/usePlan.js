@@ -3,24 +3,30 @@ import { getPlan, getPlanLimits } from '../config/plans'
 
 const PLAN_KEY = 'leadflow_user_plan'
 const USAGE_KEY = 'leadflow_plan_usage'
+const TRIAL_KEY = 'leadflow_trial_start'
 
 /**
  * Hook for plan management and feature gating.
- * Tracks current plan, usage against limits, and provides gate checks.
+ * All users start with a 14-day free trial on Professional.
+ * After trial expires, features are locked until they subscribe.
  */
 export function usePlan() {
-  const [planId, setPlanId] = useState('starter')
+  const [planId, setPlanId] = useState('professional')
   const [usage, setUsage] = useState({ enrichments: 0, monthKey: '' })
+  const [trialStart, setTrialStart] = useState(null)
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem(PLAN_KEY)
       if (stored) setPlanId(stored)
+      else {
+        // New user — default to professional trial
+        localStorage.setItem(PLAN_KEY, 'professional')
+      }
     } catch {}
     try {
       const stored = JSON.parse(localStorage.getItem(USAGE_KEY) || '{}')
-      const currentMonth = new Date().toISOString().slice(0, 7) // "2026-04"
-      // Reset if new month
+      const currentMonth = new Date().toISOString().slice(0, 7)
       if (stored.monthKey !== currentMonth) {
         const fresh = { enrichments: 0, monthKey: currentMonth }
         setUsage(fresh)
@@ -28,6 +34,15 @@ export function usePlan() {
       } else {
         setUsage(stored)
       }
+    } catch {}
+    try {
+      let ts = localStorage.getItem(TRIAL_KEY)
+      if (!ts) {
+        // Start trial now
+        ts = new Date().toISOString()
+        localStorage.setItem(TRIAL_KEY, ts)
+      }
+      setTrialStart(ts)
     } catch {}
   }, [])
 
@@ -49,7 +64,17 @@ export function usePlan() {
   const plan = getPlan(planId)
   const limits = getPlanLimits(planId)
 
+  // Trial state
+  const trialDays = plan.trialDays || 0
+  const trialEndDate = trialStart ? new Date(new Date(trialStart).getTime() + trialDays * 86400000) : null
+  const trialDaysLeft = trialEndDate ? Math.max(0, Math.ceil((trialEndDate.getTime() - Date.now()) / 86400000)) : 0
+  const isOnTrial = trialDays > 0 && trialDaysLeft > 0
+  const trialExpired = trialDays > 0 && trialDaysLeft <= 0
+
   // === Gate checks ===
+  // During trial: full access. After trial: locked (in real app, Stripe handles this)
+  // For MVP/demo: we keep access open but show warnings
+
   const canEnrich = useCallback(() => {
     if (limits.enrichments === Infinity) return true
     return (usage.enrichments || 0) < limits.enrichments
@@ -92,5 +117,10 @@ export function usePlan() {
     canUseWorkspace,
     maxVisibleResults,
     maxUsers,
+    // Trial
+    isOnTrial,
+    trialExpired,
+    trialDaysLeft,
+    trialEndDate,
   }
 }

@@ -1,52 +1,11 @@
 /**
  * LeadFlow Pricing Plans
  *
- * Gating strategy:
- * - Enrichment gate: Free sees company name only, paid gets contacts + financials
- * - Results gate: Free sees 10 results, rest blurred
- * - Export gate: No CSV without paid plan
- * - List gate: 1 free list, then pay
- * - Pipeline gate: 10 leads free
+ * No free tier — all plans start with 14-day free trial.
+ * After trial expires, user must subscribe to continue.
  */
 
 export const PLANS = {
-  starter: {
-    id: 'starter',
-    name: 'Starter',
-    price: 0,
-    priceLabel: 'Gratis',
-    period: '',
-    icon: '⚡',
-    color: '#9E98B5',
-    limits: {
-      enrichments: 0,         // No enrichment — sees company name only
-      visibleResults: 30,     // Only 30 results shown, rest blurred
-      savedLists: 1,          // 1 saved list
-      pipelineLeads: 10,      // 10 leads in pipeline
-      emailTemplates: true,   // Can view, not copy/send
-      csvExport: false,       // No export
-      analytics: false,       // No analytics
-      workspace: false,       // No team features
-      maxUsers: 1,
-    },
-    features: [
-      'Søk i Brønnøysundregistrene',
-      'Se 30 resultater per søk',
-      '1 lagret liste',
-      '10 leads i pipeline',
-      'E-postmaler (visning)',
-    ],
-    missing: [
-      'Kontaktinfo og regnskap',
-      'Alle søkeresultater',
-      'CSV-eksport',
-      'Analytics',
-      'Workspace / team',
-    ],
-    cta: 'Kom i gang gratis',
-    ctaStyle: 'border border-bdr text-txt-secondary hover:bg-surface-sunken',
-  },
-
   professional: {
     id: 'professional',
     name: 'Professional',
@@ -56,6 +15,7 @@ export const PLANS = {
     icon: '👑',
     color: '#FF6B4A',
     popular: true,
+    trialDays: 14,
     limits: {
       enrichments: 200,       // 200 enrichments/month
       visibleResults: Infinity,
@@ -80,18 +40,19 @@ export const PLANS = {
       'Ubegrenset enrichment',
       'Workspace / team',
     ],
-    cta: 'Start 14 dagers prøveperiode',
+    cta: 'Start 14 dagers gratis prøveperiode',
     ctaStyle: 'bg-coral text-white hover:bg-coral-hover',
   },
 
   business: {
     id: 'business',
     name: 'Business',
-    price: 999,
-    priceLabel: '999 kr',
+    price: 499,
+    priceLabel: '499 kr',
     period: '/mnd',
     icon: '🚀',
     color: '#7C5CFC',
+    trialDays: 14,
     limits: {
       enrichments: Infinity,
       visibleResults: Infinity,
@@ -113,10 +74,9 @@ export const PLANS = {
       'Avansert analytics',
       'Workspace — opptil 5 brukere',
       'Delte lister og pipeline',
-      'Kundenotater + kontrakter',
     ],
     missing: [],
-    cta: 'Start 14 dagers prøveperiode',
+    cta: 'Start 14 dagers gratis prøveperiode',
     ctaStyle: 'bg-violet text-white hover:bg-[#6A4AE8]',
   },
 
@@ -128,6 +88,7 @@ export const PLANS = {
     period: '/mnd',
     icon: '💎',
     color: '#22C55E',
+    trialDays: 0,
     limits: {
       enrichments: Infinity,
       visibleResults: Infinity,
@@ -154,10 +115,10 @@ export const PLANS = {
   },
 }
 
-export const PLAN_ORDER = ['starter', 'professional', 'business', 'enterprise']
+export const PLAN_ORDER = ['professional', 'business', 'enterprise']
 
 export function getPlan(id) {
-  return PLANS[id] || PLANS.starter
+  return PLANS[id] || PLANS.professional
 }
 
 export function getPlanLimits(id) {

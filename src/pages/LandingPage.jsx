@@ -12,9 +12,8 @@ const FEATURES = [
 ]
 
 const PLANS = [
-  { id: 'starter', name: 'Starter', price: '0', period: '', features: ['Søk i Brønnøysundregistrene', 'Se 30 resultater per søk', '1 lagret liste', '10 leads i pipeline', 'E-postmaler (visning)'], cta: 'Kom i gang gratis' },
-  { id: 'professional', name: 'Professional', price: '199', period: '/mnd', features: ['200 enrichments/mnd', 'Alle søkeresultater', '10 lagrede lister', 'Ubegrenset pipeline', 'E-post + CSV-eksport', 'Analytics dashboard'], popular: true, cta: 'Start 14 dagers prøveperiode' },
-  { id: 'business', name: 'Business', price: '999', period: '/mnd', features: ['Ubegrenset enrichment', 'Ubegrenset lister', 'Workspace — opptil 5 brukere', 'Delte lister og pipeline', 'Avansert analytics', 'Kundenotater + kontrakter'], cta: 'Start 14 dagers prøveperiode' },
+  { id: 'professional', name: 'Professional', price: '199', period: '/mnd', features: ['200 enrichments/mnd', 'Alle søkeresultater', '10 lagrede lister', 'Ubegrenset pipeline', 'E-post + CSV-eksport', 'Analytics dashboard'], popular: true, cta: 'Prøv gratis i 14 dager' },
+  { id: 'business', name: 'Business', price: '499', period: '/mnd', features: ['Ubegrenset enrichment', 'Ubegrenset lister', 'Workspace — opptil 5 brukere', 'Delte lister og pipeline', 'Avansert analytics', 'Kundenotater + kontrakter'], cta: 'Prøv gratis i 14 dager' },
   { id: 'enterprise', name: 'Enterprise', price: '4 999', period: '/mnd', features: ['Alt i Business', 'Ubegrenset brukere', 'API-tilgang', 'SSO & SAML', 'Dedikert onboarding', 'Prioritert support'], cta: 'Kontakt oss' },
 ]
 
@@ -87,7 +86,7 @@ export default function LandingPage() {
             <div className="flex items-center justify-center gap-4">
               <button onClick={() => navigate('/login')}
                 className="group flex items-center gap-2.5 px-7 py-3.5 rounded-lg text-[0.95rem] font-semibold text-white bg-gray-900 hover:bg-gray-800 transition-all shadow-sm">
-                Start gratis
+                Prøv gratis i 14 dager
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
@@ -220,10 +219,10 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-8">
           <div className={`text-center mb-16 transition-all duration-600 ${priceInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
             <h2 className="font-display text-[2rem] md:text-[2.5rem] font-bold tracking-tight mb-4">Enkel og transparent prising</h2>
-            <p className="text-gray-500 text-[1.05rem] max-w-lg mx-auto">Start gratis. Oppgrader når du er klar.</p>
+            <p className="text-gray-500 text-[1.05rem] max-w-lg mx-auto">Prøv gratis i 14 dager. Ingen kredittkort kreves.</p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-3 gap-6 max-w-4xl mx-auto">
             {PLANS.map((plan, i) => (
               <div key={plan.id}
                 className={`relative p-7 rounded-xl border transition-all duration-500 ${
@@ -240,13 +239,12 @@ export default function LandingPage() {
                 <div className="text-[0.78rem] text-gray-400 font-semibold uppercase tracking-wider mb-3">{plan.name}</div>
 
                 <div className="mb-6">
-                  {plan.price === '0' ? (
-                    <div className="font-display text-[2rem] font-bold">Gratis</div>
-                  ) : (
-                    <div className="flex items-baseline gap-1">
-                      <span className="font-display text-[2rem] font-bold">{plan.price}</span>
-                      <span className="text-[0.88rem] text-gray-400">kr{plan.period}</span>
-                    </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="font-display text-[2rem] font-bold">{plan.price}</span>
+                    <span className="text-[0.88rem] text-gray-400">kr{plan.period}</span>
+                  </div>
+                  {plan.id !== 'enterprise' && (
+                    <div className="text-[0.78rem] text-green-600 font-medium mt-1">14 dager gratis</div>
                   )}
                 </div>
 
@@ -272,7 +270,7 @@ export default function LandingPage() {
           </div>
 
           <p className="text-center text-[0.82rem] text-gray-400 mt-8">
-            14 dagers gratis prøveperiode på alle betalte planer. Ingen kredittkort kreves.
+            14 dagers gratis prøveperiode. Ingen kredittkort kreves. Kanseller når som helst.
           </p>
         </div>
       </section>
@@ -288,7 +286,7 @@ export default function LandingPage() {
           </p>
           <button onClick={() => navigate('/login')}
             className="group inline-flex items-center gap-2.5 px-8 py-4 rounded-lg text-[0.95rem] font-semibold text-gray-900 bg-white hover:bg-gray-100 transition-all shadow-sm">
-            Opprett gratis konto
+            Start gratis prøveperiode
             <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
