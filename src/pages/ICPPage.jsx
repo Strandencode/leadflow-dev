@@ -82,7 +82,7 @@ export default function ICPPage() {
                 type="text"
                 value={icp.companyName}
                 onChange={e => update('companyName', e.target.value)}
-                placeholder="f.eks. Optima Produkter AS"
+                placeholder="f.eks. Din Bedrift AS"
                 className="w-full px-3.5 py-2.5 bg-surface border border-bdr rounded-xl text-[0.9rem] outline-none focus:border-violet focus:ring-2 focus:ring-violet-soft transition-all"
               />
             </div>
