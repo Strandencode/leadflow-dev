@@ -1,17 +1,9 @@
 import { useState, useEffect } from 'react'
 import { X, Mail, Sparkles, Loader2, ChevronDown, Lock } from 'lucide-react'
 import { useUsage } from '../hooks/useUsage'
+import { useICP } from '../hooks/useICP'
+import { useEmailTemplates } from '../hooks/useEmailTemplates'
 import toast from 'react-hot-toast'
-
-const TEMPLATES_KEY = 'leadflow_saved_templates'
-const ICP_KEY = 'leadflow_icp'
-
-function getICP() {
-  try {
-    const stored = localStorage.getItem(ICP_KEY)
-    return stored ? JSON.parse(stored) : {}
-  } catch { return {} }
-}
 
 function mergeTags(text, company, icp) {
   if (!text) return ''
@@ -50,29 +42,22 @@ function aiPersonalize(subject, body, company, icp) {
 }
 
 export default function EmailComposerModal({ companies, onClose, onSend, mailClient }) {
-  const [templates, setTemplates] = useState([])
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [useAI, setUseAI] = useState(false)
   const [sending, setSending] = useState(false)
   const [previewCompany, setPreviewCompany] = useState(companies[0] || null)
-  const [icp, setIcp] = useState({})
   const { canSendEmails, trackEmails, emailsRemaining, planName, plan } = useUsage()
+  const { icp } = useICP()
+  const { templates } = useEmailTemplates()
 
+  // Auto-select first template when list loads
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(TEMPLATES_KEY)
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setTemplates(parsed)
-        if (parsed.length > 0) {
-          setSelectedTemplateId(parsed[0].id)
-          setSelectedTemplate(parsed[0])
-        }
-      }
-    } catch {}
-    setIcp(getICP())
-  }, [])
+    if (templates.length > 0 && !selectedTemplateId) {
+      setSelectedTemplateId(templates[0].id)
+      setSelectedTemplate(templates[0])
+    }
+  }, [templates, selectedTemplateId])
 
   function handleTemplateChange(id) {
     setSelectedTemplateId(id)

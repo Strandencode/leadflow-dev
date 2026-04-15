@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { useSavedLists } from '../hooks/useSavedLists'
+import { useICP } from '../hooks/useICP'
 import { Search, Plus, TrendingUp, Mail, Phone, Users, BarChart3, Kanban, ArrowRight, Sparkles, Target, RefreshCw } from 'lucide-react'
 import OnboardingWizard from '../components/OnboardingWizard'
 
@@ -38,14 +39,15 @@ export default function DashboardPage() {
   const name = profile?.full_name || user?.user_metadata?.full_name || 'there'
   const firstName = name.split(' ')[0]
 
+  const { icp } = useICP()
   const [showOnboarding, setShowOnboarding] = useState(false)
   useEffect(() => {
     const dismissed = localStorage.getItem('leadflow_onboarding_done')
-    const hasIcp = localStorage.getItem('leadflow_icp')
+    const hasIcp = icp?.companyName || icp?.whatYouSell
     if (!dismissed && !hasIcp && stats.totalLeads === 0) {
       setShowOnboarding(true)
     }
-  }, [stats.totalLeads])
+  }, [stats.totalLeads, icp])
 
   function triggerOnboarding() {
     setShowOnboarding(true)

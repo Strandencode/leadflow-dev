@@ -15,6 +15,7 @@ import PipelinePage from './pages/PipelinePage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import SettingsPage from './pages/SettingsPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+import InviteAcceptPage from './pages/InviteAcceptPage'
 
 function ProtectedLayout() {
   const { user, loading } = useAuth()
@@ -74,6 +75,7 @@ function AppRoutes() {
       <Route path="/nettiro" element={<NettiroPage />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/invite/:token" element={<InviteAcceptPage />} />
       <Route path="/*" element={<ProtectedLayout />} />
     </Routes>
   )

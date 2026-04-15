@@ -11,7 +11,7 @@ import { Check, Crown, Users, Mail, Trash2, Plus, Shield, X } from 'lucide-react
 export default function SettingsPage() {
   const { user, profile } = useAuth()
   const { planId, plan, usage, changePlan, enrichmentsLeft, isOnTrial, trialDaysLeft } = usePlan()
-  const { workspace, createWorkspace, inviteMember, removeMember, cancelInvite, acceptInvite, updateMemberRole } = useWorkspace()
+  const { workspace, loading: wsLoading, role, inviteMember, removeMember, cancelInvite, updateMemberRole } = useWorkspace()
   const { getStats } = useSavedLists()
   const stats = useMemo(() => getStats(), [getStats])
 
@@ -52,17 +52,39 @@ export default function SettingsPage() {
   }
 
   function handleCreateWorkspace() {
-    createWorkspace(company || 'Mitt Workspace', email, fullName || 'Eier')
-    toast.success('Workspace opprettet!')
+    // No-op: handled by the handle_new_user trigger on signup.
+    toast('Workspace opprettes automatisk ved registrering.', { icon: 'ℹ️' })
   }
 
-  function handleInvite() {
+  async function handleInvite() {
     if (!inviteEmail.trim()) return
-    const result = inviteMember(inviteEmail.trim(), inviteName.trim(), inviteRole)
-    if (result === 'already_member') { toast.error('Allerede medlem'); return }
-    if (result === 'already_invited') { toast.error('Allerede invitert'); return }
-    toast.success(`Invitasjon sendt til ${inviteEmail}`)
+    const result = await inviteMember(inviteEmail.trim(), inviteName.trim(), inviteRole)
+    if (result?.error === 'already_member') { toast.error('Allerede medlem'); return }
+    if (result?.error === 'already_invited') { toast.error('Allerede invitert'); return }
+    if (result?.error === 'empty_email') { toast.error('Skriv inn en e-post'); return }
+    if (result?.error === 'no_workspace') { toast.error('Ingen workspace funnet'); return }
+    if (result?.error) { toast.error(result.error); return }
+    toast.success(`Invitasjon sendt til ${inviteEmail} — de får en magic-link via e-post`)
     setInviteEmail(''); setInviteName(''); setShowInviteForm(false)
+  }
+
+  async function handleRemoveMember(id, name) {
+    if (!window.confirm(`Fjerne ${name || 'medlemmet'} fra workspacet?`)) return
+    const res = await removeMember(id)
+    if (res?.error) toast.error(res.error)
+    else toast.success('Medlem fjernet')
+  }
+
+  async function handleCancelInvite(id) {
+    const res = await cancelInvite(id)
+    if (res?.error) toast.error(res.error)
+    else toast.success('Invitasjon kansellert')
+  }
+
+  async function handleRoleChange(id, role) {
+    const res = await updateMemberRole(id, role)
+    if (res?.error) toast.error(res.error)
+    else toast.success('Rolle oppdatert')
   }
 
   return (
@@ -308,7 +330,7 @@ export default function SettingsPage() {
                     </div>
                     <select
                       value={m.role}
-                      onChange={e => updateMemberRole(m.id, e.target.value)}
+                      onChange={e => handleRoleChange(m.id, e.target.value)}
                       disabled={m.role === 'owner'}
                       className="px-2.5 py-1 bg-surface border border-bdr rounded-lg text-[0.75rem] outline-none disabled:opacity-50"
                     >
@@ -317,7 +339,7 @@ export default function SettingsPage() {
                       <option value="member">Medlem</option>
                     </select>
                     {m.role !== 'owner' && (
-                      <button onClick={() => { removeMember(m.id); toast.success('Medlem fjernet') }} className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all">
+                      <button onClick={() => handleRemoveMember(m.id, m.name)} className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all">
                         <Trash2 size={14}/>
                       </button>
                     )}
@@ -334,10 +356,7 @@ export default function SettingsPage() {
                       <div className="text-[0.85rem] font-medium text-amber-800">{inv.email}</div>
                       <div className="text-[0.72rem] text-amber-600">Venter på svar</div>
                     </div>
-                    <button onClick={() => { acceptInvite(inv.id); toast.success('Invitasjon godkjent (demo)') }} className="px-2.5 py-1 rounded-lg text-[0.72rem] font-medium bg-green-500 text-white hover:bg-green-600 transition-all">
-                      Simuler godkjenning
-                    </button>
-                    <button onClick={() => { cancelInvite(inv.id); toast.success('Invitasjon trukket tilbake') }} className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all">
+                    <button onClick={() => handleCancelInvite(inv.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all" title="Kanseller invitasjon">
                       <X size={14}/>
                     </button>
                   </div>

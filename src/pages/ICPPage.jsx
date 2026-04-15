@@ -1,39 +1,23 @@
-import { useState, useEffect } from 'react'
 import { Save, Sparkles } from 'lucide-react'
 import { getActiveTemplate } from '../config/templates'
+import { useICP } from '../hooks/useICP'
 import toast from 'react-hot-toast'
 
 export default function ICPPage() {
   const activeTemplate = getActiveTemplate()
-  const [icp, setIcp] = useState({
-    companyName: '',
-    senderName: '',
-    yourIndustry: '',
-    whatYouSell: '',
-    targetIndustries: '',
-    companySize: '',
-    minRevenue: '',
-    targetRegion: '',
-    problemYouSolve: '',
-    decisionMakerTitle: '',
-    decisionMakerDept: '',
-  })
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('leadflow_icp')
-      if (stored) setIcp(JSON.parse(stored))
-    } catch {}
-  }, [])
+  const { icp, setIcp, save } = useICP()
 
   function update(field, value) {
     setIcp(prev => ({ ...prev, [field]: value }))
   }
 
-  function handleSave() {
-    // TODO: Save to Supabase
-    localStorage.setItem('leadflow_icp', JSON.stringify(icp))
-    toast.success('ICP-profil lagret!')
+  async function handleSave() {
+    const res = await save(icp)
+    if (res?.error) {
+      toast.error('Kunne ikke lagre ICP-profil')
+    } else {
+      toast.success('ICP-profil lagret!')
+    }
   }
 
   return (

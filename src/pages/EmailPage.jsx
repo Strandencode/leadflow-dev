@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Plus, Sparkles, Trash2, Copy, Check, ChevronDown, Save } from 'lucide-react'
 import { getActiveTemplate } from '../config/templates'
+import { useICP } from '../hooks/useICP'
+import { useEmailTemplates } from '../hooks/useEmailTemplates'
 import toast from 'react-hot-toast'
 
 const MERGE_TAGS = ['{{contact_name}}', '{{company_name}}', '{{industry}}', '{{city}}', '{{revenue}}', '{{sender_name}}', '{{sender_company}}']
-const TEMPLATES_KEY = 'leadflow_saved_templates'
 
 const DEFAULT_SEGMENTS = [
   { id: 'general', name: 'Generell', emoji: '📧', description: 'Standard e-postmal' },
@@ -61,11 +62,12 @@ export default function EmailPage() {
   const [body, setBody] = useState('')
   const [templateName, setTemplateName] = useState('')
   const [generating, setGenerating] = useState(false)
-  const [savedTemplates, setSavedTemplates] = useState([])
   const [activeTemplateId, setActiveTemplateId] = useState(null)
   const [selectedSegment, setSelectedSegment] = useState('general')
   const [showSegmentPicker, setShowSegmentPicker] = useState(false)
-  const [icp, setIcp] = useState({})
+
+  const { icp } = useICP()
+  const { templates: savedTemplates, saveTemplate, deleteTemplate: removeTemplate, duplicateTemplate: dupTemplate } = useEmailTemplates()
 
   // Get segments from active template
   const activeTemplate = useMemo(() => getActiveTemplate(), [])
@@ -74,44 +76,26 @@ export default function EmailPage() {
     return templateSegments?.length > 0 ? templateSegments : DEFAULT_SEGMENTS
   }, [activeTemplate])
 
-  // Load saved templates and ICP on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(TEMPLATES_KEY)
-      if (stored) setSavedTemplates(JSON.parse(stored))
-    } catch {}
-    try {
-      const icpData = localStorage.getItem('leadflow_icp')
-      if (icpData) setIcp(JSON.parse(icpData))
-    } catch {}
-  }, [])
-
-  function persistTemplates(updated) {
-    setSavedTemplates(updated)
-    localStorage.setItem(TEMPLATES_KEY, JSON.stringify(updated))
-  }
-
-  function handleSave() {
+  async function handleSave() {
     if (!subject && !body) {
       toast.error('Skriv eller generer en mal først')
       return
     }
     const name = templateName.trim() || `Mal ${savedTemplates.length + 1}`
     const segment = SEGMENTS.find(s => s.id === selectedSegment)
-    const template = {
-      id: crypto.randomUUID(),
+    const saved = await saveTemplate({
       name,
       subject,
       body,
-      segmentId: selectedSegment,
-      segmentName: segment?.name || 'Generell',
-      segmentEmoji: segment?.emoji || '📧',
-      createdAt: new Date().toISOString(),
+      segment: { id: selectedSegment, name: segment?.name || 'Generell', emoji: segment?.emoji || '📧' },
+    })
+    if (!saved) {
+      toast.error('Kunne ikke lagre mal')
+      return
     }
-    persistTemplates([template, ...savedTemplates])
-    setActiveTemplateId(template.id)
-    setTemplateName(name)
-    toast.success(`"${name}" lagret!`)
+    setActiveTemplateId(saved.id)
+    setTemplateName(saved.name)
+    toast.success(`"${saved.name}" lagret!`)
   }
 
   function loadTemplate(template) {
@@ -123,17 +107,16 @@ export default function EmailPage() {
     toast.success(`"${template.name}" lastet inn`)
   }
 
-  function deleteTemplate(id, e) {
+  async function deleteTemplate(id, e) {
     e.stopPropagation()
-    persistTemplates(savedTemplates.filter(t => t.id !== id))
+    await removeTemplate(id)
     if (activeTemplateId === id) setActiveTemplateId(null)
     toast.success('Mal slettet')
   }
 
-  function duplicateTemplate(template, e) {
+  async function duplicateTemplate(template, e) {
     e.stopPropagation()
-    const copy = { ...template, id: crypto.randomUUID(), name: template.name + ' (kopi)', createdAt: new Date().toISOString() }
-    persistTemplates([copy, ...savedTemplates])
+    await dupTemplate(template.id)
     toast.success('Mal duplisert')
   }
 
