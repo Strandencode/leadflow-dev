@@ -53,6 +53,7 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-8">
             <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors">Funksjoner</button>
             <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors">Priser</button>
+            <button onClick={() => navigate('/nettiro')} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors">Nettsider</button>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={() => navigate('/login')} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors font-medium">
@@ -296,18 +297,50 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Nettiro teaser — subtle, cross-sell */}
+      <section className="py-16 border-t border-gray-100 bg-gray-50">
+        <div className="max-w-5xl mx-auto px-8">
+          <div className="flex items-center justify-between gap-8 flex-wrap">
+            <div className="flex items-start gap-4 flex-1 min-w-[280px]">
+              <div className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center flex-shrink-0">
+                <Globe size={18} className="text-gray-700" />
+              </div>
+              <div>
+                <div className="text-[0.7rem] font-semibold text-gray-400 uppercase tracking-wider mb-1">Bonus</div>
+                <h3 className="font-display text-[1.1rem] font-semibold mb-1 text-gray-900">
+                  Trenger du også en nettside?
+                </h3>
+                <p className="text-[0.9rem] text-gray-500 leading-relaxed">
+                  Nettiro bygger skreddersydde nettsider, nettbutikker og bookingsystemer. Rask levering, full support.
+                </p>
+              </div>
+            </div>
+            <button onClick={() => navigate('/nettiro')}
+              className="group flex items-center gap-2 px-5 py-2.5 rounded-lg text-[0.88rem] font-medium text-gray-700 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all">
+              Se Nettiro
+              <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="py-10 border-t border-gray-100 bg-white">
-        <div className="max-w-6xl mx-auto px-8 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-8 flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-2.5">
             <div className="w-6 h-6 rounded-md flex items-center justify-center bg-gray-900">
               <span className="font-display text-white text-[0.55rem] font-semibold">L</span>
             </div>
             <span className="font-display text-[0.85rem] text-gray-400 font-medium">LeadFlow</span>
           </div>
-          <p className="text-[0.78rem] text-gray-300">
-            &copy; {new Date().getFullYear()} LeadFlow AS. Oslo, Norge.
-          </p>
+          <div className="flex items-center gap-6">
+            <button onClick={() => navigate('/nettiro')} className="text-[0.78rem] text-gray-400 hover:text-gray-700 transition-colors">
+              Nettsider av Nettiro
+            </button>
+            <p className="text-[0.78rem] text-gray-300">
+              &copy; {new Date().getFullYear()} LeadFlow AS. Oslo, Norge.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
