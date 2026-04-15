@@ -21,13 +21,12 @@ function ProtectedLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-ink flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 rounded flex items-center justify-center mx-auto mb-4 border border-gold/20 animate-pulse-glow"
-            style={{ background: 'rgba(0,81,168,0.08)' }}>
-            <span className="font-display text-gold font-semibold text-lg">L</span>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-4 bg-gray-900">
+            <span className="font-display text-white font-semibold text-lg">L</span>
           </div>
-          <p className="text-white/30 text-sm">Laster LeadFlow...</p>
+          <p className="text-gray-400 text-sm">Laster LeadFlow...</p>
         </div>
       </div>
     )
@@ -61,10 +60,9 @@ function AppRoutes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-ink flex items-center justify-center">
-        <div className="w-10 h-10 rounded flex items-center justify-center border border-gold/20 animate-pulse-glow"
-          style={{ background: 'rgba(0,81,168,0.08)' }}>
-          <span className="font-display text-gold font-semibold text-lg">L</span>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-900 animate-pulse">
+          <span className="font-display text-white font-semibold text-lg">L</span>
         </div>
       </div>
     )

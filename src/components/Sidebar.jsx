@@ -25,86 +25,84 @@ export default function Sidebar() {
   const plan = profile?.plan || 'professional'
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-ink flex flex-col border-r border-white/[0.04] z-50">
+    <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-white flex flex-col border-r border-gray-100 z-50">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/[0.04]">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded flex items-center justify-center border border-gold/20"
-            style={{ background: 'rgba(0,81,168,0.08)' }}>
-            <span className="font-display text-gold text-[0.7rem] font-semibold">L</span>
+      <div className="px-5 py-5 border-b border-gray-100">
+        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2.5 w-full text-left">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-900">
+            <span className="font-display text-white text-sm font-semibold">L</span>
           </div>
-          <span className="font-display text-[0.95rem] tracking-wide text-white/90">
-            Lead<span className="text-gold">Flow</span>
+          <span className="font-display text-[1.05rem] tracking-tight font-semibold text-gray-900">
+            LeadFlow
           </span>
-        </div>
+        </button>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 py-3 px-3 overflow-y-auto">
-        <div className="text-[0.6rem] uppercase tracking-[0.15em] text-white/15 font-medium px-3 mb-2">Hovedmeny</div>
+        <div className="text-[0.62rem] uppercase tracking-[0.15em] text-gray-400 font-semibold px-3 mb-2">Hovedmeny</div>
         {NAV_ITEMS.map(item => {
           const Icon = item.icon
           const active = location.pathname === item.path
           return (
             <button key={item.path} onClick={() => navigate(item.path)}
-              className={`flex items-center gap-2.5 w-full px-3 py-2 rounded text-[0.82rem] transition-all duration-150 mb-0.5 ${
+              className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-[0.85rem] transition-all duration-150 mb-0.5 ${
                 active
-                  ? 'bg-white/[0.06] text-white font-medium'
-                  : 'text-white/35 hover:text-white/60 hover:bg-white/[0.03]'
+                  ? 'bg-gray-900 text-white font-medium'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
               }`}>
-              <Icon size={16} className={active ? 'text-gold' : ''} />
+              <Icon size={16} className={active ? 'text-white' : ''} />
               {item.label}
             </button>
           )
         })}
 
-        <div className="my-3 mx-3 border-t border-white/[0.04]" />
+        <div className="my-3 mx-3 border-t border-gray-100" />
 
         <button onClick={() => navigate('/settings')}
-          className={`flex items-center gap-2.5 w-full px-3 py-2 rounded text-[0.82rem] transition-all duration-150 ${
+          className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-[0.85rem] transition-all duration-150 ${
             location.pathname === '/settings'
-              ? 'bg-white/[0.06] text-white font-medium'
-              : 'text-white/35 hover:text-white/60 hover:bg-white/[0.03]'
+              ? 'bg-gray-900 text-white font-medium'
+              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
           }`}>
-          <Settings size={16} className={location.pathname === '/settings' ? 'text-gold' : ''} />
+          <Settings size={16} className={location.pathname === '/settings' ? 'text-white' : ''} />
           Innstillinger
         </button>
       </nav>
 
       {/* Demo banner */}
       {isDemo && (
-        <div className="mx-3 mb-2 px-3 py-2 rounded border border-gold/10 bg-gold/[0.04]">
-          <p className="text-gold/60 text-[0.65rem] font-medium tracking-wider uppercase">Demo Mode</p>
+        <div className="mx-3 mb-2 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50">
+          <p className="text-amber-700 text-[0.65rem] font-semibold tracking-wider uppercase">Demo Mode</p>
         </div>
       )}
 
       {/* User card */}
-      <div className="p-3 border-t border-white/[0.04] relative">
+      <div className="p-3 border-t border-gray-100 relative">
         <button
           onClick={() => setShowUserMenu(!showUserMenu)}
-          className="flex items-center gap-2.5 p-2.5 rounded w-full hover:bg-white/[0.03] transition-all duration-150 group"
+          className="flex items-center gap-2.5 p-2 rounded-lg w-full hover:bg-gray-50 transition-all duration-150 group"
         >
-          <div className="w-8 h-8 rounded flex items-center justify-center text-[0.7rem] font-medium text-gold border border-gold/20"
-            style={{ background: 'rgba(0,81,168,0.08)' }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[0.72rem] font-semibold text-white bg-gray-900">
             {initials}
           </div>
           <div className="flex-1 min-w-0 text-left">
-            <div className="text-[0.78rem] font-medium text-white/70 truncate">{displayName}</div>
-            <div className="text-[0.62rem] text-gold/40 uppercase tracking-wider font-medium">{plan}</div>
+            <div className="text-[0.8rem] font-medium text-gray-900 truncate">{displayName}</div>
+            <div className="text-[0.65rem] text-gray-400 uppercase tracking-wider font-semibold">{plan}</div>
           </div>
-          <ChevronDown size={14} className={`text-white/15 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+          <ChevronDown size={14} className={`text-gray-300 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
         </button>
 
         {/* Dropdown menu */}
         {showUserMenu && (
-          <div className="absolute bottom-full left-3 right-3 mb-1 rounded border border-white/[0.06] bg-ink-soft shadow-2xl overflow-hidden">
+          <div className="absolute bottom-full left-3 right-3 mb-1 rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden">
             <button onClick={() => { navigate('/settings'); setShowUserMenu(false) }}
-              className="flex items-center gap-2.5 w-full px-4 py-2.5 text-[0.78rem] text-white/40 hover:text-white/70 hover:bg-white/[0.03] transition-all">
+              className="flex items-center gap-2.5 w-full px-4 py-2.5 text-[0.8rem] text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all">
               <Settings size={14} />
               Innstillinger
             </button>
             <button onClick={signOut}
-              className="flex items-center gap-2.5 w-full px-4 py-2.5 text-[0.78rem] text-red-400/60 hover:text-red-400 hover:bg-red-400/[0.04] transition-all border-t border-white/[0.04]">
+              className="flex items-center gap-2.5 w-full px-4 py-2.5 text-[0.8rem] text-red-500 hover:text-red-600 hover:bg-red-50 transition-all border-t border-gray-100">
               <LogOut size={14} />
               Logg ut
             </button>

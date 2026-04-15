@@ -472,7 +472,7 @@ export default function SearchPage() {
       {/* Floating selection bar */}
       {selectedRows.size > 0 && (
         <div className="sticky top-[73px] z-[45] mx-8 mt-[-1px]">
-          <div className="bg-ink text-white rounded-b-xl px-5 py-3 flex items-center justify-between shadow-lg animate-in">
+          <div className="bg-gray-900 text-white rounded-b-xl px-5 py-3 flex items-center justify-between shadow-lg animate-in">
             <div className="flex items-center gap-3">
               <span className="text-[0.88rem] font-medium">✓ {selectedRows.size} valgt</span>
               <span className="text-white/30">|</span>
