@@ -1,5 +1,5 @@
 import { useActivityLog } from '../hooks/useActivityLog'
-import { Globe, Search, Download, Bookmark, Mail, Zap, Trash2, History, X } from 'lucide-react'
+import { Globe, Search, Download, Bookmark, Mail, Zap, Trash2, History, X, AtSign, Phone } from 'lucide-react'
 
 const ICONS = {
   'web-scrape-single': Globe,
@@ -26,6 +26,16 @@ function formatTime(iso) {
 
 export default function ActivityLogPanel({ onClose }) {
   const { entries, clear } = useActivityLog()
+
+  // Aggregate web-scrape stats — sum of emails/phones/sites across all scrape events
+  const scrapeStats = entries.reduce((acc, e) => {
+    if (e.type === 'web-scrape-single' || e.type === 'web-scrape-batch') {
+      acc.sites += e.meta?.nettsider || (e.type === 'web-scrape-single' ? 1 : 0)
+      acc.emails += e.meta?.epost || 0
+      acc.phones += e.meta?.telefon || 0
+    }
+    return acc
+  }, { sites: 0, emails: 0, phones: 0 })
 
   return (
     <div
@@ -54,6 +64,38 @@ export default function ActivityLogPanel({ onClose }) {
             <X size={16} />
           </button>
         </div>
+
+        {/* Web-scrape summary */}
+        {scrapeStats.sites > 0 && (
+          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+            <div className="text-[0.68rem] uppercase tracking-wider text-gray-400 font-semibold mb-2">
+              Dypsøk — totalt funnet
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-lg bg-white border border-gray-200 px-3 py-2.5">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Globe size={11} className="text-gray-400" />
+                  <span className="text-[0.7rem] text-gray-500">Nettsider</span>
+                </div>
+                <div className="font-display text-[1.1rem] font-semibold text-gray-900">{scrapeStats.sites}</div>
+              </div>
+              <div className="rounded-lg bg-white border border-gray-200 px-3 py-2.5">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <AtSign size={11} className="text-gray-400" />
+                  <span className="text-[0.7rem] text-gray-500">E-poster</span>
+                </div>
+                <div className="font-display text-[1.1rem] font-semibold text-gray-900">{scrapeStats.emails}</div>
+              </div>
+              <div className="rounded-lg bg-white border border-gray-200 px-3 py-2.5">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Phone size={11} className="text-gray-400" />
+                  <span className="text-[0.7rem] text-gray-500">Telefon</span>
+                </div>
+                <div className="font-display text-[1.1rem] font-semibold text-gray-900">{scrapeStats.phones}</div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* List */}
         <div className="flex-1 overflow-y-auto">
