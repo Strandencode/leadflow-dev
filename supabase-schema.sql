@@ -17,6 +17,7 @@
 
 -- ---- Clean slate ----------------------------------------------------------
 -- Drop in reverse dependency order. Safe if tables don't exist.
+drop table if exists public.usage_counters cascade;
 drop table if exists public.contact_tracking cascade;
 drop table if exists public.pipeline_notes cascade;
 drop table if exists public.pipeline_items cascade;
@@ -35,6 +36,8 @@ drop table if exists public.saved_leads cascade;
 drop function if exists public.is_workspace_member(uuid) cascade;
 drop function if exists public.handle_new_user() cascade;
 drop function if exists public.accept_workspace_invite(text) cascade;
+drop function if exists public.increment_usage(text, integer) cascade;
+drop function if exists public.workspace_role(uuid) cascade;
 
 -- ---- Profiles (augmented) -------------------------------------------------
 -- Re-create profiles cleanly so the plan check constraint matches current code.
@@ -66,6 +69,10 @@ create table public.workspaces (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   owner_id uuid references auth.users on delete cascade not null,
+  -- Plan & trial live on the workspace, not the user. The owner pays once
+  -- and every member gets the same feature gating.
+  plan text default 'professional' check (plan in ('professional','business','enterprise')),
+  trial_started_at timestamptz default now(),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -282,6 +289,74 @@ create policy "Members CRUD templates" on public.email_templates
   for all using (public.is_workspace_member(workspace_id))
   with check (public.is_workspace_member(workspace_id));
 
+-- ---- Usage counters (per workspace per month) -----------------------------
+-- Quotas are workspace-shared. If three teammates all run enrichments, they
+-- collectively burn through the same monthly bucket. Increments go through
+-- the increment_usage RPC for atomic update under concurrent writes.
+create table public.usage_counters (
+  id uuid primary key default gen_random_uuid(),
+  workspace_id uuid references public.workspaces on delete cascade not null,
+  month_key text not null, -- 'YYYY-MM'
+  enrichments integer default 0,
+  emails_sent integer default 0,
+  phones_viewed integer default 0,
+  updated_at timestamptz default now(),
+  unique (workspace_id, month_key)
+);
+
+create index idx_usage_workspace on public.usage_counters(workspace_id);
+
+alter table public.usage_counters enable row level security;
+
+create policy "Members read usage" on public.usage_counters
+  for select using (public.is_workspace_member(workspace_id));
+-- Writes only via RPC (security definer), so no insert/update policy for clients.
+
+create or replace function public.increment_usage(field text, amount integer default 1)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  ws uuid;
+  mk text;
+begin
+  if auth.uid() is null then return; end if;
+  select default_workspace_id into ws from public.profiles where id = auth.uid();
+  if ws is null then return; end if;
+  -- Membership guard — the SECURITY DEFINER context bypasses RLS so we
+  -- must verify the caller actually belongs to the workspace.
+  if not exists (
+    select 1 from public.workspace_members
+    where workspace_id = ws and user_id = auth.uid()
+  ) then
+    return;
+  end if;
+
+  mk := to_char(now() at time zone 'utc', 'YYYY-MM');
+
+  if field = 'enrichments' then
+    insert into public.usage_counters (workspace_id, month_key, enrichments)
+    values (ws, mk, amount)
+    on conflict (workspace_id, month_key)
+    do update set enrichments = public.usage_counters.enrichments + amount, updated_at = now();
+  elsif field = 'emails_sent' then
+    insert into public.usage_counters (workspace_id, month_key, emails_sent)
+    values (ws, mk, amount)
+    on conflict (workspace_id, month_key)
+    do update set emails_sent = public.usage_counters.emails_sent + amount, updated_at = now();
+  elsif field = 'phones_viewed' then
+    insert into public.usage_counters (workspace_id, month_key, phones_viewed)
+    values (ws, mk, amount)
+    on conflict (workspace_id, month_key)
+    do update set phones_viewed = public.usage_counters.phones_viewed + amount, updated_at = now();
+  end if;
+end;
+$$;
+
+grant execute on function public.increment_usage(text, integer) to authenticated;
+
 -- ---- ICP profiles (one per workspace for now) -----------------------------
 create table public.icp_profiles (
   id uuid primary key default gen_random_uuid(),
@@ -436,6 +511,8 @@ create trigger touch_templates before update on public.email_templates
 create trigger touch_icp before update on public.icp_profiles
   for each row execute procedure public.touch_updated_at();
 create trigger touch_tracking before update on public.contact_tracking
+  for each row execute procedure public.touch_updated_at();
+create trigger touch_usage before update on public.usage_counters
   for each row execute procedure public.touch_updated_at();
 
 -- ---- Done -----------------------------------------------------------------

@@ -35,14 +35,19 @@ export default function SettingsPage() {
     toast.success('Profil oppdatert!')
   }
 
-  function handleSelectPlan(newPlanId) {
+  async function handleSelectPlan(newPlanId) {
     if (newPlanId === planId) return
     if (newPlanId === 'enterprise') {
       window.open('mailto:kontakt@leadflow.no?subject=Enterprise-plan', '_blank')
       return
     }
+    // Owner-only via RLS — non-owners get an error back
+    const res = await changePlan(newPlanId)
+    if (res?.error) {
+      toast.error('Bare workspace-eier kan endre plan')
+      return
+    }
     // In production: redirect to Stripe checkout
-    changePlan(newPlanId)
     toast.success(`Byttet til ${PLANS[newPlanId].name}! 🎉`)
   }
 

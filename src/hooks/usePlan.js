@@ -1,64 +1,76 @@
 import { useState, useEffect, useCallback } from 'react'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import { useAuth } from './useAuth'
 import { getPlan, getPlanLimits } from '../config/plans'
 
-const PLAN_KEY = 'leadflow_user_plan'
-const USAGE_KEY = 'leadflow_plan_usage'
-const TRIAL_KEY = 'leadflow_trial_start'
-
 /**
- * Hook for plan management and feature gating.
- * All users start with a 14-day free trial on Professional.
- * After trial expires, features are locked until they subscribe.
+ * Workspace-scoped plan + monthly enrichment quota.
+ *
+ * Plan and trial_started_at live on `workspaces`; only the owner can change
+ * the plan (enforced by the existing "Owner can update workspace" RLS
+ * policy). Enrichment counters live in `usage_counters`, shared across
+ * teammates. Increments go through the increment_usage RPC.
+ *
+ * Synchronous can-* and limit accessors read from local state, so call sites
+ * keep working unchanged. State refreshes whenever the workspace changes.
  */
+function getMonthKey() {
+  const d = new Date()
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
+}
+
 export function usePlan() {
+  const { profile } = useAuth()
+  const workspaceId = profile?.default_workspace_id || null
+
   const [planId, setPlanId] = useState('professional')
-  const [usage, setUsage] = useState({ enrichments: 0, monthKey: '' })
   const [trialStart, setTrialStart] = useState(null)
+  const [usage, setUsage] = useState({ enrichments: 0, monthKey: getMonthKey() })
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(PLAN_KEY)
-      if (stored) setPlanId(stored)
-      else {
-        // New user — default to professional trial
-        localStorage.setItem(PLAN_KEY, 'professional')
-      }
-    } catch {}
-    try {
-      const stored = JSON.parse(localStorage.getItem(USAGE_KEY) || '{}')
-      const currentMonth = new Date().toISOString().slice(0, 7)
-      if (stored.monthKey !== currentMonth) {
-        const fresh = { enrichments: 0, monthKey: currentMonth }
-        setUsage(fresh)
-        localStorage.setItem(USAGE_KEY, JSON.stringify(fresh))
-      } else {
-        setUsage(stored)
-      }
-    } catch {}
-    try {
-      let ts = localStorage.getItem(TRIAL_KEY)
-      if (!ts) {
-        // Start trial now
-        ts = new Date().toISOString()
-        localStorage.setItem(TRIAL_KEY, ts)
-      }
-      setTrialStart(ts)
-    } catch {}
-  }, [])
+  const refresh = useCallback(async () => {
+    if (!isSupabaseConfigured() || !workspaceId) return
+    const monthKey = getMonthKey()
+    const [wsRes, usageRes] = await Promise.all([
+      supabase.from('workspaces').select('plan, trial_started_at').eq('id', workspaceId).maybeSingle(),
+      supabase.from('usage_counters')
+        .select('enrichments, month_key')
+        .eq('workspace_id', workspaceId)
+        .eq('month_key', monthKey)
+        .maybeSingle(),
+    ])
+    if (wsRes.data) {
+      setPlanId(wsRes.data.plan || 'professional')
+      setTrialStart(wsRes.data.trial_started_at)
+    }
+    setUsage({
+      enrichments: usageRes.data?.enrichments || 0,
+      monthKey,
+    })
+  }, [workspaceId])
 
-  function changePlan(newPlanId) {
+  useEffect(() => { refresh() }, [refresh])
+
+  async function changePlan(newPlanId) {
+    if (!workspaceId) return { error: 'no_workspace' }
+    // Optimistic
     setPlanId(newPlanId)
-    localStorage.setItem(PLAN_KEY, newPlanId)
+    const { error } = await supabase
+      .from('workspaces')
+      .update({ plan: newPlanId })
+      .eq('id', workspaceId)
+    if (error) {
+      console.error('[usePlan] changePlan failed', error)
+      await refresh()
+      return { error: error.message }
+    }
+    return { success: true }
   }
 
-  function persistUsage(updated) {
-    setUsage(updated)
-    localStorage.setItem(USAGE_KEY, JSON.stringify(updated))
-  }
-
-  function trackEnrichment(count = 1) {
-    const updated = { ...usage, enrichments: (usage.enrichments || 0) + count }
-    persistUsage(updated)
+  async function trackEnrichment(count = 1) {
+    setUsage(u => ({ ...u, enrichments: u.enrichments + count }))
+    if (!isSupabaseConfigured()) return
+    const { error } = await supabase.rpc('increment_usage', { field: 'enrichments', amount: count })
+    if (error) { console.error('[usePlan] trackEnrichment failed', error); await refresh() }
   }
 
   const plan = getPlan(planId)
@@ -71,18 +83,14 @@ export function usePlan() {
   const isOnTrial = trialDays > 0 && trialDaysLeft > 0
   const trialExpired = trialDays > 0 && trialDaysLeft <= 0
 
-  // === Gate checks ===
-  // During trial: full access. After trial: locked (in real app, Stripe handles this)
-  // For MVP/demo: we keep access open but show warnings
-
   const canEnrich = useCallback(() => {
     if (limits.enrichments === Infinity) return true
-    return (usage.enrichments || 0) < limits.enrichments
+    return usage.enrichments < limits.enrichments
   }, [limits.enrichments, usage.enrichments])
 
   const enrichmentsLeft = useCallback(() => {
     if (limits.enrichments === Infinity) return Infinity
-    return Math.max(0, limits.enrichments - (usage.enrichments || 0))
+    return Math.max(0, limits.enrichments - usage.enrichments)
   }, [limits.enrichments, usage.enrichments])
 
   const canSaveList = useCallback((currentListCount) => {
@@ -106,6 +114,7 @@ export function usePlan() {
     plan,
     limits,
     usage,
+    refresh,
     changePlan,
     trackEnrichment,
     canEnrich,
@@ -117,7 +126,6 @@ export function usePlan() {
     canUseWorkspace,
     maxVisibleResults,
     maxUsers,
-    // Trial
     isOnTrial,
     trialExpired,
     trialDaysLeft,
