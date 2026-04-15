@@ -5,15 +5,36 @@ import { useState } from 'react'
 import { useActivityLog } from '../hooks/useActivityLog'
 import ActivityLogPanel from './ActivityLogPanel'
 
-const NAV_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-  { label: 'Prospektering', icon: Search, path: '/search' },
-  { label: 'Pipeline', icon: Kanban, path: '/pipeline' },
-  { label: 'ICP-analyse', icon: Target, path: '/icp' },
-  { label: 'E-postmaler', icon: Mail, path: '/email' },
-  { label: 'Lagrede lister', icon: Bookmark, path: '/saved' },
-  { label: 'Kunder', icon: Users, path: '/customers' },
-  { label: 'Analytics', icon: BarChart3, path: '/analytics' },
+// Grouped navigation — keeps lead-generation work distinct from closed-won customers
+const NAV_SECTIONS = [
+  {
+    label: 'Oversikt',
+    items: [
+      { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+    ],
+  },
+  {
+    label: 'Leads',
+    items: [
+      { label: 'Prospektering', icon: Search, path: '/search' },
+      { label: 'Pipeline', icon: Kanban, path: '/pipeline' },
+      { label: 'ICP-analyse', icon: Target, path: '/icp' },
+      { label: 'E-postmaler', icon: Mail, path: '/email' },
+      { label: 'Lagrede lister', icon: Bookmark, path: '/saved' },
+    ],
+  },
+  {
+    label: 'Kunder',
+    items: [
+      { label: 'Kunder', icon: Users, path: '/customers' },
+    ],
+  },
+  {
+    label: 'Innsikt',
+    items: [
+      { label: 'Analytics', icon: BarChart3, path: '/analytics' },
+    ],
+  },
 ]
 
 export default function Sidebar() {
@@ -54,24 +75,30 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 py-3 px-3 overflow-y-auto">
-        <div className="text-[0.62rem] uppercase tracking-[0.15em] text-gray-400 font-semibold px-3 mb-2">Hovedmeny</div>
-        {NAV_ITEMS.map(item => {
-          const Icon = item.icon
-          const active = location.pathname === item.path
-          return (
-            <button key={item.path} onClick={() => navigate(item.path)}
-              className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-[0.85rem] transition-all duration-150 mb-0.5 ${
-                active
-                  ? 'bg-gray-900 text-white font-medium'
-                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
-              }`}>
-              <Icon size={16} className={active ? 'text-white' : ''} />
-              {item.label}
-            </button>
-          )
-        })}
+        {NAV_SECTIONS.map((section, sIdx) => (
+          <div key={section.label} className={sIdx > 0 ? 'mt-4' : ''}>
+            <div className="text-[0.62rem] uppercase tracking-[0.15em] text-gray-400 font-semibold px-3 mb-1.5">
+              {section.label}
+            </div>
+            {section.items.map(item => {
+              const Icon = item.icon
+              const active = location.pathname === item.path
+              return (
+                <button key={item.path} onClick={() => navigate(item.path)}
+                  className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-[0.85rem] transition-all duration-150 mb-0.5 ${
+                    active
+                      ? 'bg-gray-900 text-white font-medium'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                  }`}>
+                  <Icon size={16} className={active ? 'text-white' : ''} />
+                  {item.label}
+                </button>
+              )
+            })}
+          </div>
+        ))}
 
-        <div className="my-3 mx-3 border-t border-gray-100" />
+        <div className="my-4 mx-3 border-t border-gray-100" />
 
         <button onClick={() => navigate('/settings')}
           className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-[0.85rem] transition-all duration-150 ${
