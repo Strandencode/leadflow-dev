@@ -24,6 +24,8 @@ export default function SettingsPage() {
   const [inviteName, setInviteName] = useState('')
   const [inviteRole, setInviteRole] = useState('member')
   const [showInviteForm, setShowInviteForm] = useState(false)
+  const [billingPeriod, setBillingPeriod] = useState('monthly') // 'monthly' | 'yearly'
+  const YEARLY_DISCOUNT = 0.2
 
   const enrichLimit = plan.limits.enrichments
   const enrichUsed = usage.enrichments || 0
@@ -147,12 +149,39 @@ export default function SettingsPage() {
         {/* Pricing plans */}
         <div className="animate-in delay-2 bg-surface-raised border border-bdr rounded-xl p-8 mb-6">
           <h3 className="font-display text-lg font-semibold mb-2">Prisplaner</h3>
-          <p className="text-[0.85rem] text-txt-secondary mb-6">Velg planen som passer din bedrift</p>
+          <p className="text-[0.85rem] text-txt-secondary mb-5">Velg planen som passer din bedrift</p>
+
+          {/* Billing period toggle */}
+          <div className="flex justify-center mb-6">
+            <div className="inline-flex items-center gap-1 p-1 rounded-full bg-surface-sunken border border-bdr">
+              <button
+                onClick={() => setBillingPeriod('monthly')}
+                className={`px-4 py-1.5 rounded-full text-[0.8rem] font-medium transition-all ${
+                  billingPeriod === 'monthly' ? 'bg-surface-raised text-txt-primary shadow-sm' : 'text-txt-secondary hover:text-txt-primary'
+                }`}
+              >
+                Månedlig
+              </button>
+              <button
+                onClick={() => setBillingPeriod('yearly')}
+                className={`px-4 py-1.5 rounded-full text-[0.8rem] font-medium transition-all flex items-center gap-1.5 ${
+                  billingPeriod === 'yearly' ? 'bg-surface-raised text-txt-primary shadow-sm' : 'text-txt-secondary hover:text-txt-primary'
+                }`}
+              >
+                Årlig
+                <span className="px-1.5 py-0.5 rounded-full text-[0.62rem] font-bold bg-green-100 text-green-700">−20%</span>
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-3 gap-4">
             {PLAN_ORDER.map(id => {
               const p = PLANS[id]
               const isCurrent = planId === id
+              const isYearly = billingPeriod === 'yearly'
+              const monthlyPrice = p.price ? (isYearly ? Math.round(p.price * (1 - YEARLY_DISCOUNT)) : p.price) : null
+              const yearlyTotal = p.price ? Math.round(p.price * (1 - YEARLY_DISCOUNT)) * 12 : null
+              const yearlySavings = p.price ? p.price * 12 - yearlyTotal : 0
               return (
                 <div key={id} className={`p-5 rounded-xl relative ${p.popular ? 'border-2 border-coral' : `border ${isCurrent ? 'border-violet' : 'border-bdr'}`}`}>
                   {p.popular && (
@@ -164,10 +193,27 @@ export default function SettingsPage() {
                   <div className="text-center mb-4">
                     <span className="text-xl">{p.icon}</span>
                     <div className="text-[0.72rem] uppercase tracking-wider text-txt-tertiary font-semibold mt-1">{p.name}</div>
-                    <div className="font-display text-2xl font-bold mt-1">{p.priceLabel}</div>
-                    {p.period && <div className="text-[0.75rem] text-txt-secondary">/måned</div>}
-                    {p.trialDays > 0 && (
-                      <div className="text-[0.72rem] text-green-500 font-medium mt-0.5">{p.trialDays} dager gratis</div>
+                    {monthlyPrice !== null ? (
+                      <>
+                        <div className="font-display text-2xl font-bold mt-1">{monthlyPrice} kr</div>
+                        <div className="text-[0.75rem] text-txt-secondary">/måned</div>
+                        {isYearly ? (
+                          <div className="mt-1 space-y-0.5">
+                            <div className="text-[0.68rem] text-txt-tertiary">
+                              <span className="line-through">{p.price} kr</span> · {yearlyTotal} kr/år
+                            </div>
+                            <div className="text-[0.7rem] text-green-600 font-medium">Spar {yearlySavings} kr/år</div>
+                          </div>
+                        ) : (
+                          p.trialDays > 0 && (
+                            <div className="text-[0.72rem] text-green-500 font-medium mt-0.5">{p.trialDays} dager gratis</div>
+                          )
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="font-display text-2xl font-bold mt-1">{p.priceLabel}</div>
+                      </>
                     )}
                   </div>
 
@@ -201,7 +247,9 @@ export default function SettingsPage() {
           </div>
 
           <div className="mt-5 p-3 bg-surface rounded-xl text-center text-[0.78rem] text-txt-tertiary">
-            Betaling via Stripe. 14 dagers gratis prøveperiode. Kanseller når som helst — ingen binding.
+            {billingPeriod === 'yearly'
+              ? 'Betaling via Stripe. Årsabonnement faktureres på forhånd. 14 dagers gratis prøveperiode.'
+              : 'Betaling via Stripe. 14 dagers gratis prøveperiode. Kanseller når som helst — ingen binding.'}
           </div>
         </div>
 
