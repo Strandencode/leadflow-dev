@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
-import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, ChevronDown, Mail, ExternalLink, Globe, Phone, Trophy, Lock } from 'lucide-react'
+import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, ChevronDown, Mail, ExternalLink, Globe, Phone, Trophy, Lock, Zap } from 'lucide-react'
 import { fetchAllBasic, enrichCompanies, NACE_CODES, MUNICIPALITIES, EMPLOYEE_RANGES, formatNOK } from '../api/brreg'
+import { enrichWithWebsite, enrichBatchWithWebsite } from '../api/webScrape'
 import { useSavedLists } from '../hooks/useSavedLists'
 import { usePipeline } from '../hooks/usePipeline'
 import { useCustomers } from '../hooks/useCustomers'
@@ -266,6 +267,76 @@ export default function SearchPage() {
   const [saving, setSaving] = useState(false)
   const [saveProgress, setSaveProgress] = useState(null) // { done, total } or null
 
+  // Web-scraping state
+  const [webEnrichingOrg, setWebEnrichingOrg] = useState(null) // single-row spinner
+  const [webBatchProgress, setWebBatchProgress] = useState(null) // { done, total }
+
+  /**
+   * Web-enrich a single company — scrape its website for extra contact info.
+   * Only makes sense if the company has a website field from Brreg.
+   */
+  async function handleWebEnrichSingle(company) {
+    if (!company.website) { toast('Ingen nettside registrert i Brreg', { icon: '🌐' }); return }
+    if (!canEnrich()) { toast.error('Enrichment-kvoten er brukt opp'); return }
+    setWebEnrichingOrg(company.orgNumber)
+    try {
+      const enriched = await enrichWithWebsite(company)
+      setEnrichedCache(prev => ({ ...prev, [company.orgNumber]: { ...prev[company.orgNumber], ...enriched } }))
+      trackEnrichment(1)
+      const newContacts = (enriched.webEmails?.length || 0) + (enriched.webPhones?.length || 0)
+      if (enriched.webError) toast.error(`Kunne ikke scrape: ${enriched.webError}`)
+      else if (newContacts === 0) toast('Ingen ny kontaktinfo funnet på nettsiden', { icon: 'ℹ️' })
+      else toast.success(`Fant ${enriched.webEmails?.length || 0} e-post og ${enriched.webPhones?.length || 0} telefon på nettsiden`)
+    } catch (e) {
+      toast.error('Web-scraping feilet')
+      console.error(e)
+    } finally {
+      setWebEnrichingOrg(null)
+    }
+  }
+
+  /**
+   * Batch web-enrich: scrape websites for all currently selected rows that
+   * have a website registered. Skips rows without websites silently.
+   */
+  async function handleWebEnrichBatch() {
+    const targets = (selectedRows.size > 0 ? filtered.filter(c => selectedRows.has(c.orgNumber)) : displayCompanies)
+      .map(c => enrichedCache[c.orgNumber] || c)
+      .filter(c => c.website)
+    if (!targets.length) { toast.error('Ingen av de valgte selskapene har nettside registrert'); return }
+    if (!canEnrich()) { toast.error('Enrichment-kvoten er brukt opp'); return }
+    // Respect enrichment quota
+    let toScrape = targets
+    if (limits.enrichments !== Infinity) {
+      const left = enrichmentsLeft()
+      if (targets.length > left) {
+        toScrape = targets.slice(0, left)
+        toast(`Planen din tillater ${left} enrichments til denne måneden`, { icon: '⚠️' })
+      }
+    }
+    setWebBatchProgress({ done: 0, total: toScrape.length })
+    try {
+      const enriched = await enrichBatchWithWebsite(toScrape, {
+        concurrency: 4,
+        onProgress: p => setWebBatchProgress(p),
+      })
+      setEnrichedCache(prev => {
+        const next = { ...prev }
+        enriched.forEach(c => { next[c.orgNumber] = { ...next[c.orgNumber], ...c } })
+        return next
+      })
+      trackEnrichment(toScrape.length)
+      const foundEmails = enriched.reduce((sum, c) => sum + (c.webEmails?.length || 0), 0)
+      const foundPhones = enriched.reduce((sum, c) => sum + (c.webPhones?.length || 0), 0)
+      toast.success(`Scannet ${toScrape.length} nettsider — fant ${foundEmails} e-post og ${foundPhones} telefon`)
+    } catch (e) {
+      toast.error('Batch web-scraping feilet')
+      console.error(e)
+    } finally {
+      setWebBatchProgress(null)
+    }
+  }
+
   async function handleSave() {
     const toSave = selectedRows.size > 0 ? filtered.filter(c => selectedRows.has(c.orgNumber)) : filtered
     if (!toSave.length) return
@@ -415,6 +486,16 @@ export default function SearchPage() {
                 Velg alle med e-post ({globalStats?.withEmail || 0})
               </button>
               <span className="text-white/20 mx-1">|</span>
+              <button
+                onClick={handleWebEnrichBatch}
+                disabled={!!webBatchProgress}
+                title="Scrape nettsider for ekstra kontaktinfo"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.82rem] font-medium bg-violet/80 hover:bg-violet disabled:opacity-40 transition-all">
+                {webBatchProgress
+                  ? <><Loader2 size={13} className="animate-spin"/> {webBatchProgress.done}/{webBatchProgress.total}</>
+                  : <><Zap size={14}/> Dypsøk nettsider</>
+                }
+              </button>
               <button onClick={openBulkEmail} disabled={!getSelectedWithEmail().length} className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[0.82rem] font-semibold bg-coral hover:bg-coral-hover disabled:opacity-40 transition-all">
                 <Mail size={14}/> Send e-post ({getSelectedWithEmail().length})
               </button>
@@ -577,6 +658,11 @@ export default function SearchPage() {
                             {c.email&&<div><a href={`mailto:${c.email}`} onClick={e=>e.stopPropagation()} className="text-[0.8rem] text-violet hover:underline">{c.email}</a></div>}
                             {c.phone&&<div className="text-[0.8rem] text-txt-secondary tabular-nums">{c.phone}</div>}
                             {!c.email&&!c.phone&&<span className="text-[0.8rem] text-txt-tertiary">—</span>}
+                            {(c.webEmails?.length > 0 || c.webPhones?.length > 0) && (
+                              <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 bg-violet-soft rounded text-[0.62rem] font-semibold text-violet" title={`${c.webEmails?.length || 0} e-post + ${c.webPhones?.length || 0} tlf fra nettside`}>
+                                <Zap size={9}/> +{(c.webEmails?.length || 0) + (c.webPhones?.length || 0)} fra web
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-3"><div className="text-[0.85rem] font-medium tabular-nums">{c.revenue!=null?formatNOK(c.revenue):'—'}</div>{c.revenueYear&&<div className="text-[0.72rem] text-txt-tertiary">({c.revenueYear})</div>}</td>
                           <td className="px-4 py-3 text-[0.85rem] tabular-nums"><div className="text-txt-secondary">{c.foundedDate||'—'}</div>{c.registrationDate && c.registrationDate !== c.foundedDate && <div className="text-[0.72rem] text-txt-tertiary">Reg: {c.registrationDate}</div>}</td>
@@ -617,6 +703,41 @@ export default function SearchPage() {
                                   <InfoRow label="Stilling" value={c.contactRole}/>
                                   <InfoRow label="E-post" value={c.email?<a href={`mailto:${c.email}`} className="text-violet hover:underline">{c.email}</a>:'—'}/>
                                   <InfoRow label="Telefon" value={c.phone?<a href={`tel:${c.phone}`} className="text-txt-primary hover:text-violet">{c.phone}</a>:'—'}/>
+
+                                  {/* Web-scraped contacts */}
+                                  {(c.webEmails?.length > 0 || c.webPhones?.length > 0) && (
+                                    <div className="mt-3 p-2.5 bg-violet-soft/30 border border-violet/20 rounded-lg">
+                                      <div className="flex items-center gap-1.5 text-[0.7rem] font-semibold text-violet uppercase tracking-wide mb-1.5">
+                                        <Zap size={11}/> Funnet på nettsiden
+                                      </div>
+                                      {c.webEmails?.map(e => (
+                                        <div key={e} className="text-[0.78rem] truncate">
+                                          <a href={`mailto:${e}`} onClick={ev=>ev.stopPropagation()} className="text-violet hover:underline">{e}</a>
+                                        </div>
+                                      ))}
+                                      {c.webPhones?.map(p => (
+                                        <div key={p} className="text-[0.78rem] text-txt-secondary tabular-nums">
+                                          <a href={`tel:${p.replace(/\s/g,'')}`} onClick={ev=>ev.stopPropagation()} className="hover:text-violet">{p}</a>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {c.webEnriched && !c.webEmails?.length && !c.webPhones?.length && !c.webError && (
+                                    <div className="mt-2 text-[0.72rem] text-txt-tertiary italic">Nettsiden er scannet — ingen ny kontaktinfo funnet.</div>
+                                  )}
+
+                                  {/* Deep-scrape button */}
+                                  {c.website && !c.webEnriched && (
+                                    <button
+                                      onClick={e => { e.stopPropagation(); handleWebEnrichSingle(c) }}
+                                      disabled={webEnrichingOrg === c.orgNumber}
+                                      className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-[0.78rem] font-medium border border-violet/30 text-violet hover:bg-violet-soft/50 transition-all disabled:opacity-60">
+                                      {webEnrichingOrg === c.orgNumber
+                                        ? <><Loader2 size={13} className="animate-spin"/> Scraper nettside...</>
+                                        : <><Zap size={13}/> Dypsøk nettside</>
+                                      }
+                                    </button>
+                                  )}
 
                                   {(()=>{const t=getTracking(c.orgNumber);return(
                                     <div className="mt-3 pt-3 border-t border-surface-sunken">
