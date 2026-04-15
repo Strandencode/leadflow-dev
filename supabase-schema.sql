@@ -318,6 +318,7 @@ declare
   new_ws_id uuid;
   display_name text;
   company text;
+  invited_ws uuid;
 begin
   display_name := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
   company := coalesce(new.raw_user_meta_data->>'company_name', display_name || '''s workspace');
@@ -326,17 +327,28 @@ begin
   insert into public.profiles (id, full_name, company_name, email)
   values (new.id, display_name, company, new.email);
 
-  -- Create default workspace (skip if this signup is from accepting an invite —
-  -- handled client-side after auth by calling accept_workspace_invite)
+  -- If the signup came from an invite magic-link, skip auto-creating a personal
+  -- workspace — accept_workspace_invite will attach them to the inviting one.
+  -- The client sets `invited_to_workspace` in the OTP metadata.
+  begin
+    invited_ws := (new.raw_user_meta_data->>'invited_to_workspace')::uuid;
+  exception when others then
+    invited_ws := null;
+  end;
+
+  if invited_ws is not null then
+    -- Just leave default_workspace_id null for now; accept_workspace_invite sets it
+    return new;
+  end if;
+
+  -- Normal signup path: create personal workspace
   insert into public.workspaces (name, owner_id)
   values (company, new.id)
   returning id into new_ws_id;
 
-  -- Owner is also a member
   insert into public.workspace_members (workspace_id, user_id, role)
   values (new_ws_id, new.id, 'owner');
 
-  -- Link default workspace on profile
   update public.profiles set default_workspace_id = new_ws_id where id = new.id;
 
   return new;
@@ -384,6 +396,15 @@ begin
   update public.workspace_invites
     set accepted_at = now(), accepted_by = uid
     where id = inv.id;
+
+  -- Flip the user's active workspace to the one they just joined.
+  -- This also closes the orphan-workspace hole for users who did NOT come
+  -- through the invited-signup path (e.g. existing user accepts a second
+  -- workspace) — they'll still have their old personal workspace around,
+  -- which is intentional since they might have data there.
+  update public.profiles
+    set default_workspace_id = inv.workspace_id
+    where id = uid;
 
   return jsonb_build_object('success', true, 'workspace_id', inv.workspace_id);
 end;

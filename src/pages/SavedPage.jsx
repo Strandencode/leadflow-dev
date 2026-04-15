@@ -101,8 +101,10 @@ export default function SavedPage() {
     toast.success(`Eksporterte "${list.name}" med kontaktstatus`)
   }
 
-  function handleDelete(list, e) {
-    e.stopPropagation(); deleteList(list.id); toast.success(`"${list.name}" slettet`)
+  async function handleDelete(list, e) {
+    e.stopPropagation()
+    await deleteList(list.id)
+    toast.success(`"${list.name}" slettet`)
     if (expandedId === list.id) setExpandedId(null)
   }
 
@@ -284,7 +286,7 @@ export default function SavedPage() {
                                         <a href={buildGmailUrl(c)} target="_blank" rel="noopener" onClick={()=>markEmailed(c.orgNumber)} className="flex items-center gap-1 px-2.5 py-1.5 bg-violet/10 text-violet rounded-lg text-[0.72rem] font-medium hover:bg-violet/20 transition-all" title="Send e-post"><Mail size={12}/> E-post</a>
                                       }
                                       {!isWon ? (
-                                        <button onClick={()=>{addCustomer({orgNumber:c.orgNumber,name:c.name,contactName:c.contactName,contactRole:c.contactRole,email:c.email,phone:c.phone,industry:c.industry,municipality:c.municipality,revenue:c.revenue});toast.success(`${c.name} → Won!`)}} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[0.72rem] font-medium text-green-600 hover:bg-green-50 transition-all" title="Closed Won"><Trophy size={12}/> Won</button>
+                                        <button onClick={async()=>{await addCustomer({orgNumber:c.orgNumber,name:c.name,contactName:c.contactName,contactRole:c.contactRole,email:c.email,phone:c.phone,industry:c.industry,municipality:c.municipality,revenue:c.revenue});toast.success(`${c.name} → Won!`)}} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[0.72rem] font-medium text-green-600 hover:bg-green-50 transition-all" title="Closed Won"><Trophy size={12}/> Won</button>
                                       ) : (
                                         <span className="px-2 py-1 text-[0.72rem] text-green-500 font-medium">✓ Kunde</span>
                                       )}
@@ -320,7 +322,7 @@ export default function SavedPage() {
           <EmailComposerModal
             companies={targets}
             onClose={() => setComposerList(null)}
-            onSend={(orgNums) => { orgNums.forEach(o => markEmailed(o)); setComposerList(null) }}
+            onSend={async (orgNums) => { await Promise.all(orgNums.map(o => markEmailed(o))); setComposerList(null) }}
           />
         )
       })()}

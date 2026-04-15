@@ -400,7 +400,12 @@ export default function SearchPage() {
     const emp = EMPLOYEE_RANGES.find(r=>r.value===filters.employeeRange)
     const parts = [nace?.label?.split(' — ')[1]||'', muni?.label||'', emp?.label||''].filter(Boolean)
     const companiesWithEnrichment = toSave.map(c => localCache[c.orgNumber] ? { ...c, ...localCache[c.orgNumber] } : c)
-    saveList({ name:nm, filters:{...filters}, filterLabels:parts.join(' · ')||'Alle filtre', companies:companiesWithEnrichment, totalResults:toSave.length })
+    const saved = await saveList({ name:nm, filters:{...filters}, filterLabels:parts.join(' · ')||'Alle filtre', companies:companiesWithEnrichment, totalResults:toSave.length })
+    if (!saved) {
+      toast.error('Kunne ikke lagre listen — sjekk at du er logget inn')
+      setSaving(false); setSaveProgress(null)
+      return
+    }
     toast.success(`"${nm}" lagret med ${toSave.length} leads — alle enrichet!`)
     logActivity('save-list', `Lagret listen «${nm}»`, { leads: toSave.length })
     setShowSaveModal(false); setSaveName(''); setSaving(false); setSaveProgress(null)
@@ -442,8 +447,8 @@ export default function SearchPage() {
     setShowEmailComposer(true)
   }
 
-  function handleEmailsSent(orgNumbers) {
-    orgNumbers.forEach(o => markEmailed(o))
+  async function handleEmailsSent(orgNumbers) {
+    await Promise.all(orgNumbers.map(o => markEmailed(o)))
   }
 
   function selectAllOnPage() {

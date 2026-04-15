@@ -32,19 +32,21 @@ export default function PipelinePage() {
     })
   }
 
-  function bulkMoveToStage(targetStageId) {
+  async function bulkMoveToStage(targetStageId) {
     if (!selectedLeads.size) return
-    selectedLeads.forEach(orgNumber => moveToStage(orgNumber, targetStageId))
+    const ids = Array.from(selectedLeads)
+    await Promise.all(ids.map(orgNumber => moveToStage(orgNumber, targetStageId)))
     const stageName = STAGES.find(s => s.id === targetStageId)?.label
-    toast.success(`${selectedLeads.size} leads flyttet til ${stageName}`)
+    toast.success(`${ids.length} leads flyttet til ${stageName}`)
     setSelectedLeads(new Set())
     setShowBulkMove(false)
   }
 
-  function bulkRemove() {
+  async function bulkRemove() {
     if (!selectedLeads.size) return
-    selectedLeads.forEach(orgNumber => removeFromPipeline(orgNumber))
-    toast.success(`${selectedLeads.size} leads fjernet`)
+    const ids = Array.from(selectedLeads)
+    await Promise.all(ids.map(orgNumber => removeFromPipeline(orgNumber)))
+    toast.success(`${ids.length} leads fjernet`)
     setSelectedLeads(new Set())
   }
 

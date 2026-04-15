@@ -51,11 +51,6 @@ export default function SettingsPage() {
     toast('Kontakt oss for å kansellere: kontakt@leadflow.no', { icon: '📧' })
   }
 
-  function handleCreateWorkspace() {
-    // No-op: handled by the handle_new_user trigger on signup.
-    toast('Workspace opprettes automatisk ved registrering.', { icon: 'ℹ️' })
-  }
-
   async function handleInvite() {
     if (!inviteEmail.trim()) return
     const result = await inviteMember(inviteEmail.trim(), inviteName.trim(), inviteRole)
@@ -298,22 +293,29 @@ export default function SettingsPage() {
                 Oppgrader til Business (999 kr/mnd)
               </button>
             </div>
+          ) : wsLoading ? (
+            <div className="p-6 text-center text-[0.82rem] text-txt-tertiary">Laster workspace…</div>
           ) : !workspace ? (
             <div className="p-6 border border-dashed border-bdr rounded-xl text-center">
               <Users size={32} className="mx-auto text-txt-tertiary/40 mb-3"/>
-              <h4 className="text-[0.92rem] font-medium mb-2">Opprett et workspace</h4>
-              <p className="text-[0.82rem] text-txt-tertiary mb-4">Start et workspace for å invitere teammedlemmer.</p>
-              <button onClick={handleCreateWorkspace} className="px-5 py-2.5 bg-violet text-white rounded-xl text-[0.85rem] font-medium hover:bg-violet/90 transition-all">
-                <Plus size={14} className="inline mr-1"/> Opprett workspace
-              </button>
+              <h4 className="text-[0.92rem] font-medium mb-2">Ingen workspace funnet</h4>
+              <p className="text-[0.82rem] text-txt-tertiary">
+                Et workspace opprettes automatisk når du registrerer deg. Logg ut og inn igjen, eller kontakt support hvis dette vedvarer.
+              </p>
             </div>
-          ) : (
+          ) : (() => {
+            const canManage = role === 'owner' || role === 'admin'
+            return (
             <div>
               {/* Workspace info */}
               <div className="flex items-center justify-between p-4 bg-surface rounded-xl mb-4">
                 <div>
                   <div className="text-[0.88rem] font-medium">{workspace.name}</div>
-                  <div className="text-[0.75rem] text-txt-tertiary">{workspace.members.length} medlem{workspace.members.length > 1 ? 'mer' : ''} · Opptil {plan.limits.maxUsers === Infinity ? 'ubegrenset' : plan.limits.maxUsers} brukere</div>
+                  <div className="text-[0.75rem] text-txt-tertiary">
+                    {workspace.members.length} medlem{workspace.members.length > 1 ? 'mer' : ''}
+                    {' · Din rolle: '}<span className="font-medium text-txt-secondary capitalize">{role || '—'}</span>
+                    {' · Opptil '}{plan.limits.maxUsers === Infinity ? 'ubegrenset' : plan.limits.maxUsers}{' brukere'}
+                  </div>
                 </div>
               </div>
 
@@ -328,17 +330,21 @@ export default function SettingsPage() {
                       <div className="text-[0.85rem] font-medium">{m.name || m.email.split('@')[0]}</div>
                       <div className="text-[0.72rem] text-txt-tertiary">{m.email}</div>
                     </div>
-                    <select
-                      value={m.role}
-                      onChange={e => handleRoleChange(m.id, e.target.value)}
-                      disabled={m.role === 'owner'}
-                      className="px-2.5 py-1 bg-surface border border-bdr rounded-lg text-[0.75rem] outline-none disabled:opacity-50"
-                    >
-                      <option value="owner">Eier</option>
-                      <option value="admin">Admin</option>
-                      <option value="member">Medlem</option>
-                    </select>
-                    {m.role !== 'owner' && (
+                    {canManage ? (
+                      <select
+                        value={m.role}
+                        onChange={e => handleRoleChange(m.id, e.target.value)}
+                        disabled={m.role === 'owner'}
+                        className="px-2.5 py-1 bg-surface border border-bdr rounded-lg text-[0.75rem] outline-none disabled:opacity-50"
+                      >
+                        <option value="owner">Eier</option>
+                        <option value="admin">Admin</option>
+                        <option value="member">Medlem</option>
+                      </select>
+                    ) : (
+                      <span className="px-2.5 py-1 text-[0.72rem] text-txt-tertiary capitalize">{m.role}</span>
+                    )}
+                    {canManage && m.role !== 'owner' && (
                       <button onClick={() => handleRemoveMember(m.id, m.name)} className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all">
                         <Trash2 size={14}/>
                       </button>
@@ -356,44 +362,53 @@ export default function SettingsPage() {
                       <div className="text-[0.85rem] font-medium text-amber-800">{inv.email}</div>
                       <div className="text-[0.72rem] text-amber-600">Venter på svar</div>
                     </div>
-                    <button onClick={() => handleCancelInvite(inv.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all" title="Kanseller invitasjon">
-                      <X size={14}/>
-                    </button>
+                    {canManage && (
+                      <button onClick={() => handleCancelInvite(inv.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all" title="Kanseller invitasjon">
+                        <X size={14}/>
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
 
-              {/* Invite form */}
-              {showInviteForm ? (
-                <div className="p-4 border border-bdr rounded-xl space-y-3">
-                  <h4 className="text-[0.85rem] font-semibold">Inviter nytt medlem</h4>
-                  <div className="grid grid-cols-3 gap-3">
-                    <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="E-post" className="px-3 py-2 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none focus:border-violet col-span-1"/>
-                    <input type="text" value={inviteName} onChange={e => setInviteName(e.target.value)} placeholder="Navn (valgfritt)" className="px-3 py-2 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none focus:border-violet"/>
-                    <select value={inviteRole} onChange={e => setInviteRole(e.target.value)} className="px-3 py-2 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none">
-                      <option value="member">Medlem</option>
-                      <option value="admin">Admin</option>
-                    </select>
+              {/* Invite form — only visible to owner/admin */}
+              {canManage ? (
+                showInviteForm ? (
+                  <div className="p-4 border border-bdr rounded-xl space-y-3">
+                    <h4 className="text-[0.85rem] font-semibold">Inviter nytt medlem</h4>
+                    <div className="grid grid-cols-3 gap-3">
+                      <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="E-post" className="px-3 py-2 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none focus:border-violet col-span-1"/>
+                      <input type="text" value={inviteName} onChange={e => setInviteName(e.target.value)} placeholder="Navn (valgfritt)" className="px-3 py-2 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none focus:border-violet"/>
+                      <select value={inviteRole} onChange={e => setInviteRole(e.target.value)} className="px-3 py-2 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none">
+                        <option value="member">Medlem</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={() => setShowInviteForm(false)} className="px-3 py-1.5 text-[0.82rem] text-txt-secondary hover:text-txt-primary transition-colors">Avbryt</button>
+                      <button onClick={handleInvite} disabled={!inviteEmail.trim()} className="px-4 py-1.5 bg-violet text-white rounded-lg text-[0.82rem] font-medium hover:bg-violet/90 disabled:opacity-40 transition-all">
+                        Send invitasjon
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 justify-end">
-                    <button onClick={() => setShowInviteForm(false)} className="px-3 py-1.5 text-[0.82rem] text-txt-secondary hover:text-txt-primary transition-colors">Avbryt</button>
-                    <button onClick={handleInvite} disabled={!inviteEmail.trim()} className="px-4 py-1.5 bg-violet text-white rounded-lg text-[0.82rem] font-medium hover:bg-violet/90 disabled:opacity-40 transition-all">
-                      Send invitasjon
-                    </button>
-                  </div>
-                </div>
+                ) : (
+                  <button
+                    onClick={() => setShowInviteForm(true)}
+                    disabled={workspace.members.length >= plan.limits.maxUsers}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-bdr rounded-xl text-[0.82rem] text-txt-secondary hover:border-violet hover:text-violet disabled:opacity-40 transition-all"
+                  >
+                    <Plus size={14}/> Inviter nytt medlem
+                    {plan.limits.maxUsers !== Infinity && ` (${workspace.members.length}/${plan.limits.maxUsers})`}
+                  </button>
+                )
               ) : (
-                <button
-                  onClick={() => setShowInviteForm(true)}
-                  disabled={workspace.members.length >= plan.limits.maxUsers}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-bdr rounded-xl text-[0.82rem] text-txt-secondary hover:border-violet hover:text-violet disabled:opacity-40 transition-all"
-                >
-                  <Plus size={14}/> Inviter nytt medlem
-                  {plan.limits.maxUsers !== Infinity && ` (${workspace.members.length}/${plan.limits.maxUsers})`}
-                </button>
+                <p className="text-center text-[0.78rem] text-txt-tertiary py-2">
+                  Kun eier eller admin kan invitere medlemmer.
+                </p>
               )}
             </div>
-          )}
+            )
+          })()}
         </div>
 
         {/* Profile */}
