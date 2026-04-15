@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, ChevronDown, Mail, ExternalLink, Globe, Phone, Trophy, Lock, Zap } from 'lucide-react'
 import { fetchAllBasic, enrichCompanies, NACE_CODES, MUNICIPALITIES, EMPLOYEE_RANGES, formatNOK } from '../api/brreg'
 import { enrichWithWebsite, enrichBatchWithWebsite } from '../api/webScrape'
+import { logActivity } from '../hooks/useActivityLog'
 import { useSavedLists } from '../hooks/useSavedLists'
 import { usePipeline } from '../hooks/usePipeline'
 import { useCustomers } from '../hooks/useCustomers'
@@ -205,6 +206,7 @@ export default function SearchPage() {
         const updated = [histEntry, ...prev.filter(h => h.name !== sName)].slice(0, 10)
         localStorage.setItem('leadflow_search_history', JSON.stringify(updated))
       } catch {}
+      logActivity('search', `Kjørte søket «${sName}»`, { treff: stats.total })
     } catch(e) { toast.error('Søket feilet.'); console.error(e) }
     finally { setLoading(false); setLoadMsg('') }
   }
@@ -287,6 +289,11 @@ export default function SearchPage() {
       if (enriched.webError) toast.error(`Kunne ikke scrape: ${enriched.webError}`)
       else if (newContacts === 0) toast('Ingen ny kontaktinfo funnet på nettsiden', { icon: 'ℹ️' })
       else toast.success(`Fant ${enriched.webEmails?.length || 0} e-post og ${enriched.webPhones?.length || 0} telefon på nettsiden`)
+      logActivity('web-scrape-single', `Dypsøkte nettside for ${company.name}`, {
+        nettside: company.website,
+        epost: enriched.webEmails?.length || 0,
+        telefon: enriched.webPhones?.length || 0,
+      })
     } catch (e) {
       toast.error('Web-scraping feilet')
       console.error(e)
@@ -300,10 +307,19 @@ export default function SearchPage() {
    * have a website registered. Skips rows without websites silently.
    */
   async function handleWebEnrichBatch() {
-    const targets = (selectedRows.size > 0 ? filtered.filter(c => selectedRows.has(c.orgNumber)) : displayCompanies)
+    // Default to the full filtered list (not just the current page slice) so batch scrape
+    // runs on every lead matching the user's search, not only what happens to be visible.
+    const base = selectedRows.size > 0
+      ? filtered.filter(c => selectedRows.has(c.orgNumber))
+      : filtered
+    const targets = base
       .map(c => enrichedCache[c.orgNumber] || c)
       .filter(c => c.website)
     if (!targets.length) { toast.error('Ingen av de valgte selskapene har nettside registrert'); return }
+    // Extra confirm for large batches so we don't surprise-burn quota
+    if (selectedRows.size === 0 && targets.length > 50) {
+      if (!confirm(`Dypsøke ${targets.length} nettsider? Dette kan ta noen minutter og bruker enrichments fra planen din.`)) return
+    }
     if (!canEnrich()) { toast.error('Enrichment-kvoten er brukt opp'); return }
     // Respect enrichment quota
     let toScrape = targets
@@ -329,6 +345,11 @@ export default function SearchPage() {
       const foundEmails = enriched.reduce((sum, c) => sum + (c.webEmails?.length || 0), 0)
       const foundPhones = enriched.reduce((sum, c) => sum + (c.webPhones?.length || 0), 0)
       toast.success(`Scannet ${toScrape.length} nettsider — fant ${foundEmails} e-post og ${foundPhones} telefon`)
+      logActivity('web-scrape-batch', `Dypsøkte ${toScrape.length} nettsider`, {
+        nettsider: toScrape.length,
+        epost: foundEmails,
+        telefon: foundPhones,
+      })
     } catch (e) {
       toast.error('Batch web-scraping feilet')
       console.error(e)
@@ -381,6 +402,7 @@ export default function SearchPage() {
     const companiesWithEnrichment = toSave.map(c => localCache[c.orgNumber] ? { ...c, ...localCache[c.orgNumber] } : c)
     saveList({ name:nm, filters:{...filters}, filterLabels:parts.join(' · ')||'Alle filtre', companies:companiesWithEnrichment, totalResults:toSave.length })
     toast.success(`"${nm}" lagret med ${toSave.length} leads — alle enrichet!`)
+    logActivity('save-list', `Lagret listen «${nm}»`, { leads: toSave.length })
     setShowSaveModal(false); setSaveName(''); setSaving(false); setSaveProgress(null)
   }
 
@@ -397,6 +419,7 @@ export default function SearchPage() {
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url
     a.download = `leadflow-${(searchName||'export').toLowerCase().replace(/\s+/g,'-')}-${contactFilter!=='all'?contactFilter+'-':''}${new Date().toISOString().slice(0,10)}.csv`
     a.click(); URL.revokeObjectURL(url); toast.success(`Eksporterte ${rows.length} leads`)
+    logActivity('export-csv', `Eksporterte ${rows.length} leads til CSV`, { leads: rows.length })
   }
 
   function resetSearch() {
@@ -462,6 +485,16 @@ export default function SearchPage() {
               setSaveName(searchName);setShowSaveModal(true)
             }} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all ${!canSaveList(savedLists.length) ? 'opacity-50' : ''}`}>{canSaveList(savedLists.length) ? <Bookmark size={16}/> : <Lock size={16}/>} Lagre liste{!canSaveList(savedLists.length) ? ' 🔒' : ''}</button>
             <button onClick={exportCSV} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all ${!canExportCSV ? 'opacity-50' : ''}`}>{canExportCSV ? <Download size={16}/> : <Lock size={16}/>} Eksporter CSV{!canExportCSV ? ' 🔒' : ''}</button>
+            <button
+              onClick={handleWebEnrichBatch}
+              disabled={!!webBatchProgress}
+              title="Scrape alle nettsider i søket for ekstra kontaktinfo"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all disabled:opacity-50">
+              {webBatchProgress
+                ? <><Loader2 size={16} className="animate-spin"/> {webBatchProgress.done}/{webBatchProgress.total}</>
+                : <><Zap size={16}/> Dypsøk alle nettsider</>
+              }
+            </button>
           </>)}
           <button onClick={()=>handleSearch(0)} disabled={loading} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium text-white hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-60" style={{background:'linear-gradient(135deg, #FF6B4A 0%, #FF8F6B 100%)'}}>
             {loading?<Loader2 size={16} className="animate-spin"/>:<Search size={16}/>} {loading?'Søker...':'Søk'}

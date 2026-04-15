@@ -1,7 +1,9 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { Search, LayoutDashboard, Target, Mail, Kanban, BarChart3, Bookmark, Users, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { Search, LayoutDashboard, Target, Mail, Kanban, BarChart3, Bookmark, Users, Settings, LogOut, ChevronDown, History } from 'lucide-react'
 import { useState } from 'react'
+import { useActivityLog } from '../hooks/useActivityLog'
+import ActivityLogPanel from './ActivityLogPanel'
 
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -19,6 +21,8 @@ export default function Sidebar() {
   const location = useLocation()
   const { profile, user, signOut, isDemo } = useAuth()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showActivity, setShowActivity] = useState(false)
+  const { entries: activityEntries } = useActivityLog()
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Bruker'
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -27,14 +31,24 @@ export default function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-white flex flex-col border-r border-gray-100 z-50">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-gray-100">
-        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2.5 w-full text-left">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-900">
+      <div className="px-5 py-5 border-b border-gray-100 flex items-center justify-between gap-2">
+        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2.5 flex-1 min-w-0 text-left">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-900 flex-shrink-0">
             <span className="font-display text-white text-sm font-semibold">L</span>
           </div>
-          <span className="font-display text-[1.05rem] tracking-tight font-semibold text-gray-900">
+          <span className="font-display text-[1.05rem] tracking-tight font-semibold text-gray-900 truncate">
             LeadFlow
           </span>
+        </button>
+        <button
+          onClick={() => setShowActivity(true)}
+          title="Aktivitetslogg"
+          className="relative w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-all"
+        >
+          <History size={15} />
+          {activityEntries.length > 0 && (
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-gray-900" />
+          )}
         </button>
       </div>
 
@@ -109,6 +123,8 @@ export default function Sidebar() {
           </div>
         )}
       </div>
+
+      {showActivity && <ActivityLogPanel onClose={() => setShowActivity(false)} />}
     </aside>
   )
 }
