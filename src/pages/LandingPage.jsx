@@ -12,10 +12,12 @@ const FEATURES = [
 ]
 
 const PLANS = [
-  { id: 'professional', name: 'Professional', price: '199', period: '/mnd', features: ['200 enrichments/mnd', 'Alle søkeresultater', '10 lagrede lister', 'Ubegrenset pipeline', 'E-post + CSV-eksport', 'Analytics dashboard'], popular: true, cta: 'Prøv gratis i 14 dager' },
-  { id: 'business', name: 'Business', price: '499', period: '/mnd', features: ['Ubegrenset enrichment', 'Ubegrenset lister', 'Workspace — opptil 5 brukere', 'Delte lister og pipeline', 'Avansert analytics', 'Kundenotater + kontrakter'], cta: 'Prøv gratis i 14 dager' },
-  { id: 'enterprise', name: 'Enterprise', price: 'Custom', period: '', features: ['Alt i Business', 'Ubegrenset brukere', 'API-tilgang', 'SSO & SAML', 'Dedikert onboarding', 'Prioritert support'], cta: 'Kontakt oss' },
+  { id: 'professional', name: 'Professional', price: 199, features: ['200 enrichments/mnd', 'Alle søkeresultater', '10 lagrede lister', 'Ubegrenset pipeline', 'E-post + CSV-eksport', 'Analytics dashboard'], popular: true, cta: 'Prøv gratis i 14 dager' },
+  { id: 'business', name: 'Business', price: 499, features: ['Ubegrenset enrichment', 'Ubegrenset lister', 'Workspace — opptil 5 brukere', 'Delte lister og pipeline', 'Avansert analytics', 'Kundenotater + kontrakter'], cta: 'Prøv gratis i 14 dager' },
+  { id: 'enterprise', name: 'Enterprise', price: null, features: ['Alt i Business', 'Ubegrenset brukere', 'API-tilgang', 'SSO & SAML', 'Dedikert onboarding', 'Prioritert support'], cta: 'Kontakt oss' },
 ]
+
+const YEARLY_DISCOUNT = 0.2 // 20% off when billed yearly
 
 function useInView(threshold = 0.15) {
   const ref = useRef(null)
@@ -35,6 +37,7 @@ export default function LandingPage() {
   const [heroRef, heroInView] = useInView(0)
   const [featRef, featInView] = useInView()
   const [priceRef, priceInView] = useInView()
+  const [billingPeriod, setBillingPeriod] = useState('monthly') // 'monthly' | 'yearly'
   const [trustRef, trustInView] = useInView()
 
   return (
@@ -218,13 +221,43 @@ export default function LandingPage() {
       {/* Pricing */}
       <section id="pricing" ref={priceRef} className="py-20 md:py-28">
         <div className="max-w-5xl mx-auto px-8">
-          <div className={`text-center mb-16 transition-all duration-600 ${priceInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+          <div className={`text-center mb-10 transition-all duration-600 ${priceInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
             <h2 className="font-display text-[2rem] md:text-[2.5rem] font-bold tracking-tight mb-4">Enkel og transparent prising</h2>
             <p className="text-gray-500 text-[1.05rem] max-w-lg mx-auto">Prøv gratis i 14 dager. Ingen kredittkort kreves.</p>
           </div>
 
+          {/* Billing period toggle */}
+          <div className={`flex justify-center mb-12 transition-all duration-600 ${priceInView ? 'opacity-100' : 'opacity-0'}`}>
+            <div className="inline-flex items-center gap-1 p-1 rounded-full bg-gray-100 border border-gray-200">
+              <button
+                onClick={() => setBillingPeriod('monthly')}
+                className={`px-5 py-2 rounded-full text-[0.85rem] font-medium transition-all ${
+                  billingPeriod === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                Månedlig
+              </button>
+              <button
+                onClick={() => setBillingPeriod('yearly')}
+                className={`px-5 py-2 rounded-full text-[0.85rem] font-medium transition-all flex items-center gap-2 ${
+                  billingPeriod === 'yearly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                Årlig
+                <span className="px-1.5 py-0.5 rounded-full text-[0.65rem] font-bold bg-green-100 text-green-700">
+                  −20%
+                </span>
+              </button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {PLANS.map((plan, i) => (
+            {PLANS.map((plan, i) => {
+              const isYearly = billingPeriod === 'yearly'
+              const monthlyPrice = plan.price ? (isYearly ? Math.round(plan.price * (1 - YEARLY_DISCOUNT)) : plan.price) : null
+              const yearlyTotal = plan.price ? Math.round(plan.price * (1 - YEARLY_DISCOUNT)) * 12 : null
+              const yearlySavings = plan.price ? plan.price * 12 - yearlyTotal : 0
+              return (
               <div key={plan.id}
                 className={`relative p-7 rounded-xl border transition-all duration-500 ${
                   plan.popular ? 'border-gray-900 bg-white shadow-lg ring-1 ring-gray-900' : 'border-gray-200 bg-white'
@@ -240,15 +273,26 @@ export default function LandingPage() {
                 <div className="text-[0.78rem] text-gray-400 font-semibold uppercase tracking-wider mb-3">{plan.name}</div>
 
                 <div className="mb-6">
-                  {plan.price === 'Custom' ? (
+                  {!plan.price ? (
                     <div className="font-display text-[2rem] font-bold">Custom</div>
                   ) : (
                     <>
                       <div className="flex items-baseline gap-1">
-                        <span className="font-display text-[2rem] font-bold">{plan.price}</span>
-                        <span className="text-[0.88rem] text-gray-400">kr{plan.period}</span>
+                        <span className="font-display text-[2rem] font-bold">{monthlyPrice}</span>
+                        <span className="text-[0.88rem] text-gray-400">kr/mnd</span>
                       </div>
-                      <div className="text-[0.78rem] text-green-600 font-medium mt-1">14 dager gratis</div>
+                      {isYearly ? (
+                        <div className="mt-1 space-y-0.5">
+                          <div className="text-[0.72rem] text-gray-400">
+                            <span className="line-through">{plan.price} kr/mnd</span> · faktureres {yearlyTotal} kr/år
+                          </div>
+                          <div className="text-[0.78rem] text-green-600 font-medium">
+                            Spar {yearlySavings} kr/år · 14 dager gratis
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-[0.78rem] text-green-600 font-medium mt-1">14 dager gratis</div>
+                      )}
                     </>
                   )}
                 </div>
@@ -271,11 +315,13 @@ export default function LandingPage() {
                   {plan.cta}
                 </button>
               </div>
-            ))}
+            )})}
           </div>
 
           <p className="text-center text-[0.82rem] text-gray-400 mt-8">
-            14 dagers gratis prøveperiode. Ingen kredittkort kreves. Kanseller når som helst.
+            {billingPeriod === 'yearly'
+              ? 'Årsabonnement faktureres på forhånd. 14 dagers gratis prøveperiode. Ingen kredittkort kreves.'
+              : '14 dagers gratis prøveperiode. Ingen kredittkort kreves. Kanseller når som helst.'}
           </p>
         </div>
       </section>
