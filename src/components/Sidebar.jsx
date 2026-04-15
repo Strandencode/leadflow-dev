@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { Search, LayoutDashboard, Target, Mail, Kanban, BarChart3, Bookmark, Users, Settings, LogOut, ChevronDown, History } from 'lucide-react'
+import { Search, Home, Target, Mail, Kanban, BarChart3, Bookmark, Users, Settings, LogOut, ChevronDown, History } from 'lucide-react'
 import { useState } from 'react'
 import { useActivityLog } from '../hooks/useActivityLog'
 import ActivityLogPanel from './ActivityLogPanel'
@@ -8,9 +8,10 @@ import ActivityLogPanel from './ActivityLogPanel'
 // Grouped navigation — keeps lead-generation work distinct from closed-won customers
 const NAV_SECTIONS = [
   {
-    label: 'Oversikt',
+    // No header — Home sits on its own at the top
+    label: '',
     items: [
-      { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Home', icon: Home, path: '/dashboard' },
     ],
   },
   {
@@ -76,10 +77,12 @@ export default function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 py-3 px-3 overflow-y-auto">
         {NAV_SECTIONS.map((section, sIdx) => (
-          <div key={section.label} className={sIdx > 0 ? 'mt-4' : ''}>
-            <div className="text-[0.62rem] uppercase tracking-[0.15em] text-gray-400 font-semibold px-3 mb-1.5">
-              {section.label}
-            </div>
+          <div key={section.label || sIdx} className={sIdx > 0 ? 'mt-4' : ''}>
+            {section.label && (
+              <div className="text-[0.62rem] uppercase tracking-[0.15em] text-gray-400 font-semibold px-3 mb-1.5">
+                {section.label}
+              </div>
+            )}
             {section.items.map(item => {
               const Icon = item.icon
               const active = location.pathname === item.path
