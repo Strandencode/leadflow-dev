@@ -1,7 +1,9 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { Search, Home, Target, Mail, Kanban, BarChart3, Bookmark, Users, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { Search, Home, Target, Mail, Kanban, BarChart3, Bookmark, Users, Settings, LogOut, ChevronDown, History } from 'lucide-react'
 import { useState } from 'react'
+import { useActivityLog } from '../hooks/useActivityLog'
+import ActivityLogPanel from './ActivityLogPanel'
 
 // Grouped navigation — keeps lead-generation work distinct from closed-won customers
 const NAV_SECTIONS = [
@@ -41,6 +43,8 @@ export default function Sidebar() {
   const location = useLocation()
   const { profile, user, signOut, isDemo } = useAuth()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showActivity, setShowActivity] = useState(false)
+  const { entries: activityEntries } = useActivityLog()
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Bruker'
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -107,6 +111,20 @@ export default function Sidebar() {
         </div>
       )}
 
+      {/* Activity log trigger — sits directly above the user card */}
+      <div className="px-3 pb-1">
+        <button
+          onClick={() => setShowActivity(true)}
+          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-[0.85rem] text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all duration-150"
+        >
+          <History size={16} />
+          <span className="flex-1 text-left">Aktivitet</span>
+          {activityEntries.length > 0 && (
+            <span className="text-[0.7rem] font-semibold text-gray-400">{activityEntries.length}</span>
+          )}
+        </button>
+      </div>
+
       {/* User card */}
       <div className="p-3 border-t border-gray-100 relative">
         <button
@@ -140,6 +158,7 @@ export default function Sidebar() {
         )}
       </div>
 
+      {showActivity && <ActivityLogPanel onClose={() => setShowActivity(false)} />}
     </aside>
   )
 }

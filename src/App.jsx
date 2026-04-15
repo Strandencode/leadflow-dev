@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import Sidebar from './components/Sidebar'
-import ActivityLogButton from './components/ActivityLogButton'
 import LandingPage from './pages/LandingPage'
 import NettiroPage from './pages/NettiroPage'
 import LoginPage from './pages/LoginPage'
@@ -38,7 +37,6 @@ function ProtectedLayout() {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <ActivityLogButton />
       <main className="ml-[240px] flex-1 min-h-screen">
         <Routes>
           <Route path="/dashboard" element={<DashboardPage />} />
