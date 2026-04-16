@@ -80,11 +80,11 @@ export default function LandingPage() {
 
             <h1 className="font-display text-[2.8rem] md:text-[3.8rem] font-bold leading-[1.1] tracking-tight mb-6 text-gray-900">
               Finn dine neste kunder<br />
-              <span className="text-gray-400">direkte fra Brønnøysund</span>
+              <span className="text-gray-400">voks raskere</span>
             </h1>
 
             <p className="text-[1.1rem] text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-              Søk i hele Brønnøysundregistrene, finn kontaktinfo automatisk, og følg opp med pipeline og e-postmaler. Alt du trenger for B2B-salg i Norge.
+              Norges beste leads-system. Validerte leads, salgsmaler og oppfølging — alt på ett sted. En komplett løsning for B2B-salg som faktisk konverterer.
             </p>
 
             <div className="flex items-center justify-center gap-4">
