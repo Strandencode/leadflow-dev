@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { usePlan } from '../hooks/usePlan'
 import { useWorkspace } from '../hooks/useWorkspace'
@@ -9,8 +9,16 @@ import toast from 'react-hot-toast'
 import { Check, Crown, Users, Mail, Trash2, Plus, Shield, X } from 'lucide-react'
 
 export default function SettingsPage() {
-  const { user, profile } = useAuth()
-  const { planId, plan, usage, changePlan, enrichmentsLeft, isOnTrial, trialDaysLeft } = usePlan()
+  const { user, profile, refreshProfile } = useAuth()
+  const { planId, plan, usage, changePlan, enrichmentsLeft, isOnTrial, trialDaysLeft, refresh: refreshPlan } = usePlan()
+
+  // Auto-refresh profile + plan on mount so users don't see stale
+  // default_workspace_id from a pre-backfill session.
+  useEffect(() => {
+    refreshProfile?.()
+    refreshPlan?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const { workspace, loading: wsLoading, role, inviteMember, removeMember, cancelInvite, updateMemberRole } = useWorkspace()
   const { getStats } = useSavedLists()
   const stats = useMemo(() => getStats(), [getStats])
@@ -44,7 +52,14 @@ export default function SettingsPage() {
     // Owner-only via RLS — non-owners get an error back
     const res = await changePlan(newPlanId)
     if (res?.error) {
-      toast.error('Bare workspace-eier kan endre plan')
+      if (res.error === 'no_workspace') {
+        // Stale profile — refetch and ask user to retry
+        await refreshProfile?.()
+        await refreshPlan?.()
+        toast.error('Workspace ikke lastet inn — prøv igjen')
+      } else {
+        toast.error('Bare workspace-eier kan endre plan')
+      }
       return
     }
     // In production: redirect to Stripe checkout
@@ -329,11 +344,11 @@ export default function SettingsPage() {
                 {workspace.members.map(m => (
                   <div key={m.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-sunken/50 transition-colors">
                     <div className="w-9 h-9 rounded-full bg-violet/10 flex items-center justify-center text-violet font-semibold text-[0.82rem]">
-                      {(m.name || m.email)[0].toUpperCase()}
+                      {((m.name || m.email || '?').charAt(0) || '?').toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[0.85rem] font-medium">{m.name || m.email.split('@')[0]}</div>
-                      <div className="text-[0.72rem] text-txt-tertiary">{m.email}</div>
+                      <div className="text-[0.85rem] font-medium">{m.name || (m.email ? m.email.split('@')[0] : 'Ukjent')}</div>
+                      <div className="text-[0.72rem] text-txt-tertiary">{m.email || '—'}</div>
                     </div>
                     {canManage ? (
                       <select

@@ -383,6 +383,9 @@ create policy "Members CRUD icp" on public.icp_profiles
   with check (public.is_workspace_member(workspace_id));
 
 -- ---- Auto-provision default workspace on signup ---------------------------
+-- Robust version: inner BEGIN/EXCEPTION blocks so that a failure in one step
+-- doesn't prevent the whole signup from completing. Failures are logged as
+-- Postgres warnings rather than silently crashing the auth.users insert.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -398,13 +401,17 @@ begin
   display_name := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
   company := coalesce(new.raw_user_meta_data->>'company_name', display_name || '''s workspace');
 
-  -- Create profile
-  insert into public.profiles (id, full_name, company_name, email)
-  values (new.id, display_name, company, new.email);
+  -- Create profile (always, survives errors)
+  begin
+    insert into public.profiles (id, full_name, company_name, email)
+    values (new.id, display_name, company, new.email)
+    on conflict (id) do nothing;
+  exception when others then
+    raise warning 'handle_new_user: profile insert failed for %: %', new.id, sqlerrm;
+  end;
 
   -- If the signup came from an invite magic-link, skip auto-creating a personal
   -- workspace — accept_workspace_invite will attach them to the inviting one.
-  -- The client sets `invited_to_workspace` in the OTP metadata.
   begin
     invited_ws := (new.raw_user_meta_data->>'invited_to_workspace')::uuid;
   exception when others then
@@ -412,19 +419,22 @@ begin
   end;
 
   if invited_ws is not null then
-    -- Just leave default_workspace_id null for now; accept_workspace_invite sets it
     return new;
   end if;
 
-  -- Normal signup path: create personal workspace
-  insert into public.workspaces (name, owner_id)
-  values (company, new.id)
-  returning id into new_ws_id;
+  -- Normal signup path: create personal workspace + owner membership
+  begin
+    insert into public.workspaces (name, owner_id)
+    values (company, new.id)
+    returning id into new_ws_id;
 
-  insert into public.workspace_members (workspace_id, user_id, role)
-  values (new_ws_id, new.id, 'owner');
+    insert into public.workspace_members (workspace_id, user_id, role)
+    values (new_ws_id, new.id, 'owner');
 
-  update public.profiles set default_workspace_id = new_ws_id where id = new.id;
+    update public.profiles set default_workspace_id = new_ws_id where id = new.id;
+  exception when others then
+    raise warning 'handle_new_user: workspace setup failed for %: %', new.id, sqlerrm;
+  end;
 
   return new;
 end;
