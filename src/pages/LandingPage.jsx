@@ -343,7 +343,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Nettiro teaser — subtle, cross-sell */}
+      {/* Website offering teaser — subtle, cross-sell */}
       <section className="py-16 border-t border-gray-100 bg-gray-50">
         <div className="max-w-5xl mx-auto px-8">
           <div className="flex items-center justify-between gap-8 flex-wrap">
@@ -357,13 +357,13 @@ export default function LandingPage() {
                   Trenger du også en nettside?
                 </h3>
                 <p className="text-[0.9rem] text-gray-500 leading-relaxed">
-                  Nettiro bygger skreddersydde nettsider, nettbutikker og bookingsystemer. Rask levering, full support.
+                  Vi bygger skreddersydde nettsider, nettbutikker og bookingsystemer. Rask levering, full support.
                 </p>
               </div>
             </div>
             <button onClick={() => navigate('/nettiro')}
               className="group flex items-center gap-2 px-5 py-2.5 rounded-lg text-[0.88rem] font-medium text-gray-700 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all">
-              Se Nettiro
+              Les mer
               <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -381,7 +381,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-6">
             <button onClick={() => navigate('/nettiro')} className="text-[0.78rem] text-gray-400 hover:text-gray-700 transition-colors">
-              Nettsider av Nettiro
+              Nettsider
             </button>
             <p className="text-[0.78rem] text-gray-300">
               &copy; {new Date().getFullYear()} LeadFlow AS. Oslo, Norge.
