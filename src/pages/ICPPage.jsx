@@ -22,7 +22,7 @@ export default function ICPPage() {
 
   return (
     <div>
-      <div className="px-8 py-5 bg-white border-b border-gray-100 flex items-center justify-between sticky top-0 z-40">
+      <div className="px-8 py-5 bg-white border-b border-bdr flex items-center justify-between sticky top-0 z-40">
         <div>
           <h1 className="font-display text-[1.6rem] font-normal tracking-tight text-ink">ICP-profil</h1>
           <p className="text-txt-tertiary text-[0.82rem] mt-0.5 font-light">Definer din ideelle kundeprofil</p>
@@ -34,7 +34,7 @@ export default function ICPPage() {
 
       <div className="p-8 max-w-[740px]">
         {/* How ICP is used */}
-        <div className="animate-in mb-6 p-4 rounded-lg border border-blue-100 bg-blue-50/50">
+        <div className="animate-in mb-6 p-4 rounded-lg border border-blue-100 bg-sage-soft/50/50">
           <h4 className="text-[0.82rem] font-medium text-ink mb-1.5">Hvordan brukes ICP-profilen?</h4>
           <ul className="text-[0.78rem] text-txt-secondary font-light space-y-1">
             <li>• <strong>Selskapsnavn</strong> og <strong>ditt navn</strong> settes automatisk inn i genererte e-postmaler (erstatter flettefeltene &#123;&#123;sender_company&#125;&#125; og &#123;&#123;sender_name&#125;&#125;)</li>

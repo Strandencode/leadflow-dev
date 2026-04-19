@@ -4,6 +4,7 @@ import { getActiveTemplate } from '../config/templates'
 import { useICP } from '../hooks/useICP'
 import { useEmailTemplates } from '../hooks/useEmailTemplates'
 import toast from 'react-hot-toast'
+import { BRAND } from '../config/brand'
 
 const MERGE_TAGS = ['{{contact_name}}', '{{company_name}}', '{{industry}}', '{{city}}', '{{revenue}}', '{{sender_name}}', '{{sender_company}}']
 
@@ -54,7 +55,7 @@ const PREVIEW_VALUES = {
   '{{city}}': 'Oslo',
   '{{revenue}}': '12.4M NOK',
   '{{sender_name}}': 'Jonas Dahl',
-  '{{sender_company}}': 'LeadFlow',
+  '{{sender_company}}': `${BRAND.name}`,
 }
 
 export default function EmailPage() {
@@ -142,7 +143,7 @@ export default function EmailPage() {
   function renderPreview(text) {
     let result = text
     for (const [tag, value] of Object.entries(PREVIEW_VALUES)) {
-      result = result.replaceAll(tag, `<span class="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">${value}</span>`)
+      result = result.replaceAll(tag, `<span class="bg-sage-soft/50 text-ink px-1.5 py-0.5 rounded font-medium">${value}</span>`)
     }
     return result
   }
@@ -151,7 +152,7 @@ export default function EmailPage() {
 
   return (
     <div>
-      <div className="px-8 py-5 bg-white border-b border-gray-100 flex items-center justify-between sticky top-0 z-40">
+      <div className="px-8 py-5 bg-white border-b border-bdr flex items-center justify-between sticky top-0 z-40">
         <div>
           <h1 className="font-display text-[1.6rem] font-normal tracking-tight text-ink">E-postmaler</h1>
           <p className="text-txt-tertiary text-[0.82rem] mt-0.5 font-light">
@@ -162,7 +163,7 @@ export default function EmailPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => { setSubject(''); setBody(''); setTemplateName(''); setActiveTemplateId(null) }} className="flex items-center gap-2 px-4 py-2 rounded text-[0.82rem] font-medium border border-gray-200 text-txt-secondary hover:bg-gray-50 transition-all">
+          <button onClick={() => { setSubject(''); setBody(''); setTemplateName(''); setActiveTemplateId(null) }} className="flex items-center gap-2 px-4 py-2 rounded text-[0.82rem] font-medium border border-bdr text-txt-secondary hover:bg-canvas-warm transition-all">
             <Plus size={15} /> Ny tom mal
           </button>
         </div>
@@ -174,13 +175,13 @@ export default function EmailPage() {
           {/* Sidebar */}
           <div className="space-y-4">
             {/* Segment picker */}
-            <div className="bg-white border border-gray-100 rounded-lg p-5">
+            <div className="bg-white border border-bdr rounded-lg p-5">
               <h3 className="text-[0.82rem] font-medium mb-3 flex items-center gap-1.5 text-ink">
                 <Sparkles size={14} className="text-gold" /> Generer mal
               </h3>
 
               {!icpFilled && (
-                <div className="p-2.5 bg-blue-50 border border-blue-100 rounded text-[0.75rem] text-blue-700 mb-3 font-light">
+                <div className="p-2.5 bg-sage-soft/50 border border-blue-100 rounded text-[0.75rem] text-ink mb-3 font-light">
                   Tips: Fyll ut ICP-profilen for bedre maler
                 </div>
               )}
@@ -189,16 +190,16 @@ export default function EmailPage() {
               <div className="relative mb-3">
                 <button
                   onClick={() => setShowSegmentPicker(!showSegmentPicker)}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 border border-gray-100 rounded text-[0.82rem] text-left hover:border-gray-200 transition-all"
+                  className="w-full flex items-center justify-between px-3 py-2 bg-canvas-warm border border-bdr rounded text-[0.82rem] text-left hover:border-bdr transition-all"
                 >
                   <span>{SEGMENTS.find(s => s.id === selectedSegment)?.emoji} {SEGMENTS.find(s => s.id === selectedSegment)?.name}</span>
                   <ChevronDown size={14} className="text-txt-tertiary" />
                 </button>
                 {showSegmentPicker && (
-                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-lg shadow-lg max-h-[300px] overflow-y-auto">
+                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-bdr rounded-lg shadow-lg max-h-[300px] overflow-y-auto">
                     {SEGMENTS.map(s => (
                       <button key={s.id} onClick={() => { setSelectedSegment(s.id); setShowSegmentPicker(false) }}
-                        className={`w-full flex items-center gap-2 px-3 py-2.5 text-left text-[0.82rem] hover:bg-gray-50 transition-colors ${selectedSegment === s.id ? 'bg-blue-50 text-gold font-medium' : 'text-txt-secondary'}`}
+                        className={`w-full flex items-center gap-2 px-3 py-2.5 text-left text-[0.82rem] hover:bg-canvas-warm transition-colors ${selectedSegment === s.id ? 'bg-sage-soft/50 text-gold font-medium' : 'text-txt-secondary'}`}
                       >
                         <span>{s.emoji}</span> {s.name}
                       </button>
@@ -220,7 +221,7 @@ export default function EmailPage() {
             </div>
 
             {/* Saved templates list */}
-            <div className="bg-white border border-gray-100 rounded-lg p-5">
+            <div className="bg-white border border-bdr rounded-lg p-5">
               <h3 className="text-[0.82rem] font-medium mb-3 text-ink">Lagrede maler ({savedTemplates.length})</h3>
 
               {savedTemplates.length === 0 ? (
@@ -232,7 +233,7 @@ export default function EmailPage() {
                       key={t.id}
                       onClick={() => loadTemplate(t)}
                       className={`group flex items-start gap-2 p-2.5 rounded cursor-pointer transition-all ${
-                        activeTemplateId === t.id ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50 border border-transparent'
+                        activeTemplateId === t.id ? 'bg-sage-soft/50 border border-blue-200' : 'hover:bg-canvas-warm border border-transparent'
                       }`}
                     >
                       <span className="text-sm mt-0.5">{t.segmentEmoji || '📧'}</span>
@@ -241,8 +242,8 @@ export default function EmailPage() {
                         <div className="text-[0.68rem] text-txt-tertiary">{t.segmentName || 'Generell'} · {new Date(t.createdAt).toLocaleDateString('nb-NO')}</div>
                       </div>
                       <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={e => duplicateTemplate(t, e)} className="p-1 rounded hover:bg-gray-100 text-txt-tertiary hover:text-ink" title="Dupliser"><Copy size={12} /></button>
-                        <button onClick={e => deleteTemplate(t.id, e)} className="p-1 rounded hover:bg-red-50 text-txt-tertiary hover:text-red-500" title="Slett"><Trash2 size={12} /></button>
+                        <button onClick={e => duplicateTemplate(t, e)} className="p-1 rounded hover:bg-canvas-warm text-txt-tertiary hover:text-ink" title="Dupliser"><Copy size={12} /></button>
+                        <button onClick={e => deleteTemplate(t.id, e)} className="p-1 rounded hover:bg-rose/30 text-txt-tertiary hover:text-[#C83A2E]" title="Slett"><Trash2 size={12} /></button>
                       </div>
                     </div>
                   ))}
@@ -252,8 +253,8 @@ export default function EmailPage() {
           </div>
 
           {/* Editor */}
-          <div className="bg-white border border-gray-100 rounded-lg overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+          <div className="bg-white border border-bdr rounded-lg overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-bdr flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className="text-[0.88rem] font-medium text-ink">Redigering</h3>
                 {activeTemplateId && <Check size={14} className="text-emerald-500" />}
@@ -268,25 +269,25 @@ export default function EmailPage() {
                 value={templateName}
                 onChange={e => setTemplateName(e.target.value)}
                 placeholder="Navn på malen..."
-                className="w-full py-2 border-b border-gray-100 text-[0.82rem] outline-none bg-transparent mb-3 text-txt-secondary"
+                className="w-full py-2 border-b border-bdr text-[0.82rem] outline-none bg-transparent mb-3 text-txt-secondary"
               />
               <input
                 type="text"
                 value={subject}
                 onChange={e => setSubject(e.target.value)}
                 placeholder="Emnelinje..."
-                className="w-full py-2 border-b border-gray-100 text-[0.92rem] font-medium outline-none bg-transparent mb-4 text-ink"
+                className="w-full py-2 border-b border-bdr text-[0.92rem] font-medium outline-none bg-transparent mb-4 text-ink"
               />
               <textarea
                 value={body}
                 onChange={e => setBody(e.target.value)}
                 placeholder="Skriv e-postinnhold her, eller klikk 'Generer' til venstre..."
-                className="w-full min-h-[320px] p-4 bg-gray-50 border border-gray-100 rounded text-[0.88rem] outline-none resize-y leading-relaxed focus:border-gold focus:ring-1 focus:ring-gold/20 transition-all"
+                className="w-full min-h-[320px] p-4 bg-canvas-warm border border-bdr rounded text-[0.88rem] outline-none resize-y leading-relaxed focus:border-gold focus:ring-1 focus:ring-gold/20 transition-all"
               />
               <div className="flex flex-wrap gap-1.5 mt-3">
                 <span className="text-[0.68rem] text-txt-tertiary mr-1 self-center">Sett inn:</span>
                 {MERGE_TAGS.map(tag => (
-                  <button key={tag} onClick={() => insertTag(tag)} className="px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[0.68rem] font-medium hover:bg-gold hover:text-white transition-all">
+                  <button key={tag} onClick={() => insertTag(tag)} className="px-2.5 py-0.5 bg-sage-soft/50 text-ink rounded-full text-[0.68rem] font-medium hover:bg-gold hover:text-white transition-all">
                     {tag}
                   </button>
                 ))}
@@ -295,8 +296,8 @@ export default function EmailPage() {
           </div>
 
           {/* Preview */}
-          <div className="bg-white border border-gray-100 rounded-lg overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-gray-100 bg-gray-50">
+          <div className="bg-white border border-bdr rounded-lg overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-bdr bg-canvas-warm">
               <h3 className="text-[0.88rem] font-medium text-ink">Forhåndsvisning</h3>
             </div>
             <div className="p-5">

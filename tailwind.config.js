@@ -4,41 +4,72 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Premium dark palette
-        ink: { DEFAULT: '#0A0A0F', soft: '#12121A', muted: '#1A1A24' },
-        gold: { DEFAULT: '#0051A8', light: '#1A6BC4', dim: 'rgba(0,81,168,0.12)', hover: '#003D7A' },
-        silver: { DEFAULT: '#8A8A9A', light: '#B8B8C8' },
-        surface: { DEFAULT: '#F7F7F4', raised: '#FFFFFF', sunken: '#EBEBEF' },
-        txt: { primary: '#0A0A0F', secondary: '#4A4A55', tertiary: '#8A8A9A' },
-        bdr: '#E6E6EC',
-        // Warm paper palette (inside logged-in app) — matches designer prototype
-        paper: '#F7F7F4',
-        line: { DEFAULT: '#E6E6EC', soft: '#F0F0F3' },
-        // Heat accents — warm earthy highlights
-        heat: { hot: '#E04E2E', warm: '#E8893A', mild: '#C7A04E' },
+        // Granskog Noir — primary
+        ink: {
+          DEFAULT: '#07140E',      // primary dark ground
+          soft: '#0C1D14',         // raised dark surface
+          muted: '#5C6B60',        // body text on canvas
+          subtle: '#8A9389',       // tertiary text
+        },
+        canvas: {
+          DEFAULT: '#F4F0E6',      // warm parchment field
+          warm: '#EDE7D6',         // slightly raised
+          soft: '#FBF8F0',         // lightest surface
+        },
+        sage: {
+          bright: '#B8E0C3',       // the acceleration accent
+          DEFAULT: '#8FB79A',      // supporting sage
+          soft: '#D4E6D7',         // sage tint
+        },
+        butter: '#F1E6B8',
+        rose:   '#E8CEC8',
+        ember:  '#C67D50',
+
         // Status
-        ok:   '#0E9968',
-        warn: '#D08A2E',
+        ok:   '#8FB79A',
+        warn: '#C67D50',
         err:  '#C83A2E',
-        // Legacy aliases (mapped to new palette)
-        coral: { DEFAULT: '#0051A8', hover: '#003D7A', glow: 'rgba(0,81,168,0.12)' },
-        violet: { DEFAULT: '#0051A8', soft: 'rgba(0,81,168,0.06)' },
-        teal: { DEFAULT: '#10B981', soft: 'rgba(16,185,129,0.06)' },
-        // Accent colors for data/charts
-        accent: {
-          blue: '#3B82F6',
-          green: '#10B981',
-          red: '#EF4444',
-          amber: '#F59E0B',
+
+        // Text shortcuts
+        txt: {
+          primary:   '#07140E',
+          secondary: '#5C6B60',
+          tertiary:  '#8A9389',
+        },
+        bdr: '#E3DDCB',
+
+        // --- Legacy aliases (map old names to new palette so untouched pages inherit revamp) ---
+        paper:   '#F4F0E6',
+        line:    { DEFAULT: '#E3DDCB', soft: '#EDE7D6' },
+        surface: { DEFAULT: '#F4F0E6', raised: '#FBF8F0', sunken: '#EDE7D6' },
+        gold:    { DEFAULT: '#07140E', light: '#5C6B60', dim: 'rgba(184,224,195,0.25)', hover: '#0C1D14' },
+        silver:  { DEFAULT: '#8A9389', light: '#B8C0B5' },
+        coral:   { DEFAULT: '#07140E', hover: '#0C1D14', glow: 'rgba(184,224,195,0.25)' },
+        violet:  { DEFAULT: '#07140E', soft: 'rgba(184,224,195,0.18)' },
+        teal:    { DEFAULT: '#8FB79A', soft: 'rgba(143,183,154,0.12)' },
+        heat:    { hot: '#C67D50', warm: '#C67D50', mild: '#F1E6B8' },
+        accent:  {
+          blue:  '#8FB79A',
+          green: '#8FB79A',
+          red:   '#C83A2E',
+          amber: '#C67D50',
         }
       },
       fontFamily: {
-        display: ['"EB Garamond"', 'Georgia', 'serif'],
-        body: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'monospace'],
+        display: ['"Work Sans"', 'system-ui', 'sans-serif'],
+        body:    ['Outfit', 'system-ui', 'sans-serif'],
+        mono:    ['"Geist Mono"', '"JetBrains Mono"', 'ui-monospace', 'monospace'],
+      },
+      letterSpacing: {
+        mono: '0.04em',
       },
       borderRadius: {
-        DEFAULT: '8px',
+        DEFAULT: '6px',
+      },
+      boxShadow: {
+        // flatter, more crafted than glossy
+        card:  '0 1px 0 rgba(7,20,14,0.04), 0 4px 12px rgba(7,20,14,0.04)',
+        raise: '0 1px 0 rgba(7,20,14,0.06), 0 8px 24px rgba(7,20,14,0.06)',
       }
     },
   },

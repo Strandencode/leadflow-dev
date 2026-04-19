@@ -113,7 +113,7 @@ export default function CustomersPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-0.5">
                       <h3 className="font-display text-[1.05rem] font-semibold">{customer.name}</h3>
-                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[0.72rem] font-semibold bg-green-50 text-green-600">
+                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[0.72rem] font-semibold bg-sage-bright/30 text-sage sage-accent">
                         Closed Won
                       </span>
                       {customer.contracts.length > 0 && (
@@ -184,7 +184,7 @@ export default function CustomersPage() {
                                 <button onClick={(e) => { e.stopPropagation(); downloadContract(ct) }} className="p-1.5 rounded hover:bg-surface-sunken text-txt-tertiary hover:text-violet transition-all" title="Last ned">
                                   <Download size={14} />
                                 </button>
-                                <button onClick={(e) => { e.stopPropagation(); removeContract(customer.id, ct.id); toast.success('Kontrakt slettet') }} className="p-1.5 rounded hover:bg-red-50 text-txt-tertiary hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all" title="Slett">
+                                <button onClick={(e) => { e.stopPropagation(); removeContract(customer.id, ct.id); toast.success('Kontrakt slettet') }} className="p-1.5 rounded hover:bg-rose/30 text-txt-tertiary hover:text-[#C83A2E] opacity-0 group-hover:opacity-100 transition-all" title="Slett">
                                   <Trash2 size={14} />
                                 </button>
                               </div>
@@ -241,7 +241,7 @@ export default function CustomersPage() {
                                 <span className="text-[0.68rem] text-txt-tertiary">{formatDate(note.createdAt)}</span>
                                 <button
                                   onClick={e => { e.stopPropagation(); removeNoteEntry(customer.id, note.id) }}
-                                  className="p-1 rounded hover:bg-red-50 text-txt-tertiary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                                  className="p-1 rounded hover:bg-rose/30 text-txt-tertiary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
                                 >
                                   <X size={12} />
                                 </button>
@@ -252,7 +252,7 @@ export default function CustomersPage() {
 
                         <button
                           onClick={(e) => { e.stopPropagation(); if (confirm(`Fjerne ${customer.name} fra kunder?`)) { removeCustomer(customer.id); toast.success('Kunde fjernet') } }}
-                          className="mt-4 flex items-center gap-1.5 text-[0.78rem] text-red-400 hover:text-red-500 transition-colors"
+                          className="mt-4 flex items-center gap-1.5 text-[0.78rem] text-red-400 hover:text-[#C83A2E] transition-colors"
                         >
                           <Trash2 size={12} /> Fjern fra kunder
                         </button>

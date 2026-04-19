@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Check, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { BRAND } from '../config/brand'
 
 export default function ResetPasswordPage() {
   const { updatePassword } = useAuth()
@@ -36,57 +37,57 @@ export default function ResetPasswordPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2.5 mb-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-900">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-ink">
               <span className="text-white font-bold text-lg">L</span>
             </div>
           </div>
-          <h1 className="font-display text-[2.2rem] font-bold text-gray-900 tracking-tight">
-            LeadFlow
+          <h1 className="font-display text-[2.2rem] font-bold text-ink tracking-tight">
+            {BRAND.name}
           </h1>
         </div>
 
         {/* Card */}
-        <div className="rounded-xl p-7 bg-white border border-gray-200 shadow-sm">
+        <div className="rounded-xl p-7 bg-white border border-bdr shadow-sm">
           {success ? (
             <div className="text-center py-2">
-              <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5">
-                <Check size={24} className="text-green-600" />
+              <div className="w-14 h-14 rounded-full bg-sage-bright/30 flex items-center justify-center mx-auto mb-5">
+                <Check size={24} className="text-sage sage-accent" />
               </div>
-              <h2 className="font-display text-xl font-semibold mb-2 text-gray-900">Passord oppdatert!</h2>
-              <p className="text-gray-500 text-[0.9rem] mb-6 leading-relaxed">
+              <h2 className="font-display text-xl font-semibold mb-2 text-ink">Passord oppdatert!</h2>
+              <p className="text-ink-muted text-[0.9rem] mb-6 leading-relaxed">
                 Passordet ditt er nå endret. Du kan logge inn med det nye passordet.
               </p>
               <button onClick={() => navigate('/login')}
-                className="w-full py-3 rounded-lg font-semibold text-[0.95rem] text-white bg-gray-900 hover:bg-gray-800 transition-all">
+                className="w-full py-3 rounded-lg font-semibold text-[0.95rem] text-white bg-ink hover:bg-ink-soft transition-all">
                 Gå til innlogging
               </button>
             </div>
           ) : (
             <>
-              <h2 className="font-display text-xl font-semibold mb-2 text-gray-900">Velg nytt passord</h2>
-              <p className="text-gray-500 text-[0.88rem] mb-6">
+              <h2 className="font-display text-xl font-semibold mb-2 text-ink">Velg nytt passord</h2>
+              <p className="text-ink-muted text-[0.88rem] mb-6">
                 Skriv inn ditt nye passord nedenfor.
               </p>
 
               <form onSubmit={handleSubmit}>
                 <div className="mb-4">
-                  <label className="block text-[0.78rem] font-semibold text-gray-700 mb-1.5">Nytt passord</label>
+                  <label className="block text-[0.78rem] font-semibold text-ink mb-1.5">Nytt passord</label>
                   <div className="relative">
                     <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
                       placeholder="Minst 6 tegn" required minLength={6} autoFocus
-                      className="w-full px-3.5 py-2.5 pr-14 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-300 text-[0.9rem] outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-100 transition-all" />
+                      className="w-full px-3.5 py-2.5 pr-14 bg-white border border-bdr rounded-lg text-ink placeholder-ink-subtle text-[0.9rem] outline-none focus:border-ink focus:ring-2 focus:ring-sage-bright/30 transition-all" />
                     <button type="button" onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors text-[0.8rem] font-medium">
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-subtle hover:text-ink transition-colors text-[0.8rem] font-medium">
                       {showPassword ? 'Skjul' : 'Vis'}
                     </button>
                   </div>
                 </div>
 
                 <div className="mb-2">
-                  <label className="block text-[0.78rem] font-semibold text-gray-700 mb-1.5">Bekreft passord</label>
+                  <label className="block text-[0.78rem] font-semibold text-ink mb-1.5">Bekreft passord</label>
                   <input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="Gjenta passordet" required minLength={6}
-                    className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-300 text-[0.9rem] outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-100 transition-all" />
+                    className="w-full px-3.5 py-2.5 bg-white border border-bdr rounded-lg text-ink placeholder-ink-subtle text-[0.9rem] outline-none focus:border-ink focus:ring-2 focus:ring-sage-bright/30 transition-all" />
                 </div>
 
                 {/* Password strength indicator */}
@@ -102,7 +103,7 @@ export default function ResetPasswordPage() {
                           }} />
                       ))}
                     </div>
-                    <span className="text-[0.72rem] text-gray-500">
+                    <span className="text-[0.72rem] text-ink-muted">
                       {password.length < 6 ? 'For kort' : password.length < 8 ? 'Ok' : password.length < 12 ? 'Bra' : 'Sterkt'}
                     </span>
                   </div>
@@ -110,13 +111,13 @@ export default function ResetPasswordPage() {
 
                 {/* Match indicator */}
                 {confirmPassword.length > 0 && (
-                  <p className={`text-[0.78rem] mt-2 font-medium ${password === confirmPassword ? 'text-green-600' : 'text-red-500'}`}>
+                  <p className={`text-[0.78rem] mt-2 font-medium ${password === confirmPassword ? 'text-sage sage-accent' : 'text-[#C83A2E]'}`}>
                     {password === confirmPassword ? '✓ Passordene stemmer overens' : '✕ Passordene stemmer ikke overens'}
                   </p>
                 )}
 
                 <button type="submit" disabled={loading || password.length < 6 || password !== confirmPassword}
-                  className="w-full mt-6 py-3 rounded-lg font-semibold text-[0.95rem] text-white bg-gray-900 hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
+                  className="w-full mt-6 py-3 rounded-lg font-semibold text-[0.95rem] text-white bg-ink hover:bg-ink-soft transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader2 size={15} className="animate-spin" />
@@ -126,7 +127,7 @@ export default function ResetPasswordPage() {
                 </button>
 
                 <button type="button" onClick={() => navigate('/login')}
-                  className="w-full mt-3 py-2.5 rounded-lg text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors flex items-center justify-center gap-2">
+                  className="w-full mt-3 py-2.5 rounded-lg text-[0.88rem] text-ink-muted hover:text-ink transition-colors flex items-center justify-center gap-2">
                   <ArrowLeft size={14} /> Tilbake til innlogging
                 </button>
               </form>

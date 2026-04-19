@@ -4,6 +4,7 @@ import { X, Target, Search, Bookmark, ArrowRight, Check, Sparkles, ChevronRight,
 import TEMPLATES, { applyTemplate } from '../config/templates'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { BRAND } from '../config/brand'
 
 export default function OnboardingWizard({ onDismiss }) {
   const navigate = useNavigate()
@@ -119,8 +120,8 @@ export default function OnboardingWizard({ onDismiss }) {
         {step === 'workspace' ? (
           <>
             {/* Workspace naming */}
-            <div className="relative p-8 pb-6 text-center border-b border-gray-100">
-              <button onClick={onDismiss} className="absolute top-4 right-4 p-1.5 rounded hover:bg-gray-100 text-txt-tertiary transition-all">
+            <div className="relative p-8 pb-6 text-center border-b border-bdr">
+              <button onClick={onDismiss} className="absolute top-4 right-4 p-1.5 rounded hover:bg-canvas-warm text-txt-tertiary transition-all">
                 <X size={18} />
               </button>
               <div className="flex items-center justify-center gap-2 mb-4">
@@ -144,10 +145,10 @@ export default function OnboardingWizard({ onDismiss }) {
                 onKeyDown={e => { if (e.key === 'Enter') handleSaveWorkspace() }}
                 placeholder="F.eks. Acme AS"
                 autoFocus
-                className="w-full px-4 py-3 rounded border border-gray-200 text-[0.9rem] text-ink placeholder:text-txt-tertiary focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all"
+                className="w-full px-4 py-3 rounded border border-bdr text-[0.9rem] text-ink placeholder:text-txt-tertiary focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all"
               />
               {workspaceError && (
-                <div className="mt-2 text-[0.78rem] text-red-600">{workspaceError}</div>
+                <div className="mt-2 text-[0.78rem] text-[#C83A2E]">{workspaceError}</div>
               )}
             </div>
 
@@ -165,13 +166,13 @@ export default function OnboardingWizard({ onDismiss }) {
         ) : step === 'template' ? (
           <>
             {/* Template selection */}
-            <div className="relative p-8 pb-6 text-center border-b border-gray-100">
-              <button onClick={onDismiss} className="absolute top-4 right-4 p-1.5 rounded hover:bg-gray-100 text-txt-tertiary transition-all">
+            <div className="relative p-8 pb-6 text-center border-b border-bdr">
+              <button onClick={onDismiss} className="absolute top-4 right-4 p-1.5 rounded hover:bg-canvas-warm text-txt-tertiary transition-all">
                 <X size={18} />
               </button>
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Sparkles size={15} className="text-gold" />
-                <span className="text-[0.78rem] font-medium text-txt-secondary tracking-wide">Velkommen til LeadFlow</span>
+                <span className="text-[0.78rem] font-medium text-txt-secondary tracking-wide">Velkommen til {BRAND.name}</span>
               </div>
               <h2 className="font-display text-[1.4rem] mb-2 text-ink">Velg din bransjemal</h2>
               <p className="text-txt-tertiary text-[0.85rem] font-light max-w-sm mx-auto">
@@ -187,7 +188,7 @@ export default function OnboardingWizard({ onDismiss }) {
                   className={`w-full flex items-center gap-4 p-4 rounded-lg border text-left transition-all ${
                     selectedTemplate?.id === t.id
                       ? 'border-gold bg-gold/[0.04] shadow-sm'
-                      : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
+                      : 'border-bdr hover:border-bdr hover:bg-canvas-warm'
                   }`}
                 >
                   <div className="w-11 h-11 rounded-lg flex items-center justify-center text-xl"
@@ -225,7 +226,7 @@ export default function OnboardingWizard({ onDismiss }) {
           <>
             {/* Guide steps */}
             <div className="relative p-8 pb-6 text-center">
-              <button onClick={onDismiss} className="absolute top-4 right-4 p-1.5 rounded hover:bg-gray-100 text-txt-tertiary transition-all">
+              <button onClick={onDismiss} className="absolute top-4 right-4 p-1.5 rounded hover:bg-canvas-warm text-txt-tertiary transition-all">
                 <X size={18} />
               </button>
 
@@ -241,14 +242,14 @@ export default function OnboardingWizard({ onDismiss }) {
                 {GUIDE_STEPS.map((s, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[0.72rem] font-medium transition-all ${
-                      i < guideStep ? 'bg-emerald-500 text-white' :
-                      i === guideStep ? 'text-white' : 'bg-gray-100 text-txt-tertiary'
+                      i < guideStep ? 'bg-sage text-white' :
+                      i === guideStep ? 'text-white' : 'bg-canvas-warm text-txt-tertiary'
                     }`}
                     style={i === guideStep ? { background: GUIDE_STEPS[i].color } : {}}>
                       {i < guideStep ? <Check size={13} /> : i + 1}
                     </div>
                     {i < GUIDE_STEPS.length - 1 && (
-                      <div className={`w-8 h-px ${i < guideStep ? 'bg-emerald-400' : 'bg-gray-200'}`} />
+                      <div className={`w-8 h-px ${i < guideStep ? 'bg-emerald-400' : 'bg-bdr'}`} />
                     )}
                   </div>
                 ))}

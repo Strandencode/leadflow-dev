@@ -95,30 +95,30 @@ export default function InviteAcceptPage() {
   }, [authLoading, user, invite, status, token, navigate, refreshProfile])
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-        <div className="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center mb-5">
+    <div className="min-h-screen bg-canvas-warm flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white rounded-2xl border border-bdr shadow-sm p-8">
+        <div className="w-12 h-12 rounded-xl bg-ink flex items-center justify-center mb-5">
           <span className="font-display text-white text-lg font-semibold">L</span>
         </div>
 
         {status === 'loading' && (
-          <div className="flex items-center gap-2.5 text-gray-500 text-sm">
+          <div className="flex items-center gap-2.5 text-ink-muted text-sm">
             <Loader2 size={16} className="animate-spin" /> Henter invitasjon…
           </div>
         )}
 
         {status === 'needs_auth' && invite && (
           <>
-            <h1 className="font-display text-[1.4rem] font-semibold text-gray-900 mb-1">
+            <h1 className="font-display text-[1.4rem] font-semibold text-ink mb-1">
               Du er invitert til {workspace?.name || 'et workspace'}
             </h1>
-            <p className="text-gray-500 text-sm mb-5">
-              Invitasjonen ble sendt til <span className="font-medium text-gray-900">{invite.email}</span>.
+            <p className="text-ink-muted text-sm mb-5">
+              Invitasjonen ble sendt til <span className="font-medium text-ink">{invite.email}</span>.
               Logg inn med samme e-post for å akseptere.
             </p>
             <Link
               to={`/login?redirect=${encodeURIComponent(`/invite/${token}`)}`}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-ink text-white rounded-lg text-sm font-medium hover:bg-ink-soft"
             >
               <LogIn size={15} /> Logg inn for å akseptere
             </Link>
@@ -126,29 +126,29 @@ export default function InviteAcceptPage() {
         )}
 
         {status === 'accepting' && (
-          <div className="flex items-center gap-2.5 text-gray-600 text-sm">
+          <div className="flex items-center gap-2.5 text-ink-muted text-sm">
             <Loader2 size={16} className="animate-spin" /> Legger deg til i {workspace?.name || 'workspace'}…
           </div>
         )}
 
         {status === 'accepted' && (
           <>
-            <div className="flex items-center gap-2.5 text-emerald-600 mb-2">
+            <div className="flex items-center gap-2.5 text-sage sage-accent mb-2">
               <CheckCircle2 size={18} />
               <span className="text-sm font-medium">Velkommen til {workspace?.name || 'workspacet'}!</span>
             </div>
-            <p className="text-gray-500 text-sm">Tar deg til dashboardet…</p>
+            <p className="text-ink-muted text-sm">Tar deg til dashboardet…</p>
           </>
         )}
 
         {status === 'error' && (
           <>
-            <div className="flex items-center gap-2.5 text-red-500 mb-2">
+            <div className="flex items-center gap-2.5 text-[#C83A2E] mb-2">
               <AlertTriangle size={18} />
               <span className="text-sm font-medium">Noe gikk galt</span>
             </div>
-            <p className="text-gray-500 text-sm mb-4">{errorMsg}</p>
-            <Link to="/" className="text-gray-900 text-sm font-medium hover:underline">
+            <p className="text-ink-muted text-sm mb-4">{errorMsg}</p>
+            <Link to="/" className="text-ink text-sm font-medium hover:underline">
               Tilbake til forsiden
             </Link>
           </>

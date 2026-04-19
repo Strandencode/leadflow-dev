@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { storageKey } from '../config/brand'
 
 /**
  * Lightweight activity log — tracks things the user has done in the app
@@ -7,7 +8,7 @@ import { useState, useEffect, useCallback } from 'react'
  * sync. Used for a "recent activity" dropdown in the sidebar.
  */
 
-const STORAGE_KEY = 'leadflow_activity_log'
+const STORAGE_KEY = storageKey('activity_log')
 const MAX_ENTRIES = 100
 
 // Module-level subscriber set so multiple components stay in sync

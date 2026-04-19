@@ -302,7 +302,7 @@ export default function PipelinePage() {
                           <span className="text-[0.62rem] text-txt-tertiary">{lead.notes.length}</span>
                         )}
                         <button onClick={() => removeFromPipeline(lead.orgNumber)}
-                          className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-400 transition-all ml-auto opacity-0 group-hover:opacity-100">
+                          className="p-1.5 rounded-lg hover:bg-rose/30 text-txt-tertiary hover:text-red-400 transition-all ml-auto opacity-0 group-hover:opacity-100">
                           <Trash2 size={13} />
                         </button>
                       </div>

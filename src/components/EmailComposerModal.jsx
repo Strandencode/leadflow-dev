@@ -146,7 +146,7 @@ export default function EmailComposerModal({ companies, onClose, onSend, mailCli
           <div>
             <label className="block text-[0.78rem] font-semibold uppercase tracking-wide text-txt-secondary mb-2">Velg e-postmal</label>
             {templates.length === 0 ? (
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-[0.85rem] text-amber-700">
+              <div className="p-4 bg-butter/40 border border-ember/30 rounded-xl text-[0.85rem] text-ember">
                 Du har ingen lagrede maler. Gå til <strong>E-postmaler</strong> i menyen for å lage en først.
               </div>
             ) : (
@@ -232,7 +232,7 @@ export default function EmailComposerModal({ companies, onClose, onSend, mailCli
           <div className="flex items-center justify-between mb-3">
             <div className="text-[0.78rem] text-txt-tertiary">
               {emailsRemaining === Infinity
-                ? <span className="text-green-600 font-medium">Unlimited plan — ingen grense</span>
+                ? <span className="text-sage sage-accent font-medium">Unlimited plan — ingen grense</span>
                 : <>{emailsRemaining} av {plan === 'free' ? '20' : '1 000'} e-poster igjen denne mnd</>
               }
             </div>
@@ -247,7 +247,7 @@ export default function EmailComposerModal({ companies, onClose, onSend, mailCli
             </div>
           )}
           {!canSendEmails(withEmail.length) && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-[0.82rem] text-red-600 mb-3 flex items-center gap-2">
+            <div className="p-3 bg-rose/30 border border-red-200 rounded-xl text-[0.82rem] text-[#C83A2E] mb-3 flex items-center gap-2">
               <Lock size={14}/> Du trenger {withEmail.length} e-poster, men har bare {emailsRemaining} igjen. <a href="/settings" className="underline font-semibold">Oppgrader</a>
             </div>
           )}
@@ -268,7 +268,7 @@ export default function EmailComposerModal({ companies, onClose, onSend, mailCli
               <button
                 onClick={() => handleSend('outlook')}
                 disabled={!selectedTemplate || !withEmail.length || sending || !canSendEmails(Math.min(withEmail.length, 10))}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[0.85rem] font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 transition-all"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[0.85rem] font-semibold bg-ink text-white hover:bg-blue-700 disabled:opacity-40 transition-all"
               >
                 {sending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
                 Outlook ({Math.min(withEmail.length, 10)})

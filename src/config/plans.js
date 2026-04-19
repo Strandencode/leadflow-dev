@@ -1,5 +1,5 @@
 /**
- * LeadFlow Pricing Plans
+ * Vekstor Pricing Plans
  *
  * No free tier — all plans start with 14-day free trial.
  * After trial expires, user must subscribe to continue.

@@ -12,6 +12,7 @@ import { UpgradePrompt } from '../components/UpgradePrompt'
 import TEMPLATES, { getActiveTemplate, applyTemplate } from '../config/templates'
 import EmailComposerModal from '../components/EmailComposerModal'
 import toast from 'react-hot-toast'
+import { BRAND, storageKey } from '../config/brand'
 
 // Convert free-text keyword list ("blomst, plante, hage") to case-insensitive regex
 function textToRegex(text) {
@@ -86,7 +87,7 @@ export default function SearchPage() {
   const [searchName, setSearchName] = useState('')
 
   const [searchHistory] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('leadflow_search_history') || '[]') } catch { return [] }
+    try { return JSON.parse(localStorage.getItem(storageKey('search_history')) || '[]') } catch { return [] }
   })
   const { lists: savedLists, saveList, markEmailed: _markEmailed, markCalled: _markCalled, getTracking, getListsForOrg } = useSavedLists()
   const { searches: workspaceSearches, templates: sharedTemplates, saveSearch, deleteSearch, applyTemplate: applyTemplatePreset } = useSavedSearches()
@@ -162,7 +163,7 @@ export default function SearchPage() {
   }
 
   // Get suggested searches from active template, or use defaults
-  const [activeTemplateId, setActiveTemplateId] = useState(() => localStorage.getItem('leadflow_template') || 'general')
+  const [activeTemplateId, setActiveTemplateId] = useState(() => localStorage.getItem(storageKey('template')) || 'general')
   const SUGGESTED_SEARCHES = useMemo(() => {
     const template = getActiveTemplate()
     return template.suggestedSearches?.length > 0 ? template.suggestedSearches : DEFAULT_SEARCHES
@@ -278,9 +279,9 @@ export default function SearchPage() {
       const nace = NACE_CODES.find(n => n.value === f.industrikode)
       const histEntry = { name: sName, filters: { ...f }, results: stats.total, date: new Date().toISOString(), naceLabel: nace?.label?.split(' — ')[1] || '' }
       try {
-        const prev = JSON.parse(localStorage.getItem('leadflow_search_history') || '[]')
+        const prev = JSON.parse(localStorage.getItem(storageKey('search_history')) || '[]')
         const updated = [histEntry, ...prev.filter(h => h.name !== sName)].slice(0, 10)
-        localStorage.setItem('leadflow_search_history', JSON.stringify(updated))
+        localStorage.setItem(storageKey('search_history'), JSON.stringify(updated))
       } catch {}
       logActivity('search', `Kjørte søket «${sName}»`, { treff: stats.total })
     } catch(e) { toast.error('Søket feilet.'); console.error(e) }
@@ -498,7 +499,7 @@ export default function SearchPage() {
     const csv = [h.join(';'), ...rows.map(c=>[c.orgNumber,c.name,c.industry,c.industryCode,c.address,c.municipality,c.employees??'',c.foundedDate,c.email||'',c.phone||'',c.website||'',c.contactName||'',c.revenue??'',c.operatingProfit??''].map(v=>`"${v}"`).join(';'))].join('\n')
     const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'})
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url
-    a.download = `leadflow-${(searchName||'export').toLowerCase().replace(/\s+/g,'-')}-${contactFilter!=='all'?contactFilter+'-':''}${new Date().toISOString().slice(0,10)}.csv`
+    a.download = `${BRAND.nameLower}-${(searchName||'export').toLowerCase().replace(/\s+/g,'-')}-${contactFilter!=='all'?contactFilter+'-':''}${new Date().toISOString().slice(0,10)}.csv`
     a.click(); URL.revokeObjectURL(url); toast.success(`Eksporterte ${rows.length} leads`)
     logActivity('export-csv', `Eksporterte ${rows.length} leads til CSV`, { leads: rows.length })
   }
@@ -577,7 +578,7 @@ export default function SearchPage() {
               }
             </button>
           </>)}
-          <button onClick={()=>handleSearch(0)} disabled={loading} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.875rem] font-medium text-white hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-60" style={{background:'linear-gradient(135deg, #FF6B4A 0%, #FF8F6B 100%)'}}>
+          <button onClick={()=>handleSearch(0)} disabled={loading} className="flex items-center gap-2 px-5 py-2.5 rounded text-[0.875rem] font-medium text-canvas bg-ink hover:bg-ink-soft transition-all disabled:opacity-60">
             {loading?<Loader2 size={16} className="animate-spin"/>:<Search size={16}/>} {loading?'Søker...':'Søk'}
           </button>
         </div>
@@ -586,7 +587,7 @@ export default function SearchPage() {
       {/* Floating selection bar */}
       {selectedRows.size > 0 && (
         <div className="sticky top-[73px] z-[45] mx-8 mt-[-1px]">
-          <div className="bg-gray-900 text-white rounded-b-xl px-5 py-3 flex items-center justify-between shadow-lg animate-in">
+          <div className="bg-ink text-white rounded-b-xl px-5 py-3 flex items-center justify-between shadow-lg animate-in">
             <div className="flex items-center gap-3">
               <span className="text-[0.88rem] font-medium">✓ {selectedRows.size} valgt</span>
               <span className="text-white/30">|</span>
@@ -636,7 +637,7 @@ export default function SearchPage() {
                   className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-[0.82rem] font-medium border transition-all ${
                     activeTemplateId === t.id
                       ? 'border-gold bg-gold/[0.06] text-gold'
-                      : 'border-bdr text-txt-secondary hover:border-gray-300 hover:bg-gray-50'
+                      : 'border-bdr text-txt-secondary hover:border-ink/20 hover:bg-canvas-warm'
                   }`}>
                   <span>{t.icon}</span> {t.name}
                 </button>
@@ -670,7 +671,7 @@ export default function SearchPage() {
                         </div>
                       </button>
                       <button onClick={()=>handleDeletePreset(p.id, p.name)} title="Slett"
-                        className="absolute top-2 right-2 p-1.5 rounded-lg text-txt-tertiary/40 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all">
+                        className="absolute top-2 right-2 p-1.5 rounded-lg text-txt-tertiary/40 hover:text-[#C83A2E] hover:bg-rose/30 opacity-0 group-hover:opacity-100 transition-all">
                         <Trash2 size={14}/>
                       </button>
                     </div>
@@ -684,7 +685,7 @@ export default function SearchPage() {
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-3">
                   <Star size={18} className="text-gold"/>
-                  <h2 className="font-display text-lg font-semibold">Maler fra LeadFlow</h2>
+                  <h2 className="font-display text-lg font-semibold">Maler fra {BRAND.name}</h2>
                   <span className="text-[0.78rem] text-txt-tertiary ml-1">klikk for å bruke</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -697,7 +698,7 @@ export default function SearchPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-[0.9rem] group-hover:text-gold transition-colors truncate">{p.name}</div>
-                        <div className="text-[0.78rem] text-txt-tertiary mt-0.5 truncate">{p.description || (p.industry_tag ? `#${p.industry_tag}` : 'Kuratert av LeadFlow')}</div>
+                        <div className="text-[0.78rem] text-txt-tertiary mt-0.5 truncate">{p.description || (p.industry_tag ? `#${p.industry_tag}` : `Kuratert av ${BRAND.name}`)}</div>
                       </div>
                       <ChevronRight size={16} className="text-txt-tertiary/40 group-hover:text-gold mt-1 flex-shrink-0 transition-colors"/>
                     </button>
@@ -761,7 +762,7 @@ export default function SearchPage() {
             <button onClick={()=>{
               setSavePresetForm({ name: searchName || '', description: '', industryTag: '' })
               setShowSaveSearchModal(true)
-            }} className="w-full mt-2 py-2.5 border border-bdr text-txt-secondary rounded-lg font-medium text-[0.85rem] hover:bg-gray-50 hover:text-txt-primary transition-all flex items-center justify-center gap-2">
+            }} className="w-full mt-2 py-2.5 border border-bdr text-txt-secondary rounded-lg font-medium text-[0.85rem] hover:bg-canvas-warm hover:text-txt-primary transition-all flex items-center justify-center gap-2">
               <Save size={14}/> Lagre dette søket
             </button>
             {hasResults && <button onClick={resetSearch} className="w-full mt-2 py-2.5 text-txt-secondary text-[0.85rem] font-medium hover:text-txt-primary transition-colors">← Tilbake til foreslåtte søk</button>}
@@ -778,7 +779,7 @@ export default function SearchPage() {
                     {(keywordRules.include || keywordRules.exclude) && (
                       <button onClick={toggleKeywordFilter} className={`ml-2 px-2.5 py-0.5 rounded-full text-[0.72rem] font-semibold transition-all ${
                         keywordActive
-                          ? 'bg-green-50 text-green-600 hover:bg-green-100 border border-green-200'
+                          ? 'bg-sage-bright/30 text-sage sage-accent hover:bg-sage-soft border border-green-200'
                           : 'bg-surface-sunken text-txt-tertiary hover:bg-surface border border-bdr line-through'
                       }`}>
                         {keywordActive ? '✓' : '✗'} Nøkkelordfilter {keywordActive ? 'PÅ' : 'AV'}
@@ -856,7 +857,7 @@ export default function SearchPage() {
                       {displayCompanies.map(c=>(<>
                         <tr key={c.orgNumber} className={`border-b border-surface-sunken hover:bg-surface/50 transition-colors cursor-pointer ${expandedRow===c.orgNumber?'bg-surface/50':''}`} onClick={()=>setExpandedRow(expandedRow===c.orgNumber?null:c.orgNumber)}>
                           <td className="px-4 py-3" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={selectedRows.has(c.orgNumber)} onChange={()=>toggleRow(c.orgNumber)} className="accent-coral w-4 h-4 cursor-pointer"/></td>
-                          <td className="px-4 py-3"><div className="font-medium text-[0.88rem]">{c.name}{(()=>{const ll=getListsForOrg(c.orgNumber);return ll.length>0?<span className="ml-2 inline-flex items-center px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded text-[0.62rem] font-medium" title={`Finnes i: ${ll.join(', ')}`}>📋 {ll.length} liste{ll.length>1?'r':''}</span>:null})()}</div><div className="text-[0.75rem] text-txt-tertiary">{c.industry}</div></td>
+                          <td className="px-4 py-3"><div className="font-medium text-[0.88rem]">{c.name}{(()=>{const ll=getListsForOrg(c.orgNumber);return ll.length>0?<span className="ml-2 inline-flex items-center px-1.5 py-0.5 bg-butter/40 text-ember rounded text-[0.62rem] font-medium" title={`Finnes i: ${ll.join(', ')}`}>📋 {ll.length} liste{ll.length>1?'r':''}</span>:null})()}</div><div className="text-[0.75rem] text-txt-tertiary">{c.industry}</div></td>
                           <td className="px-4 py-3"><div className="text-[0.85rem] font-medium">{c.contactName||'—'}</div><div className="text-[0.75rem] text-txt-tertiary">{c.contactRole||''}</div></td>
                           <td className="px-4 py-3">
                             {c.email&&<div><a href={`mailto:${c.email}`} onClick={e=>e.stopPropagation()} className="text-[0.8rem] text-violet hover:underline">{c.email}</a></div>}
@@ -894,8 +895,8 @@ export default function SearchPage() {
                                 <div>
                                   <h4 className="text-[0.72rem] uppercase tracking-wider text-txt-tertiary font-semibold mb-3">Regnskap {c.revenueYear&&`(${c.revenueYear})`}</h4>
                                   <InfoRow label="Omsetning" value={formatNOK(c.revenue)} color={c.revenue>0?'text-txt-primary':''}/>
-                                  <InfoRow label="Driftsresultat" value={formatNOK(c.operatingProfit)} color={c.operatingProfit>0?'text-green-600':c.operatingProfit<0?'text-red-500':''}/>
-                                  <InfoRow label="Årsresultat" value={formatNOK(c.netProfit)} color={c.netProfit>0?'text-green-600':c.netProfit<0?'text-red-500':''}/>
+                                  <InfoRow label="Driftsresultat" value={formatNOK(c.operatingProfit)} color={c.operatingProfit>0?'text-sage sage-accent':c.operatingProfit<0?'text-[#C83A2E]':''}/>
+                                  <InfoRow label="Årsresultat" value={formatNOK(c.netProfit)} color={c.netProfit>0?'text-sage sage-accent':c.netProfit<0?'text-[#C83A2E]':''}/>
                                   <InfoRow label="Egenkapital" value={formatNOK(c.equity)}/>
                                   <InfoRow label="Sum eiendeler" value={formatNOK(c.totalAssets)}/>
                                   <InfoRow label="Regnskapsfører" value={c.accountant||'—'}/>
@@ -946,14 +947,14 @@ export default function SearchPage() {
                                   {(()=>{const t=getTracking(c.orgNumber);return(
                                     <div className="mt-3 pt-3 border-t border-surface-sunken">
                                       <div className="flex items-center gap-3 mb-3">
-                                        <label className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-green-50 cursor-pointer transition-all border border-transparent hover:border-green-100" onClick={e=>e.stopPropagation()}>
+                                        <label className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-sage-bright/30 cursor-pointer transition-all border border-transparent hover:border-green-100" onClick={e=>e.stopPropagation()}>
                                           <input type="checkbox" checked={t.emailed} onChange={e=>markEmailed(c.orgNumber,e.target.checked)} className="accent-green-500 w-4 h-4 rounded"/>
-                                          <span className={`text-[0.82rem] font-medium ${t.emailed?'text-green-600':'text-txt-secondary'}`}>Sendt e-post</span>
+                                          <span className={`text-[0.82rem] font-medium ${t.emailed?'text-sage sage-accent':'text-txt-secondary'}`}>Sendt e-post</span>
                                           {t.emailed&&t.emailedAt&&<span className="text-[0.7rem] text-green-500">{new Date(t.emailedAt).toLocaleDateString('nb-NO')}</span>}
                                         </label>
-                                        <label className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-blue-50 cursor-pointer transition-all border border-transparent hover:border-blue-100" onClick={e=>e.stopPropagation()}>
+                                        <label className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-sage-soft/50 cursor-pointer transition-all border border-transparent hover:border-blue-100" onClick={e=>e.stopPropagation()}>
                                           <input type="checkbox" checked={t.called} onChange={e=>markCalled(c.orgNumber,e.target.checked)} className="accent-blue-500 w-4 h-4 rounded"/>
-                                          <span className={`text-[0.82rem] font-medium ${t.called?'text-blue-600':'text-txt-secondary'}`}>Ringt</span>
+                                          <span className={`text-[0.82rem] font-medium ${t.called?'text-ink':'text-txt-secondary'}`}>Ringt</span>
                                           {t.called&&t.calledAt&&<span className="text-[0.7rem] text-blue-500">{new Date(t.calledAt).toLocaleDateString('nb-NO')}</span>}
                                         </label>
                                       </div>
@@ -972,8 +973,8 @@ export default function SearchPage() {
                                     </div>
                                     <div className="mt-3 pt-3 border-t border-surface-sunken">
                                       {isCustomer(c.orgNumber)
-                                        ? <div className="flex items-center gap-2 text-[0.82rem] text-green-600 font-medium"><Trophy size={14}/> Registrert som kunde</div>
-                                        : <button onClick={e=>{e.stopPropagation();addCustomer({orgNumber:c.orgNumber,name:c.name,contactName:c.contactName,contactRole:c.contactRole,email:c.email,phone:c.phone,industry:c.industry,municipality:c.municipality,revenue:c.revenue});toast.success(`${c.name} lagt til som kunde!`)}} className="w-full flex items-center justify-center gap-2 py-2.5 bg-green-500 text-white rounded-lg text-[0.82rem] font-semibold hover:bg-green-600 transition-all"><Trophy size={14}/> Marker som kunde (Closed Won)</button>
+                                        ? <div className="flex items-center gap-2 text-[0.82rem] text-sage sage-accent font-medium"><Trophy size={14}/> Registrert som kunde</div>
+                                        : <button onClick={e=>{e.stopPropagation();addCustomer({orgNumber:c.orgNumber,name:c.name,contactName:c.contactName,contactRole:c.contactRole,email:c.email,phone:c.phone,industry:c.industry,municipality:c.municipality,revenue:c.revenue});toast.success(`${c.name} lagt til som kunde!`)}} className="w-full flex items-center justify-center gap-2 py-2.5 bg-sage text-white rounded-lg text-[0.82rem] font-semibold hover:bg-green-600 transition-all"><Trophy size={14}/> Marker som kunde (Closed Won)</button>
                                       }
                                     </div>
                                   </div>
@@ -1067,7 +1068,7 @@ export default function SearchPage() {
               </div>
             )}
             {!canEnrich() && (
-              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[0.82rem] text-amber-800">
+              <div className="mb-4 p-3 bg-butter/40 border border-ember/30 rounded-lg text-[0.82rem] text-amber-800">
                 ⚠️ Enrichment-kvoten er brukt opp. Listen lagres uten ny kontaktinfo og regnskap.
               </div>
             )}

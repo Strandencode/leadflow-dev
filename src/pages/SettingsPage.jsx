@@ -7,6 +7,7 @@ import TEMPLATES, { getActiveTemplate, applyTemplate } from '../config/templates
 import { PLANS, PLAN_ORDER } from '../config/plans'
 import toast from 'react-hot-toast'
 import { Check, Crown, Users, Mail, Trash2, Plus, Shield, X } from 'lucide-react'
+import { BRAND } from '../config/brand'
 
 export default function SettingsPage() {
   const { user, profile, refreshProfile } = useAuth()
@@ -46,7 +47,7 @@ export default function SettingsPage() {
   async function handleSelectPlan(newPlanId) {
     if (newPlanId === planId) return
     if (newPlanId === 'enterprise') {
-      window.open('mailto:kontakt@leadflow.no?subject=Enterprise-plan', '_blank')
+      window.open(`mailto:${BRAND.email.support}?subject=Enterprise-plan`, '_blank')
       return
     }
     // Owner-only via RLS — non-owners get an error back
@@ -68,7 +69,7 @@ export default function SettingsPage() {
 
   function handleCancelSubscription() {
     setShowCancelModal(false)
-    toast('Kontakt oss for å kansellere: kontakt@leadflow.no', { icon: '📧' })
+    toast(`Kontakt oss for å kansellere: ${BRAND.email.support}`, { icon: '📧' })
   }
 
   async function handleInvite() {
@@ -111,7 +112,7 @@ export default function SettingsPage() {
 
       <div className="p-8 max-w-[900px]">
         {/* Active template */}
-        <div className="animate-in bg-white border border-gray-100 rounded-lg p-6 mb-6">
+        <div className="animate-in bg-white border border-bdr rounded-lg p-6 mb-6">
           <h3 className="font-display text-[1.05rem] font-normal mb-1 text-ink">Bransjemal</h3>
           <p className="text-[0.82rem] text-txt-tertiary font-light mb-4">Malen bestemmer foreslåtte søk, e-postmaler og ICP-profil</p>
           <div className="grid grid-cols-3 gap-3">
@@ -121,7 +122,7 @@ export default function SettingsPage() {
                 <button key={t.id}
                   onClick={() => { applyTemplate(t.id); toast.success(`${t.name}-malen er aktivert!`); }}
                   className={`flex items-center gap-3 p-3.5 rounded-lg border text-left transition-all ${
-                    isActive ? 'border-gold bg-gold/[0.04]' : 'border-gray-100 hover:border-gray-200'
+                    isActive ? 'border-gold bg-gold/[0.04]' : 'border-bdr hover:border-bdr'
                   }`}>
                   <span className="text-xl">{t.icon}</span>
                   <div className="flex-1 min-w-0">
@@ -141,7 +142,7 @@ export default function SettingsPage() {
             <h3 className="font-display text-lg font-semibold">Abonnement</h3>
             <div className="flex items-center gap-2">
               {isOnTrial && (
-                <span className="px-3 py-1.5 rounded-full text-[0.78rem] font-semibold bg-green-50 text-green-600">
+                <span className="px-3 py-1.5 rounded-full text-[0.78rem] font-semibold bg-sage-bright/30 text-sage sage-accent">
                   Prøveperiode — {trialDaysLeft} dager igjen
                 </span>
               )}
@@ -162,7 +163,7 @@ export default function SettingsPage() {
                 style={{ width: enrichLimit === Infinity ? '2%' : `${Math.max(enrichPct, 2)}%` }} />
             </div>
             {enrichPct > 80 && enrichLimit !== Infinity && (
-              <p className="text-[0.75rem] text-red-500 mt-1.5">Nærmer seg grensen — vurder å oppgradere</p>
+              <p className="text-[0.75rem] text-[#C83A2E] mt-1.5">Nærmer seg grensen — vurder å oppgradere</p>
             )}
             <div className="flex gap-4 mt-3 text-[0.78rem] text-txt-tertiary">
               <span>{stats.totalLists} lister lagret</span>
@@ -176,7 +177,7 @@ export default function SettingsPage() {
               <div className="text-[0.82rem] text-txt-secondary">
                 Fakturering: <strong className="text-txt-primary">{plan.priceLabel}/mnd</strong>
               </div>
-              <button onClick={() => setShowCancelModal(true)} className="text-[0.82rem] text-red-400 hover:text-red-500 transition-colors">
+              <button onClick={() => setShowCancelModal(true)} className="text-[0.82rem] text-red-400 hover:text-[#C83A2E] transition-colors">
                 Kanseller abonnement
               </button>
             </div>
@@ -206,7 +207,7 @@ export default function SettingsPage() {
                 }`}
               >
                 Årlig
-                <span className="px-1.5 py-0.5 rounded-full text-[0.62rem] font-bold bg-green-100 text-green-700">−20%</span>
+                <span className="px-1.5 py-0.5 rounded-full text-[0.62rem] font-bold bg-sage-soft text-ink">−20%</span>
               </button>
             </div>
           </div>
@@ -239,7 +240,7 @@ export default function SettingsPage() {
                             <div className="text-[0.68rem] text-txt-tertiary">
                               <span className="line-through">{p.price} kr</span> · {yearlyTotal} kr/år
                             </div>
-                            <div className="text-[0.7rem] text-green-600 font-medium">Spar {yearlySavings} kr/år</div>
+                            <div className="text-[0.7rem] text-sage sage-accent font-medium">Spar {yearlySavings} kr/år</div>
                           </div>
                         ) : (
                           p.trialDays > 0 && (
@@ -365,7 +366,7 @@ export default function SettingsPage() {
                       <span className="px-2.5 py-1 text-[0.72rem] text-txt-tertiary capitalize">{m.role}</span>
                     )}
                     {canManage && m.role !== 'owner' && (
-                      <button onClick={() => handleRemoveMember(m.id, m.name)} className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all">
+                      <button onClick={() => handleRemoveMember(m.id, m.name)} className="p-1.5 rounded-lg hover:bg-rose/30 text-txt-tertiary hover:text-[#C83A2E] transition-all">
                         <Trash2 size={14}/>
                       </button>
                     )}
@@ -374,16 +375,16 @@ export default function SettingsPage() {
 
                 {/* Pending invites */}
                 {workspace.pendingInvites.map(inv => (
-                  <div key={inv.id} className="flex items-center gap-3 p-3 rounded-lg bg-amber-50/50 border border-amber-100">
-                    <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                  <div key={inv.id} className="flex items-center gap-3 p-3 rounded-lg bg-butter/40/50 border border-amber-100">
+                    <div className="w-9 h-9 rounded-full bg-butter/60 flex items-center justify-center text-ember">
                       <Mail size={14}/>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-[0.85rem] font-medium text-amber-800">{inv.email}</div>
-                      <div className="text-[0.72rem] text-amber-600">Venter på svar</div>
+                      <div className="text-[0.72rem] text-ember">Venter på svar</div>
                     </div>
                     {canManage && (
-                      <button onClick={() => handleCancelInvite(inv.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all" title="Kanseller invitasjon">
+                      <button onClick={() => handleCancelInvite(inv.id)} className="p-1.5 rounded-lg hover:bg-rose/30 text-txt-tertiary hover:text-[#C83A2E] transition-all" title="Kanseller invitasjon">
                         <X size={14}/>
                       </button>
                     )}
@@ -466,7 +467,7 @@ export default function SettingsPage() {
           <div className="bg-surface-raised rounded-2xl shadow-xl w-full max-w-md p-8" onClick={e => e.stopPropagation()}>
             <h3 className="font-display text-xl font-semibold mb-2">Kanseller abonnement?</h3>
             <p className="text-[0.88rem] text-txt-secondary mb-6">
-              Send en e-post til <strong>kontakt@leadflow.no</strong> for å kansellere. Du beholder tilgang ut inneværende periode.
+              Send en e-post til <strong>{BRAND.email.support}</strong> for å kansellere. Du beholder tilgang ut inneværende periode.
             </p>
             <div className="flex gap-3 justify-end">
               <button onClick={() => setShowCancelModal(false)} className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken transition-all">

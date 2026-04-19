@@ -16,6 +16,7 @@ import {
   Rocket,
   Send,
 } from 'lucide-react'
+import { BRAND } from '../config/brand'
 
 const SERVICES = [
   {
@@ -115,26 +116,26 @@ export default function NettiroPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
+    <div className="min-h-screen bg-white text-ink overflow-hidden">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-bdr">
         <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
           <button onClick={() => navigate('/')} className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-900">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-ink">
               <span className="font-display text-white text-sm font-semibold">L</span>
             </div>
             <span className="font-display text-[1.15rem] tracking-tight font-semibold">
-              LeadFlow
+              {BRAND.name}
             </span>
           </button>
           <div className="hidden md:flex items-center gap-8">
-            <button onClick={() => navigate('/')} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors">LeadFlow</button>
-            <button onClick={() => document.getElementById('tjenester')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors">Tjenester</button>
-            <button onClick={() => document.getElementById('prosess')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors">Prosess</button>
+            <button onClick={() => navigate('/')} className="text-[0.88rem] text-ink-muted hover:text-ink transition-colors">{BRAND.name}</button>
+            <button onClick={() => document.getElementById('tjenester')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.88rem] text-ink-muted hover:text-ink transition-colors">Tjenester</button>
+            <button onClick={() => document.getElementById('prosess')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.88rem] text-ink-muted hover:text-ink transition-colors">Prosess</button>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={() => document.getElementById('kontakt')?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-5 py-2.5 rounded-lg text-[0.88rem] font-medium text-white bg-gray-900 hover:bg-gray-800 transition-all">
+              className="px-5 py-2.5 rounded-lg text-[0.88rem] font-medium text-white bg-ink hover:bg-ink-soft transition-all">
               Få gratis tilbud
             </button>
           </div>
@@ -145,28 +146,28 @@ export default function NettiroPage() {
       <section ref={heroRef} className="pt-32 pb-20 md:pt-40 md:pb-28">
         <div className="max-w-4xl mx-auto px-8 text-center">
           <div className={`transition-all duration-700 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-50 border border-gray-200 mb-8">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[0.8rem] text-gray-500 font-medium">Tilgjengelig for nye prosjekter</span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-canvas-warm border border-bdr mb-8">
+              <div className="w-1.5 h-1.5 rounded-full bg-sage animate-pulse" />
+              <span className="text-[0.8rem] text-ink-muted font-medium">Tilgjengelig for nye prosjekter</span>
             </div>
 
-            <h1 className="font-display text-[2.8rem] md:text-[3.8rem] font-bold leading-[1.1] tracking-tight mb-6 text-gray-900">
+            <h1 className="font-display text-[2.8rem] md:text-[3.8rem] font-bold leading-[1.1] tracking-tight mb-6 text-ink">
               Vi bygger nettsider<br />
-              <span className="text-gray-400">som gir resultat</span>
+              <span className="text-ink-subtle">som gir resultat</span>
             </h1>
 
-            <p className="text-[1.1rem] text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-[1.1rem] text-ink-muted max-w-2xl mx-auto mb-10 leading-relaxed">
               Fra skreddersydde nettsider og nettbutikker til bookingsystemer og hosting. Vi håndterer alt slik at du kan fokusere på det du er best på.
             </p>
 
             <div className="flex items-center justify-center gap-4 flex-wrap">
               <button onClick={() => document.getElementById('tjenester')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group flex items-center gap-2.5 px-7 py-3.5 rounded-lg text-[0.95rem] font-semibold text-white bg-gray-900 hover:bg-gray-800 transition-all shadow-sm">
+                className="group flex items-center gap-2.5 px-7 py-3.5 rounded-lg text-[0.95rem] font-semibold text-white bg-ink hover:bg-ink-soft transition-all shadow-sm">
                 Se våre tjenester
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button onClick={() => document.getElementById('kontakt')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-7 py-3.5 rounded-lg text-[0.95rem] font-medium text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all">
+                className="px-7 py-3.5 rounded-lg text-[0.95rem] font-medium text-ink-muted border border-bdr hover:border-ink/20 hover:bg-canvas-warm transition-all">
                 Kontakt oss
               </button>
             </div>
@@ -180,8 +181,8 @@ export default function NettiroPage() {
               { value: '24/7', label: 'Hosting & support' },
             ].map((m, i) => (
               <div key={i} className="text-center">
-                <div className="font-display text-[2.2rem] md:text-[2.6rem] font-bold text-gray-900 tracking-tight">{m.value}</div>
-                <div className="text-[0.82rem] text-gray-500 mt-1">{m.label}</div>
+                <div className="font-display text-[2.2rem] md:text-[2.6rem] font-bold text-ink tracking-tight">{m.value}</div>
+                <div className="text-[0.82rem] text-ink-muted mt-1">{m.label}</div>
               </div>
             ))}
           </div>
@@ -189,11 +190,11 @@ export default function NettiroPage() {
       </section>
 
       {/* Services */}
-      <section id="tjenester" ref={servRef} className="py-20 md:py-28 bg-gray-50">
+      <section id="tjenester" ref={servRef} className="py-20 md:py-28 bg-canvas-warm">
         <div className="max-w-5xl mx-auto px-8">
           <div className={`text-center mb-16 transition-all duration-600 ${servInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
             <h2 className="font-display text-[2rem] md:text-[2.5rem] font-bold tracking-tight mb-4">Våre tjenester</h2>
-            <p className="text-gray-500 text-[1.05rem] max-w-lg mx-auto">Alt du trenger for å lykkes på nett — ett sted.</p>
+            <p className="text-ink-muted text-[1.05rem] max-w-lg mx-auto">Alt du trenger for å lykkes på nett — ett sted.</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
@@ -201,15 +202,15 @@ export default function NettiroPage() {
               const Icon = s.icon
               return (
                 <div key={i}
-                  className={`p-6 rounded-xl bg-white border border-gray-100 transition-all duration-500 hover:shadow-md hover:border-gray-200 ${
+                  className={`p-6 rounded-xl bg-white border border-bdr transition-all duration-500 hover:shadow-md hover:border-bdr ${
                     servInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                   }`}
                   style={{ transitionDelay: `${i * 80}ms` }}>
-                  <div className="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-ink flex items-center justify-center mb-4">
                     <Icon size={18} className="text-white" />
                   </div>
                   <h3 className="font-display text-[1.05rem] font-semibold mb-2">{s.title}</h3>
-                  <p className="text-[0.88rem] text-gray-500 leading-relaxed">{s.desc}</p>
+                  <p className="text-[0.88rem] text-ink-muted leading-relaxed">{s.desc}</p>
                 </div>
               )
             })}
@@ -218,11 +219,11 @@ export default function NettiroPage() {
       </section>
 
       {/* Process */}
-      <section id="prosess" ref={procRef} className="py-20 md:py-28 bg-gray-50">
+      <section id="prosess" ref={procRef} className="py-20 md:py-28 bg-canvas-warm">
         <div className="max-w-5xl mx-auto px-8">
           <div className={`text-center mb-16 transition-all duration-600 ${procInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
             <h2 className="font-display text-[2rem] md:text-[2.5rem] font-bold tracking-tight mb-4">Slik jobber vi</h2>
-            <p className="text-gray-500 text-[1.05rem] max-w-lg mx-auto">Fire trinn fra idé til ferdig lansert løsning.</p>
+            <p className="text-ink-muted text-[1.05rem] max-w-lg mx-auto">Fire trinn fra idé til ferdig lansert løsning.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -230,16 +231,16 @@ export default function NettiroPage() {
               const Icon = step.icon
               return (
                 <div key={i}
-                  className={`relative p-6 rounded-xl bg-white border border-gray-100 transition-all duration-500 ${
+                  className={`relative p-6 rounded-xl bg-white border border-bdr transition-all duration-500 ${
                     procInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                   }`}
                   style={{ transitionDelay: `${i * 80}ms` }}>
-                  <div className="text-[0.7rem] font-semibold text-gray-300 tracking-widest mb-3">{step.num}</div>
-                  <div className="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center mb-4">
+                  <div className="text-[0.7rem] font-semibold text-ink-subtle tracking-widest mb-3">{step.num}</div>
+                  <div className="w-10 h-10 rounded-lg bg-ink flex items-center justify-center mb-4">
                     <Icon size={18} className="text-white" />
                   </div>
                   <h3 className="font-display text-[1.05rem] font-semibold mb-2">{step.title}</h3>
-                  <p className="text-[0.85rem] text-gray-500 leading-relaxed">{step.desc}</p>
+                  <p className="text-[0.85rem] text-ink-muted leading-relaxed">{step.desc}</p>
                 </div>
               )
             })}
@@ -255,61 +256,61 @@ export default function NettiroPage() {
               <h2 className="font-display text-[2rem] md:text-[2.5rem] font-bold tracking-tight mb-4">
                 Klar for å ta bedriften din til neste nivå?
               </h2>
-              <p className="text-gray-500 text-[1.05rem] leading-relaxed mb-8">
+              <p className="text-ink-muted text-[1.05rem] leading-relaxed mb-8">
                 Vi elsker nye prosjekter! Send oss en melding, så tar vi en uforpliktende prat om hvordan vi kan hjelpe deg å vokse på nett.
               </p>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-50 border border-gray-200">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span className="text-[0.82rem] text-gray-600 font-medium">Svar innen 24 timer</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-canvas-warm border border-bdr">
+                <div className="w-1.5 h-1.5 rounded-full bg-sage" />
+                <span className="text-[0.82rem] text-ink-muted font-medium">Svar innen 24 timer</span>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-7 rounded-xl border border-gray-200 bg-white shadow-sm space-y-4">
+            <form onSubmit={handleSubmit} className="p-7 rounded-xl border border-bdr bg-white shadow-sm space-y-4">
               {sent ? (
                 <div className="text-center py-10">
-                  <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
-                    <Check size={22} className="text-green-600" />
+                  <div className="w-12 h-12 rounded-full bg-sage-bright/30 flex items-center justify-center mx-auto mb-4">
+                    <Check size={22} className="text-sage sage-accent" />
                   </div>
                   <h3 className="font-display text-lg font-semibold mb-2">Takk for henvendelsen!</h3>
-                  <p className="text-[0.9rem] text-gray-500">
+                  <p className="text-[0.9rem] text-ink-muted">
                     Vi åpnet e-postklienten din. Send meldingen, så svarer vi innen 24 timer.
                   </p>
                 </div>
               ) : (
                 <>
                   <div>
-                    <label className="block text-[0.78rem] font-semibold text-gray-700 mb-1.5">Navn</label>
+                    <label className="block text-[0.78rem] font-semibold text-ink mb-1.5">Navn</label>
                     <input type="text" required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-[0.9rem] outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-100 transition-all" />
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-bdr text-[0.9rem] outline-none focus:border-ink focus:ring-2 focus:ring-sage-bright/30 transition-all" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[0.78rem] font-semibold text-gray-700 mb-1.5">E-post</label>
+                      <label className="block text-[0.78rem] font-semibold text-ink mb-1.5">E-post</label>
                       <input type="email" required value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-[0.9rem] outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-100 transition-all" />
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-bdr text-[0.9rem] outline-none focus:border-ink focus:ring-2 focus:ring-sage-bright/30 transition-all" />
                     </div>
                     <div>
-                      <label className="block text-[0.78rem] font-semibold text-gray-700 mb-1.5">Telefon</label>
+                      <label className="block text-[0.78rem] font-semibold text-ink mb-1.5">Telefon</label>
                       <input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-[0.9rem] outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-100 transition-all" />
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-bdr text-[0.9rem] outline-none focus:border-ink focus:ring-2 focus:ring-sage-bright/30 transition-all" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[0.78rem] font-semibold text-gray-700 mb-1.5">Tjeneste</label>
+                    <label className="block text-[0.78rem] font-semibold text-ink mb-1.5">Tjeneste</label>
                     <select value={form.service} onChange={e => setForm({ ...form, service: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-[0.9rem] outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-100 transition-all bg-white">
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-bdr text-[0.9rem] outline-none focus:border-ink focus:ring-2 focus:ring-sage-bright/30 transition-all bg-white">
                       <option value="">Velg tjeneste...</option>
                       {SERVICES.map(s => <option key={s.title} value={s.title}>{s.title}</option>)}
                       <option value="Annet">Annet</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[0.78rem] font-semibold text-gray-700 mb-1.5">Melding</label>
+                    <label className="block text-[0.78rem] font-semibold text-ink mb-1.5">Melding</label>
                     <textarea rows={4} required value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-[0.9rem] outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-100 transition-all resize-none" />
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-bdr text-[0.9rem] outline-none focus:border-ink focus:ring-2 focus:ring-sage-bright/30 transition-all resize-none" />
                   </div>
                   <button type="submit"
-                    className="group w-full flex items-center justify-center gap-2 py-3 rounded-lg text-[0.9rem] font-semibold text-white bg-gray-900 hover:bg-gray-800 transition-all">
+                    className="group w-full flex items-center justify-center gap-2 py-3 rounded-lg text-[0.9rem] font-semibold text-white bg-ink hover:bg-ink-soft transition-all">
                     Send melding
                     <Send size={15} className="group-hover:translate-x-0.5 transition-transform" />
                   </button>
@@ -321,16 +322,16 @@ export default function NettiroPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 md:py-20 bg-gray-900">
+      <section className="py-16 md:py-20 bg-ink">
         <div className="max-w-3xl mx-auto px-8 text-center">
           <h2 className="font-display text-[1.8rem] md:text-[2.2rem] font-bold text-white mb-4">
             Trenger du en ny nettside?
           </h2>
-          <p className="text-gray-400 text-[1rem] mb-8 max-w-lg mx-auto">
+          <p className="text-ink-subtle text-[1rem] mb-8 max-w-lg mx-auto">
             Ta en uforpliktende prat. Vi gir deg et ærlig estimat — helt gratis.
           </p>
           <button onClick={() => document.getElementById('kontakt')?.scrollIntoView({ behavior: 'smooth' })}
-            className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-lg text-[0.95rem] font-semibold text-gray-900 bg-white hover:bg-gray-100 transition-all shadow-sm">
+            className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-lg text-[0.95rem] font-semibold text-ink bg-white hover:bg-canvas-warm transition-all shadow-sm">
             Få gratis tilbud
             <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </button>
@@ -338,15 +339,15 @@ export default function NettiroPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-10 border-t border-gray-100 bg-white">
+      <footer className="py-10 border-t border-bdr bg-white">
         <div className="max-w-6xl mx-auto px-8 flex items-center justify-between flex-wrap gap-4">
           <button onClick={() => navigate('/')} className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-md flex items-center justify-center bg-gray-900">
+            <div className="w-6 h-6 rounded-md flex items-center justify-center bg-ink">
               <span className="font-display text-white text-[0.55rem] font-semibold">L</span>
             </div>
-            <span className="font-display text-[0.85rem] text-gray-400 font-medium">LeadFlow</span>
+            <span className="font-display text-[0.85rem] text-ink-subtle font-medium">{BRAND.name}</span>
           </button>
-          <p className="text-[0.78rem] text-gray-300">
+          <p className="text-[0.78rem] text-ink-subtle">
             &copy; {new Date().getFullYear()} Nettiro. Alle rettigheter reservert. Laget med moderne teknologi i Norge.
           </p>
         </div>

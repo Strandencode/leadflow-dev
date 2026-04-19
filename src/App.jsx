@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import Sidebar from './components/Sidebar'
+import { Mark } from './components/Logo'
 import LandingPage from './pages/LandingPage'
 import NettiroPage from './pages/NettiroPage'
 import LoginPage from './pages/LoginPage'
@@ -22,12 +23,10 @@ function ProtectedLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-4 bg-gray-900">
-            <span className="font-display text-white font-semibold text-lg">L</span>
-          </div>
-          <p className="text-gray-400 text-sm">Laster LeadFlow...</p>
+          <div className="mb-4 animate-arc"><Mark variant="ink" size={40} /></div>
+          <p className="mono-label" style={{ fontSize: '0.7rem' }}>LASTER LEADFLOW</p>
         </div>
       </div>
     )
@@ -61,10 +60,8 @@ function AppRoutes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-900 animate-pulse">
-          <span className="font-display text-white font-semibold text-lg">L</span>
-        </div>
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <div className="animate-arc"><Mark variant="ink" size={36} /></div>
       </div>
     )
   }

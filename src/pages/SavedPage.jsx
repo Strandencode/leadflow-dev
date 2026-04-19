@@ -8,8 +8,9 @@ import { usePlan } from '../hooks/usePlan'
 import { UpgradePrompt } from '../components/UpgradePrompt'
 import EmailComposerModal from '../components/EmailComposerModal'
 import toast from 'react-hot-toast'
+import { BRAND } from '../config/brand'
 
-const COLORS = ['bg-coral-glow text-coral','bg-violet-soft text-violet','bg-teal-soft text-teal','bg-amber-100 text-amber-600','bg-blue-50 text-blue-600','bg-pink-50 text-pink-600','bg-emerald-50 text-emerald-600','bg-indigo-50 text-indigo-600']
+const COLORS = ['bg-coral-glow text-coral','bg-violet-soft text-violet','bg-teal-soft text-teal','bg-butter/60 text-ember','bg-sage-soft/50 text-ink','bg-pink-50 text-pink-600','bg-emerald-50 text-sage sage-accent','bg-indigo-50 text-indigo-600']
 
 function buildGmailUrl(c) {
   const n = c.contactName && c.contactName !== '—' ? c.contactName : ''
@@ -97,7 +98,7 @@ export default function SavedPage() {
     })].join('\n')
     const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'})
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url
-    a.download = `leadflow-${list.name.toLowerCase().replace(/\s+/g,'-')}.csv`; a.click(); URL.revokeObjectURL(url)
+    a.download = `${BRAND.nameLower}-${list.name.toLowerCase().replace(/\s+/g,'-')}.csv`; a.click(); URL.revokeObjectURL(url)
     toast.success(`Eksporterte "${list.name}" med kontaktstatus`)
   }
 
@@ -166,7 +167,7 @@ export default function SavedPage() {
                       <div className="flex gap-3 mt-2 text-[0.75rem]">
                         <span className="text-violet font-medium">✉ {st.emailed} sendt</span>
                         <span className="text-teal font-medium">📱 {st.called} ringt</span>
-                        <span className="text-green-600 font-medium">🏆 {st.won} won</span>
+                        <span className="text-sage sage-accent font-medium">🏆 {st.won} won</span>
                         <span className="text-txt-tertiary">{st.withEmail} har e-post · {st.withPhone} har tlf</span>
                       </div>
                     </div>
@@ -175,7 +176,7 @@ export default function SavedPage() {
 
                     <div className="flex gap-1">
                       <button onClick={e=>handleExportList(list,e)} className={`p-2 rounded-lg hover:bg-surface-sunken text-txt-tertiary hover:text-txt-primary transition-all ${!canExportCSV ? 'opacity-40' : ''}`} title={canExportCSV ? 'CSV' : 'Krever Professional'}>{canExportCSV ? <Download size={16}/> : <Lock size={16}/>}</button>
-                      <button onClick={e=>handleDelete(list,e)} className="p-2 rounded-lg hover:bg-red-50 text-txt-tertiary hover:text-red-500 transition-all" title="Slett"><Trash2 size={16}/></button>
+                      <button onClick={e=>handleDelete(list,e)} className="p-2 rounded-lg hover:bg-rose/30 text-txt-tertiary hover:text-[#C83A2E] transition-all" title="Slett"><Trash2 size={16}/></button>
                     </div>
 
                     {expandedId===list.id ? <ChevronDown size={16} className="text-txt-tertiary"/> : <ChevronRight size={16} className="text-txt-tertiary"/>}
@@ -252,7 +253,7 @@ export default function SavedPage() {
                               const t = getTracking(c.orgNumber)
                               const isWon = isCustomer(c.orgNumber)
                               return (
-                                <tr key={c.orgNumber} className={`border-b border-surface-sunken last:border-0 hover:bg-surface/30 transition-colors ${isWon?'bg-green-50/30':''}`}>
+                                <tr key={c.orgNumber} className={`border-b border-surface-sunken last:border-0 hover:bg-surface/30 transition-colors ${isWon?'bg-sage-bright/30/30':''}`}>
                                   <td className="px-4 py-2.5"><input type="checkbox" checked={sel.has(c.orgNumber)} onChange={()=>toggleRow(list.id,c.orgNumber)} className="accent-coral w-4 h-4 cursor-pointer"/></td>
                                   <td className="px-4 py-2.5">
                                     <div className="font-medium text-[0.85rem]">{c.name}</div>
@@ -269,15 +270,15 @@ export default function SavedPage() {
                                   </td>
                                   <td className="px-4 py-2.5">
                                     <div className="flex items-center gap-2">
-                                      <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-green-50 cursor-pointer transition-all border border-transparent hover:border-green-100" title="Sendt e-post" onClick={e=>e.stopPropagation()}>
+                                      <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-sage-bright/30 cursor-pointer transition-all border border-transparent hover:border-green-100" title="Sendt e-post" onClick={e=>e.stopPropagation()}>
                                         <input type="checkbox" checked={t.emailed} onChange={e=>markEmailed(c.orgNumber,e.target.checked)} className="accent-green-500 w-3.5 h-3.5"/>
-                                        <span className={`text-[0.72rem] font-medium ${t.emailed?'text-green-600':'text-txt-tertiary'}`}>Sendt</span>
+                                        <span className={`text-[0.72rem] font-medium ${t.emailed?'text-sage sage-accent':'text-txt-tertiary'}`}>Sendt</span>
                                       </label>
-                                      <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-blue-50 cursor-pointer transition-all border border-transparent hover:border-blue-100" title="Ringt" onClick={e=>e.stopPropagation()}>
+                                      <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-sage-soft/50 cursor-pointer transition-all border border-transparent hover:border-blue-100" title="Ringt" onClick={e=>e.stopPropagation()}>
                                         <input type="checkbox" checked={t.called} onChange={e=>markCalled(c.orgNumber,e.target.checked)} className="accent-blue-500 w-3.5 h-3.5"/>
-                                        <span className={`text-[0.72rem] font-medium ${t.called?'text-blue-600':'text-txt-tertiary'}`}>Ringt</span>
+                                        <span className={`text-[0.72rem] font-medium ${t.called?'text-ink':'text-txt-tertiary'}`}>Ringt</span>
                                       </label>
-                                      {isWon&&<span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[0.68rem] font-semibold">Won</span>}
+                                      {isWon&&<span className="px-2 py-0.5 bg-sage-soft text-ink rounded text-[0.68rem] font-semibold">Won</span>}
                                     </div>
                                   </td>
                                   <td className="px-4 py-2.5">
@@ -286,7 +287,7 @@ export default function SavedPage() {
                                         <a href={buildGmailUrl(c)} target="_blank" rel="noopener" onClick={()=>markEmailed(c.orgNumber)} className="flex items-center gap-1 px-2.5 py-1.5 bg-violet/10 text-violet rounded-lg text-[0.72rem] font-medium hover:bg-violet/20 transition-all" title="Send e-post"><Mail size={12}/> E-post</a>
                                       }
                                       {!isWon ? (
-                                        <button onClick={async()=>{await addCustomer({orgNumber:c.orgNumber,name:c.name,contactName:c.contactName,contactRole:c.contactRole,email:c.email,phone:c.phone,industry:c.industry,municipality:c.municipality,revenue:c.revenue});toast.success(`${c.name} → Won!`)}} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[0.72rem] font-medium text-green-600 hover:bg-green-50 transition-all" title="Closed Won"><Trophy size={12}/> Won</button>
+                                        <button onClick={async()=>{await addCustomer({orgNumber:c.orgNumber,name:c.name,contactName:c.contactName,contactRole:c.contactRole,email:c.email,phone:c.phone,industry:c.industry,municipality:c.municipality,revenue:c.revenue});toast.success(`${c.name} → Won!`)}} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[0.72rem] font-medium text-sage sage-accent hover:bg-sage-bright/30 transition-all" title="Closed Won"><Trophy size={12}/> Won</button>
                                       ) : (
                                         <span className="px-2 py-1 text-[0.72rem] text-green-500 font-medium">✓ Kunde</span>
                                       )}

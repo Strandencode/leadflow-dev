@@ -1,5 +1,6 @@
+import { storageKey } from './brand'
 /**
- * LeadFlow Business Templates
+ * Vekstor Business Templates
  *
  * Each template pre-fills ICP, suggested searches (NACE codes),
  * and email templates for a specific business type.
@@ -58,7 +59,7 @@ export function getTemplate(id) {
  * Get the currently active template from localStorage
  */
 export function getActiveTemplate() {
-  const id = localStorage.getItem('leadflow_template')
+  const id = localStorage.getItem(storageKey('template'))
   return getTemplate(id)
 }
 
@@ -67,17 +68,17 @@ export function getActiveTemplate() {
  */
 export function applyTemplate(id) {
   const template = getTemplate(id)
-  localStorage.setItem('leadflow_template', id)
+  localStorage.setItem(storageKey('template'), id)
 
   // Auto-fill ICP if template has ICP data
   if (template.icp && Object.keys(template.icp).length > 0) {
-    const existingIcp = JSON.parse(localStorage.getItem('leadflow_icp') || '{}')
+    const existingIcp = JSON.parse(localStorage.getItem(storageKey('icp')) || '{}')
     // Merge: template values fill in blanks, but don't overwrite user edits
     const merged = { ...template.icp }
     for (const [key, value] of Object.entries(existingIcp)) {
       if (value) merged[key] = value // keep user's existing values
     }
-    localStorage.setItem('leadflow_icp', JSON.stringify(merged))
+    localStorage.setItem(storageKey('icp'), JSON.stringify(merged))
   }
 
   return template
