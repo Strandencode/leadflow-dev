@@ -5,6 +5,7 @@ import { useSavedLists } from '../hooks/useSavedLists'
 import { useICP } from '../hooks/useICP'
 import { Search, Plus, TrendingUp, Mail, Phone, Users, BarChart3, Kanban, ArrowRight, Sparkles, Target, RefreshCw } from 'lucide-react'
 import OnboardingWizard from '../components/OnboardingWizard'
+import OnboardingFlow from '../components/OnboardingFlow'
 import { BRAND, storageKey } from '../config/brand'
 
 function AnimatedNumber({ value, suffix = '' }) {
@@ -42,10 +43,21 @@ export default function DashboardPage() {
 
   const { icp } = useICP()
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [showFlow, setShowFlow] = useState(false)
   useEffect(() => {
-    const dismissed = localStorage.getItem(storageKey('onboarding_done'))
+    const v2Done = localStorage.getItem(storageKey('onboarding_v2_done'))
+    const legacyDismissed = localStorage.getItem(storageKey('onboarding_done'))
     const hasIcp = icp?.companyName || icp?.whatYouSell
-    if (!dismissed && !hasIcp && stats.totalLeads === 0) {
+    const isBrandNew = !hasIcp && stats.totalLeads === 0
+
+    // New immersive flow takes priority for truly fresh workspaces
+    if (!v2Done && isBrandNew) {
+      setShowFlow(true)
+      return
+    }
+    // Fallback to legacy wizard for anyone who already has the v1 flag cleared
+    // but not the v2 flag — keeps old behavior for returning users.
+    if (!legacyDismissed && !hasIcp && stats.totalLeads === 0) {
       setShowOnboarding(true)
     }
   }, [stats.totalLeads, icp])
@@ -255,6 +267,18 @@ export default function DashboardPage() {
           setShowOnboarding(false)
           localStorage.setItem(storageKey('onboarding_done'), 'true')
         }} />
+      )}
+
+      {showFlow && (
+        <OnboardingFlow
+          onComplete={() => setShowFlow(false)}
+          onClose={() => {
+            setShowFlow(false)
+            // Mark done so we don't re-prompt immediately — user can still
+            // redo it via the "Bytt mal"-button in the dashboard header if needed.
+            localStorage.setItem(storageKey('onboarding_v2_done'), 'true')
+          }}
+        />
       )}
     </div>
   )
