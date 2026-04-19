@@ -50,21 +50,6 @@ const SERVICES = [
   },
 ]
 
-const PROJECTS = [
-  {
-    title: 'Bjørke Juletre',
-    desc: 'Nettside for juletreplantasje i Hardanger med bestillingssystem, bildegalleri og informasjon om selvhogst.',
-    features: ['Responsivt design', 'Bestillingsskjema', 'Bildegalleri', 'SEO-optimalisert'],
-    stack: ['Next.js', 'Tailwind CSS', 'Vercel'],
-  },
-  {
-    title: 'Hyttebooking',
-    desc: 'Fullverdig bookingsystem for fjellhytte med interaktiv kalender, brukeradministrasjon, varslingssystem og admin-dashboard.',
-    features: ['Interaktiv kalender', 'Admin-dashboard', 'Varslingssystem', 'Brukeradministrasjon'],
-    stack: ['Next.js', 'TypeScript', 'Turso DB', 'JWT Auth'],
-  },
-]
-
 const PROCESS = [
   {
     num: '01',
@@ -114,7 +99,6 @@ export default function NettiroPage() {
   const navigate = useNavigate()
   const [heroRef, heroInView] = useInView(0)
   const [servRef, servInView] = useInView()
-  const [projRef, projInView] = useInView()
   const [procRef, procInView] = useInView()
   const [form, setForm] = useState({ name: '', email: '', phone: '', service: '', message: '' })
   const [sent, setSent] = useState(false)
@@ -146,7 +130,6 @@ export default function NettiroPage() {
           <div className="hidden md:flex items-center gap-8">
             <button onClick={() => navigate('/')} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors">LeadFlow</button>
             <button onClick={() => document.getElementById('tjenester')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors">Tjenester</button>
-            <button onClick={() => document.getElementById('portefolje')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors">Portefølje</button>
             <button onClick={() => document.getElementById('prosess')?.scrollIntoView({ behavior: 'smooth' })} className="text-[0.88rem] text-gray-500 hover:text-gray-900 transition-colors">Prosess</button>
           </div>
           <div className="flex items-center gap-3">
@@ -177,9 +160,9 @@ export default function NettiroPage() {
             </p>
 
             <div className="flex items-center justify-center gap-4 flex-wrap">
-              <button onClick={() => document.getElementById('portefolje')?.scrollIntoView({ behavior: 'smooth' })}
+              <button onClick={() => document.getElementById('tjenester')?.scrollIntoView({ behavior: 'smooth' })}
                 className="group flex items-center gap-2.5 px-7 py-3.5 rounded-lg text-[0.95rem] font-semibold text-white bg-gray-900 hover:bg-gray-800 transition-all shadow-sm">
-                Se våre prosjekter
+                Se våre tjenester
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button onClick={() => document.getElementById('kontakt')?.scrollIntoView({ behavior: 'smooth' })}
@@ -230,46 +213,6 @@ export default function NettiroPage() {
                 </div>
               )
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* Portfolio */}
-      <section id="portefolje" ref={projRef} className="py-20 md:py-28">
-        <div className="max-w-5xl mx-auto px-8">
-          <div className={`text-center mb-16 transition-all duration-600 ${projInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-            <h2 className="font-display text-[2rem] md:text-[2.5rem] font-bold tracking-tight mb-4">Utvalgte prosjekter</h2>
-            <p className="text-gray-500 text-[1.05rem] max-w-lg mx-auto">Et lite utvalg av hva vi har bygget.</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {PROJECTS.map((p, i) => (
-              <div key={i}
-                className={`p-8 rounded-xl border border-gray-100 bg-white hover:shadow-lg hover:border-gray-200 transition-all duration-500 ${
-                  projInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-                }`}
-                style={{ transitionDelay: `${i * 100}ms` }}>
-                <h3 className="font-display text-[1.35rem] font-bold tracking-tight mb-2">{p.title}</h3>
-                <p className="text-[0.92rem] text-gray-500 leading-relaxed mb-6">{p.desc}</p>
-
-                <div className="space-y-2 mb-6">
-                  {p.features.map(f => (
-                    <div key={f} className="flex items-start gap-2.5 text-[0.85rem] text-gray-700">
-                      <Check size={15} className="mt-0.5 flex-shrink-0 text-gray-900" />
-                      {f}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap pt-4 border-t border-gray-100">
-                  {p.stack.map(t => (
-                    <span key={t} className="px-2.5 py-1 rounded-md bg-gray-50 border border-gray-100 text-[0.72rem] font-medium text-gray-500">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
