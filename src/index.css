@@ -16,9 +16,10 @@
 body {
   font-family: 'Inter', system-ui, sans-serif;
   color: #0A0A0F;
-  background: #F5F5F7;
+  background: #F7F7F4;
   -webkit-font-smoothing: antialiased;
   letter-spacing: -0.01em;
+  font-feature-settings: "cv08", "cv11", "ss01";
 }
 
 /* Scrollbar — minimal */

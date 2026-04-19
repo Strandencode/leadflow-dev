@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react'
-import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, ChevronDown, Mail, ExternalLink, Globe, Phone, Trophy, Lock, Zap } from 'lucide-react'
+import { Search, Download, Loader2, Bookmark, Sparkles, X, ChevronRight, ChevronDown, Mail, ExternalLink, Globe, Phone, Trophy, Lock, Zap, Save, Trash2, Edit2, Star } from 'lucide-react'
 import { fetchAllBasic, enrichCompanies, NACE_CODES, MUNICIPALITIES, EMPLOYEE_RANGES, formatNOK } from '../api/brreg'
 import { enrichWithWebsite, enrichBatchWithWebsite } from '../api/webScrape'
 import { logActivity } from '../hooks/useActivityLog'
 import { useSavedLists } from '../hooks/useSavedLists'
+import { useSavedSearches } from '../hooks/useSavedSearches'
 import { usePipeline } from '../hooks/usePipeline'
 import { useCustomers } from '../hooks/useCustomers'
 import { usePlan } from '../hooks/usePlan'
@@ -11,6 +12,23 @@ import { UpgradePrompt } from '../components/UpgradePrompt'
 import TEMPLATES, { getActiveTemplate, applyTemplate } from '../config/templates'
 import EmailComposerModal from '../components/EmailComposerModal'
 import toast from 'react-hot-toast'
+
+// Convert free-text keyword list ("blomst, plante, hage") to case-insensitive regex
+function textToRegex(text) {
+  const cleaned = (text || '').trim()
+  if (!cleaned) return null
+  // Accept comma, pipe or newline as separators; escape regex special chars in each token
+  const tokens = cleaned.split(/[,|\n]+/).map(t => t.trim()).filter(Boolean)
+  if (!tokens.length) return null
+  const escaped = tokens.map(t => t.replace(/[.*+?^${}()[\]\\]/g, '\\$&'))
+  try { return new RegExp(escaped.join('|'), 'i') } catch { return null }
+}
+// Reverse: recover the user-friendly string from a regex
+function regexToText(re) {
+  if (!re) return ''
+  try { return re.source.split('|').map(s => s.replace(/\\(.)/g, '$1')).join(', ') }
+  catch { return '' }
+}
 
 // Default fallback searches when no template is active
 const DEFAULT_SEARCHES = [
@@ -71,9 +89,67 @@ export default function SearchPage() {
     try { return JSON.parse(localStorage.getItem('leadflow_search_history') || '[]') } catch { return [] }
   })
   const { lists: savedLists, saveList, markEmailed: _markEmailed, markCalled: _markCalled, getTracking, getListsForOrg } = useSavedLists()
+  const { searches: workspaceSearches, templates: sharedTemplates, saveSearch, deleteSearch, applyTemplate: applyTemplatePreset } = useSavedSearches()
   const { autoAdvanceToContacted } = usePipeline()
   const { addCustomer, isCustomer } = useCustomers()
   const { planId, canEnrich, enrichmentsLeft, canExportCSV, maxVisibleResults, canSaveList, trackEnrichment, limits } = usePlan()
+
+  // Free-text keyword fields (converted to regex on search)
+  const [keywordIncludeText, setKeywordIncludeText] = useState('')
+  const [keywordExcludeText, setKeywordExcludeText] = useState('')
+
+  // Save-search modal state
+  const [showSaveSearchModal, setShowSaveSearchModal] = useState(false)
+  const [savePresetForm, setSavePresetForm] = useState({ name: '', description: '', industryTag: '' })
+  const [savingPreset, setSavingPreset] = useState(false)
+
+  async function handleSaveCurrentSearch() {
+    if (!savePresetForm.name.trim()) {
+      toast.error('Gi søket et navn først')
+      return
+    }
+    setSavingPreset(true)
+    const res = await saveSearch({
+      name: savePresetForm.name.trim(),
+      description: savePresetForm.description.trim() || null,
+      industryTag: savePresetForm.industryTag.trim() || null,
+      filters: { ...filters },
+      keywordInclude: keywordIncludeText.trim() || null,
+      keywordExclude: keywordExcludeText.trim() || null,
+    })
+    setSavingPreset(false)
+    if (res.error) { toast.error('Kunne ikke lagre: ' + res.error); return }
+    toast.success(`Lagret «${savePresetForm.name}» ✓`)
+    setShowSaveSearchModal(false)
+    setSavePresetForm({ name: '', description: '', industryTag: '' })
+  }
+
+  function handleLoadPreset(preset) {
+    const f = {
+      query: preset.filters?.query || '',
+      industrikode: preset.filters?.industrikode || '',
+      kommunenummer: preset.filters?.kommunenummer || '',
+      employeeRange: preset.filters?.employeeRange || '',
+      fraRegistreringsdato: preset.filters?.fraRegistreringsdato || '',
+      tilRegistreringsdato: preset.filters?.tilRegistreringsdato || '',
+      dateType: preset.filters?.dateType || 'registrering',
+    }
+    setFilters(f)
+    setKeywordIncludeText(preset.keyword_include || '')
+    setKeywordExcludeText(preset.keyword_exclude || '')
+    const kwRules = {
+      include: textToRegex(preset.keyword_include),
+      exclude: textToRegex(preset.keyword_exclude),
+    }
+    handleSearch(0, f, preset.name, kwRules)
+  }
+
+  async function handleDeletePreset(id, name) {
+    if (!window.confirm(`Slette lagret søk «${name}»?`)) return
+    const res = await deleteSearch(id)
+    if (res.error) toast.error('Kunne ikke slette: ' + res.error)
+    else toast.success('Slettet')
+  }
 
   // Wrap markEmailed/markCalled to auto-advance pipeline
   function markEmailed(orgNumber, value = true) {
@@ -567,6 +643,69 @@ export default function SearchPage() {
               ))}
             </div>
 
+            {/* Saved workspace searches */}
+            {workspaceSearches.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bookmark size={18} className="text-violet"/>
+                  <h2 className="font-display text-lg font-semibold">Mine lagrede søk</h2>
+                  <span className="text-[0.78rem] text-txt-tertiary ml-1">delt i workspacet</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {workspaceSearches.map(p => (
+                    <div key={p.id} className="group relative bg-surface-raised border border-bdr rounded-xl hover:border-violet/40 hover:shadow-md transition-all">
+                      <button onClick={()=>handleLoadPreset(p)} className="w-full flex items-start gap-4 p-4 text-left">
+                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <Bookmark size={18} className="text-white"/>
+                        </div>
+                        <div className="flex-1 min-w-0 pr-8">
+                          <div className="font-semibold text-[0.9rem] group-hover:text-violet transition-colors truncate">{p.name}</div>
+                          <div className="text-[0.78rem] text-txt-tertiary mt-0.5 truncate">
+                            {p.description || [
+                              p.industry_tag && `#${p.industry_tag}`,
+                              p.keyword_include && `må ha: ${p.keyword_include.split(/[,|]/).slice(0,2).join(', ')}`,
+                              p.keyword_exclude && `uten: ${p.keyword_exclude.split(/[,|]/).slice(0,2).join(', ')}`,
+                            ].filter(Boolean).join(' · ') || 'Lagret søk'}
+                          </div>
+                        </div>
+                      </button>
+                      <button onClick={()=>handleDeletePreset(p.id, p.name)} title="Slett"
+                        className="absolute top-2 right-2 p-1.5 rounded-lg text-txt-tertiary/40 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all">
+                        <Trash2 size={14}/>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Curated templates (shared across workspaces) */}
+            {sharedTemplates.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Star size={18} className="text-gold"/>
+                  <h2 className="font-display text-lg font-semibold">Maler fra LeadFlow</h2>
+                  <span className="text-[0.78rem] text-txt-tertiary ml-1">klikk for å bruke</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {sharedTemplates.map(p => (
+                    <button key={p.id} onClick={()=>{
+                      applyTemplatePreset(p.id).then(() => { handleLoadPreset(p) })
+                    }} className="group flex items-start gap-4 p-4 bg-surface-raised border border-bdr rounded-xl text-left hover:border-gold/40 hover:shadow-md transition-all">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-gold to-gold-light flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <Star size={18} className="text-white"/>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-[0.9rem] group-hover:text-gold transition-colors truncate">{p.name}</div>
+                        <div className="text-[0.78rem] text-txt-tertiary mt-0.5 truncate">{p.description || (p.industry_tag ? `#${p.industry_tag}` : 'Kuratert av LeadFlow')}</div>
+                      </div>
+                      <ChevronRight size={16} className="text-txt-tertiary/40 group-hover:text-gold mt-1 flex-shrink-0 transition-colors"/>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-2 mb-4"><Sparkles size={18} className="text-gold"/><h2 className="font-display text-lg font-semibold">Foreslåtte leadsøk</h2><span className="text-[0.78rem] text-txt-tertiary ml-1">basert på valgt mal</span></div>
             <div className="grid grid-cols-2 gap-3">
               {SUGGESTED_SEARCHES.map(s=>(
@@ -597,7 +736,34 @@ export default function SearchPage() {
               </div>
               <div className="grid grid-cols-2 gap-2"><input type="date" value={filters.fraRegistreringsdato} onChange={e=>setFilters(f=>({...f,fraRegistreringsdato:e.target.value}))} className="w-full px-3 py-2.5 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none"/><input type="date" value={filters.tilRegistreringsdato} onChange={e=>setFilters(f=>({...f,tilRegistreringsdato:e.target.value}))} className="w-full px-3 py-2.5 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none"/></div>
             </div>
-            <button onClick={()=>{setSearchName('');handleSearch(0)}} disabled={loading} className="w-full mt-2 py-3 bg-coral text-white rounded-lg font-semibold text-[0.9rem] hover:bg-coral-hover transition-all disabled:opacity-60">{loading?'Søker...':'Bruk filtre og søk'}</button>
+            {/* Keyword filters */}
+            <hr className="border-bdr my-5"/>
+            <div className="mb-4">
+              <label className="block text-[0.78rem] font-semibold uppercase tracking-wide text-txt-secondary mb-2">Nøkkelord — må inneholde</label>
+              <input type="text" value={keywordIncludeText} onChange={e=>setKeywordIncludeText(e.target.value)}
+                placeholder="f.eks. dyr, kjæledyr, akvarium"
+                className="w-full px-3.5 py-2.5 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none focus:border-violet focus:ring-2 focus:ring-violet-soft transition-all"/>
+              <div className="text-[0.68rem] text-txt-tertiary mt-1">Selskaper må matche ett av ordene (skille med komma)</div>
+            </div>
+            <div className="mb-4">
+              <label className="block text-[0.78rem] font-semibold uppercase tracking-wide text-txt-secondary mb-2">Nøkkelord — må IKKE inneholde</label>
+              <input type="text" value={keywordExcludeText} onChange={e=>setKeywordExcludeText(e.target.value)}
+                placeholder="f.eks. blomst, plante, hage"
+                className="w-full px-3.5 py-2.5 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none focus:border-violet focus:ring-2 focus:ring-violet-soft transition-all"/>
+              <div className="text-[0.68rem] text-txt-tertiary mt-1">Filtrerer bort selskaper med disse ordene</div>
+            </div>
+
+            <button onClick={()=>{
+              setSearchName('')
+              const kwRules = { include: textToRegex(keywordIncludeText), exclude: textToRegex(keywordExcludeText) }
+              handleSearch(0, null, null, kwRules)
+            }} disabled={loading} className="w-full mt-2 py-3 bg-coral text-white rounded-lg font-semibold text-[0.9rem] hover:bg-coral-hover transition-all disabled:opacity-60">{loading?'Søker...':'Bruk filtre og søk'}</button>
+            <button onClick={()=>{
+              setSavePresetForm({ name: searchName || '', description: '', industryTag: '' })
+              setShowSaveSearchModal(true)
+            }} className="w-full mt-2 py-2.5 border border-bdr text-txt-secondary rounded-lg font-medium text-[0.85rem] hover:bg-gray-50 hover:text-txt-primary transition-all flex items-center justify-center gap-2">
+              <Save size={14}/> Lagre dette søket
+            </button>
             {hasResults && <button onClick={resetSearch} className="w-full mt-2 py-2.5 text-txt-secondary text-[0.85rem] font-medium hover:text-txt-primary transition-colors">← Tilbake til foreslåtte søk</button>}
           </div>
 
@@ -932,6 +1098,70 @@ export default function SearchPage() {
           onClose={() => setShowEmailComposer(false)}
           onSend={handleEmailsSent}
         />
+      )}
+
+      {/* Save Search Preset Modal */}
+      {showSaveSearchModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setShowSaveSearchModal(false)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e=>e.stopPropagation()}>
+            <div className="px-6 py-5 border-b border-bdr flex items-center justify-between">
+              <div>
+                <h3 className="font-display text-[1.15rem] font-semibold">Lagre dette søket</h3>
+                <p className="text-[0.78rem] text-txt-tertiary mt-0.5">Deles med teammedlemmer i workspacet</p>
+              </div>
+              <button onClick={()=>setShowSaveSearchModal(false)} className="p-1.5 rounded hover:bg-surface-sunken transition-all">
+                <X size={16}/>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-[0.78rem] font-semibold uppercase tracking-wide text-txt-secondary mb-2">Navn*</label>
+                <input type="text" autoFocus value={savePresetForm.name} onChange={e=>setSavePresetForm(f=>({...f, name:e.target.value}))}
+                  placeholder="f.eks. Dyrebutikker (uten blomster)"
+                  className="w-full px-3.5 py-2.5 bg-surface border border-bdr rounded-lg text-[0.9rem] outline-none focus:border-violet focus:ring-2 focus:ring-violet-soft transition-all"/>
+              </div>
+              <div>
+                <label className="block text-[0.78rem] font-semibold uppercase tracking-wide text-txt-secondary mb-2">Beskrivelse</label>
+                <textarea value={savePresetForm.description} onChange={e=>setSavePresetForm(f=>({...f, description:e.target.value}))}
+                  placeholder="For Optima PH. NACE 47.76 inkluderer blomster — filtrer disse bort med exclude-keywords."
+                  rows={2}
+                  className="w-full px-3.5 py-2.5 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none focus:border-violet focus:ring-2 focus:ring-violet-soft transition-all resize-none"/>
+              </div>
+              <div>
+                <label className="block text-[0.78rem] font-semibold uppercase tracking-wide text-txt-secondary mb-2">Bransje-tag</label>
+                <input type="text" value={savePresetForm.industryTag} onChange={e=>setSavePresetForm(f=>({...f, industryTag:e.target.value}))}
+                  placeholder="f.eks. pet-supplies"
+                  className="w-full px-3.5 py-2.5 bg-surface border border-bdr rounded-lg text-[0.85rem] outline-none focus:border-violet focus:ring-2 focus:ring-violet-soft transition-all"/>
+                <div className="text-[0.68rem] text-txt-tertiary mt-1">Brukes for gruppering — små bokstaver, bindestrek (valgfritt)</div>
+              </div>
+
+              {/* Preview of current search */}
+              <div className="p-3 bg-surface border border-bdr rounded-lg text-[0.78rem]">
+                <div className="font-semibold text-txt-secondary mb-1.5">Lagrer:</div>
+                <div className="space-y-0.5 text-txt-tertiary">
+                  {filters.industrikode && <div>• NACE {filters.industrikode}</div>}
+                  {filters.kommunenummer && <div>• Kommune {filters.kommunenummer}</div>}
+                  {filters.employeeRange && <div>• Ansatte: {filters.employeeRange}</div>}
+                  {filters.query && <div>• Navn inneholder «{filters.query}»</div>}
+                  {keywordIncludeText && <div>• Må inneholde: {keywordIncludeText}</div>}
+                  {keywordExcludeText && <div>• Må IKKE inneholde: {keywordExcludeText}</div>}
+                  {!filters.industrikode && !filters.kommunenummer && !filters.employeeRange && !filters.query && !keywordIncludeText && !keywordExcludeText && (
+                    <div className="italic">Ingen filtre satt</div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-bdr flex justify-end gap-2">
+              <button onClick={()=>setShowSaveSearchModal(false)} disabled={savingPreset}
+                className="px-5 py-2 rounded-lg text-[0.85rem] font-medium border border-bdr text-txt-secondary hover:bg-surface-sunken disabled:opacity-40 transition-all">Avbryt</button>
+              <button onClick={handleSaveCurrentSearch} disabled={savingPreset || !savePresetForm.name.trim()}
+                className="px-5 py-2 rounded-lg text-[0.85rem] font-medium bg-coral text-white hover:bg-coral-hover disabled:opacity-40 transition-all flex items-center gap-2">
+                {savingPreset && <Loader2 size={14} className="animate-spin"/>}
+                {savingPreset ? 'Lagrer...' : 'Lagre søk'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

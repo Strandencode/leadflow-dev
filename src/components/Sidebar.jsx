@@ -18,7 +18,6 @@ const NAV_SECTIONS = [
     label: 'Leads',
     items: [
       { label: 'Prospektering', icon: Search, path: '/search' },
-      { label: 'ICP-analyse', icon: Target, path: '/icp' },
       { label: 'E-postmaler', icon: Mail, path: '/email' },
       { label: 'Lagrede lister', icon: Bookmark, path: '/saved' },
     ],
@@ -33,6 +32,7 @@ const NAV_SECTIONS = [
   {
     label: 'Innsikt',
     items: [
+      { label: 'ICP-analyse', icon: Target, path: '/icp' },
       { label: 'Analytics', icon: BarChart3, path: '/analytics' },
     ],
   },
@@ -51,7 +51,7 @@ export default function Sidebar() {
   const plan = profile?.plan || 'professional'
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-white flex flex-col border-r border-gray-100 z-50">
+    <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-paper flex flex-col border-r border-line z-50">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-gray-100">
         <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2.5 w-full text-left">

@@ -155,7 +155,7 @@ export default function OnboardingWizard({ onDismiss }) {
               <button
                 onClick={handleSaveWorkspace}
                 disabled={savingWorkspace || !workspaceName.trim()}
-                className="flex items-center gap-2 px-6 py-2.5 rounded text-[0.85rem] font-medium text-ink bg-gold hover:bg-gold-light transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-2.5 rounded text-[0.85rem] font-medium text-white bg-gold hover:bg-gold-hover shadow-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 {savingWorkspace ? 'Lagrer…' : 'Fortsett'}
                 <ChevronRight size={15} />
@@ -214,7 +214,7 @@ export default function OnboardingWizard({ onDismiss }) {
               <button
                 onClick={handleConfirmTemplate}
                 disabled={!selectedTemplate}
-                className="flex items-center gap-2 px-6 py-2.5 rounded text-[0.85rem] font-medium text-ink bg-gold hover:bg-gold-light transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-2.5 rounded text-[0.85rem] font-medium text-white bg-gold hover:bg-gold-hover shadow-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 Bruk denne malen
                 <ChevronRight size={15} />
@@ -272,7 +272,7 @@ export default function OnboardingWizard({ onDismiss }) {
 
             <div className="px-8 pb-8 pt-2">
               <button onClick={handleGuideAction}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded text-[0.88rem] font-medium text-ink bg-gold hover:bg-gold-light transition-all mb-3"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded text-[0.88rem] font-medium text-white bg-gold hover:bg-gold-hover shadow-sm transition-all mb-3"
               >
                 {GUIDE_STEPS[guideStep].action}
                 <ArrowRight size={15} />

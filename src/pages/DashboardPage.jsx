@@ -75,7 +75,7 @@ export default function DashboardPage() {
   const isEmpty = stats.totalLeads === 0
 
   return (
-    <div className="min-h-screen" style={{ background: '#F5F5F7' }}>
+    <div className="min-h-screen bg-paper">
       {/* Header */}
       <div className="px-8 py-5 bg-white border-b border-gray-100 flex items-center justify-between sticky top-0 z-40">
         <div>
@@ -90,7 +90,7 @@ export default function DashboardPage() {
             <Search size={15} /> Nytt søk
           </button>
           <button onClick={() => navigate('/search')}
-            className="flex items-center gap-2 px-4 py-2 rounded text-[0.82rem] font-medium text-ink bg-gold hover:bg-gold-light transition-all">
+            className="flex items-center gap-2 px-4 py-2 rounded text-[0.82rem] font-medium text-white bg-gold hover:bg-gold-hover transition-all shadow-sm">
             <Plus size={15} /> Finn Leads
           </button>
         </div>
@@ -161,7 +161,7 @@ export default function DashboardPage() {
                 Definer ICP
               </button>
               <button onClick={() => navigate('/search')}
-                className="px-5 py-2.5 rounded text-[0.82rem] font-medium text-ink bg-gold hover:bg-gold-light transition-all">
+                className="px-5 py-2.5 rounded text-[0.82rem] font-medium text-white bg-gold hover:bg-gold-hover shadow-sm transition-all">
                 Start prospektering
               </button>
             </div>
