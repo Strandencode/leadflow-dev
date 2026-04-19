@@ -36,9 +36,9 @@ function ProtectedLayout() {
   if (!user) return <Navigate to="/login" replace />
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-paper">
       <Sidebar />
-      <main className="ml-[240px] flex-1 min-h-screen">
+      <main className="ml-[240px] flex-1 min-h-screen bg-paper">
         <Routes>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/search" element={<SearchPage />} />
