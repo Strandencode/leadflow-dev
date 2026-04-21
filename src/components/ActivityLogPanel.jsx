@@ -72,21 +72,21 @@ export default function ActivityLogPanel({ onClose }) {
               Dypsøk — totalt funnet
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-lg bg-white border border-bdr px-3 py-2.5">
+              <div className="rounded-lg bg-canvas-soft border border-bdr px-3 py-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Globe size={11} className="text-ink-subtle" />
                   <span className="text-[0.7rem] text-ink-muted">Nettsider</span>
                 </div>
                 <div className="font-display text-[1.1rem] font-semibold text-ink">{scrapeStats.sites}</div>
               </div>
-              <div className="rounded-lg bg-white border border-bdr px-3 py-2.5">
+              <div className="rounded-lg bg-canvas-soft border border-bdr px-3 py-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <AtSign size={11} className="text-ink-subtle" />
                   <span className="text-[0.7rem] text-ink-muted">E-poster</span>
                 </div>
                 <div className="font-display text-[1.1rem] font-semibold text-ink">{scrapeStats.emails}</div>
               </div>
-              <div className="rounded-lg bg-white border border-bdr px-3 py-2.5">
+              <div className="rounded-lg bg-canvas-soft border border-bdr px-3 py-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Phone size={11} className="text-ink-subtle" />
                   <span className="text-[0.7rem] text-ink-muted">Telefon</span>

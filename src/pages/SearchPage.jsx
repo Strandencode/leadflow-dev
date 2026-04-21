@@ -555,7 +555,7 @@ export default function SearchPage() {
   return (
     <div>
       {/* Header */}
-      <div className="px-8 py-6 bg-surface-raised border-b border-bdr flex items-center justify-between sticky top-0 z-40">
+      <div className="px-8 py-6 bg-canvas border-b border-bdr flex items-center justify-between sticky top-0 z-40">
         <div>
           <h1 className="font-display text-2xl font-semibold tracking-tight">Finn Leads</h1>
           <p className="text-txt-secondary text-[0.9rem] mt-0.5">{searchName ? <>Søkeresultater for <strong className="text-txt-primary">{searchName}</strong></> : 'Søk etter selskaper som matcher dine kriterier'}</p>

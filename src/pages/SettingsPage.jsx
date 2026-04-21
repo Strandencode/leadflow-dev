@@ -105,14 +105,14 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <div className="px-8 py-6 bg-surface-raised border-b border-bdr sticky top-0 z-40">
+      <div className="px-8 py-6 bg-canvas border-b border-bdr sticky top-0 z-40">
         <h1 className="font-display text-2xl font-semibold tracking-tight">Innstillinger</h1>
         <p className="text-txt-secondary text-[0.9rem] mt-0.5">Administrer konto, abonnement og workspace</p>
       </div>
 
       <div className="p-8 max-w-[900px]">
         {/* Active template */}
-        <div className="animate-in bg-white border border-bdr rounded-lg p-6 mb-6">
+        <div className="animate-in bg-canvas-soft border border-bdr rounded-lg p-6 mb-6">
           <h3 className="font-display text-[1.05rem] font-normal mb-1 text-ink">Bransjemal</h3>
           <p className="text-[0.82rem] text-txt-tertiary font-light mb-4">Malen bestemmer foreslåtte søk, e-postmaler og ICP-profil</p>
           <div className="grid grid-cols-3 gap-3">

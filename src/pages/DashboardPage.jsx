@@ -188,7 +188,7 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-[2fr_1fr] gap-4">
             {/* List overview */}
-            <div className="animate-in delay-5 bg-white border border-bdr rounded-lg overflow-hidden">
+            <div className="animate-in delay-5 bg-canvas-soft border border-bdr rounded-lg overflow-hidden">
               <div className="px-5 pt-5 pb-3 flex items-center justify-between">
                 <h3 className="text-[0.88rem] font-medium text-ink">Leadlister</h3>
                 <button onClick={() => navigate('/saved')} className="text-[0.75rem] text-txt-tertiary hover:text-gold transition-colors font-medium">
@@ -232,7 +232,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Recent activity */}
-            <div className="animate-in delay-6 bg-white border border-bdr rounded-lg overflow-hidden">
+            <div className="animate-in delay-6 bg-canvas-soft border border-bdr rounded-lg overflow-hidden">
               <div className="px-5 pt-5 pb-3">
                 <h3 className="text-[0.88rem] font-medium text-ink">Siste aktivitet</h3>
               </div>

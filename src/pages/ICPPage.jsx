@@ -22,7 +22,7 @@ export default function ICPPage() {
 
   return (
     <div>
-      <div className="px-8 py-5 bg-white border-b border-bdr flex items-center justify-between sticky top-0 z-40">
+      <div className="px-8 py-5 bg-canvas border-b border-bdr flex items-center justify-between sticky top-0 z-40">
         <div>
           <h1 className="font-display text-[1.6rem] font-normal tracking-tight text-ink">ICP-profil</h1>
           <p className="text-txt-tertiary text-[0.82rem] mt-0.5 font-light">Definer din ideelle kundeprofil</p>

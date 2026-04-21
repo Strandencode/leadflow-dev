@@ -152,7 +152,7 @@ export default function EmailPage() {
 
   return (
     <div>
-      <div className="px-8 py-5 bg-white border-b border-bdr flex items-center justify-between sticky top-0 z-40">
+      <div className="px-8 py-5 bg-canvas border-b border-bdr flex items-center justify-between sticky top-0 z-40">
         <div>
           <h1 className="font-display text-[1.6rem] font-normal tracking-tight text-ink">E-postmaler</h1>
           <p className="text-txt-tertiary text-[0.82rem] mt-0.5 font-light">
@@ -175,7 +175,7 @@ export default function EmailPage() {
           {/* Sidebar */}
           <div className="space-y-4">
             {/* Segment picker */}
-            <div className="bg-white border border-bdr rounded-lg p-5">
+            <div className="bg-canvas-soft border border-bdr rounded-lg p-5">
               <h3 className="text-[0.82rem] font-medium mb-3 flex items-center gap-1.5 text-ink">
                 <Sparkles size={14} className="text-gold" /> Generer mal
               </h3>
@@ -221,7 +221,7 @@ export default function EmailPage() {
             </div>
 
             {/* Saved templates list */}
-            <div className="bg-white border border-bdr rounded-lg p-5">
+            <div className="bg-canvas-soft border border-bdr rounded-lg p-5">
               <h3 className="text-[0.82rem] font-medium mb-3 text-ink">Lagrede maler ({savedTemplates.length})</h3>
 
               {savedTemplates.length === 0 ? (
@@ -253,7 +253,7 @@ export default function EmailPage() {
           </div>
 
           {/* Editor */}
-          <div className="bg-white border border-bdr rounded-lg overflow-hidden">
+          <div className="bg-canvas-soft border border-bdr rounded-lg overflow-hidden">
             <div className="px-5 py-3.5 border-b border-bdr flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className="text-[0.88rem] font-medium text-ink">Redigering</h3>
@@ -296,7 +296,7 @@ export default function EmailPage() {
           </div>
 
           {/* Preview */}
-          <div className="bg-white border border-bdr rounded-lg overflow-hidden">
+          <div className="bg-canvas-soft border border-bdr rounded-lg overflow-hidden">
             <div className="px-5 py-3.5 border-b border-bdr bg-canvas-warm">
               <h3 className="text-[0.88rem] font-medium text-ink">Forhåndsvisning</h3>
             </div>
