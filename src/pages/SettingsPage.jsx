@@ -6,8 +6,9 @@ import { useSavedLists } from '../hooks/useSavedLists'
 import TEMPLATES, { getActiveTemplate, applyTemplate } from '../config/templates'
 import { PLANS, PLAN_ORDER } from '../config/plans'
 import toast from 'react-hot-toast'
-import { Check, Crown, Users, Mail, Trash2, Plus, Shield, X } from 'lucide-react'
+import { Check, Crown, Users, Mail, Trash2, Plus, Shield, X, Slack, Loader2 } from 'lucide-react'
 import { BRAND } from '../config/brand'
+import { useIntegrations } from '../hooks/useIntegrations'
 
 export default function SettingsPage() {
   const { user, profile, refreshProfile } = useAuth()
@@ -432,8 +433,11 @@ export default function SettingsPage() {
           })()}
         </div>
 
+        {/* Integrations — Slack webhooks */}
+        <IntegrationsSection />
+
         {/* Profile */}
-        <div className="animate-in delay-4 bg-surface-raised border border-bdr rounded-xl p-8">
+        <div className="animate-in delay-5 bg-surface-raised border border-bdr rounded-xl p-8">
           <h3 className="font-display text-lg font-semibold mb-6">Profil</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -479,6 +483,161 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Integrations — Slack webhook
+// ---------------------------------------------------------------------------
+
+const SLACK_EVENTS = [
+  {
+    id:        'new_lead',
+    label:     'Ny lead opprettet',
+    desc:      'Varsle Slack når et nytt kort legges til i «Ny Lead»-stadiet.',
+    available: true,
+  },
+  {
+    id:        'offer_signed',
+    label:     'Tilbud signert',
+    desc:      'Varsle når en kunde signerer kontrakt. Kommer snart.',
+    available: false,
+  },
+]
+
+function IntegrationsSection() {
+  const { slackWebhookUrl, slackEvents, loading, saving, saveSlack } = useIntegrations()
+  const [url, setUrl]       = useState('')
+  const [events, setEvents] = useState([])
+  const [dirty, setDirty]   = useState(false)
+
+  // Sync form state when the hook finishes loading
+  useEffect(() => {
+    if (!loading) {
+      setUrl(slackWebhookUrl || '')
+      setEvents(slackEvents || [])
+      setDirty(false)
+    }
+  }, [loading, slackWebhookUrl, slackEvents])
+
+  function toggleEvent(id, available) {
+    if (!available) return
+    setDirty(true)
+    setEvents(prev =>
+      prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id]
+    )
+  }
+
+  async function handleSave() {
+    const res = await saveSlack({ webhookUrl: url, events })
+    if (res?.error === 'invalid_slack_url') {
+      toast.error('Slack webhook-URL må starte med https://hooks.slack.com/services/')
+      return
+    }
+    if (res?.error) { toast.error(res.error); return }
+    setDirty(false)
+    toast.success(url ? 'Slack-kobling lagret' : 'Slack-kobling deaktivert')
+  }
+
+  const enabled = Boolean(url)
+
+  return (
+    <div className="animate-in delay-4 bg-surface-raised border border-bdr rounded-xl p-8">
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h3 className="font-display text-lg font-semibold flex items-center gap-2">
+            <Slack size={18} className="text-txt-secondary" /> Integrasjoner
+          </h3>
+          <p className="text-[0.85rem] text-txt-tertiary mt-1">
+            Koble Vekstor til Slack og andre verktøy. Varsler sendes til en Incoming Webhook du oppretter i Slack.
+          </p>
+        </div>
+        {enabled && (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sage-soft text-ink text-[0.72rem] font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-sage" /> Aktiv
+          </span>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="flex items-center gap-2 text-txt-tertiary text-sm"><Loader2 size={14} className="animate-spin" /> Laster…</div>
+      ) : (
+        <>
+          <div className="mb-5">
+            <label className="block text-[0.78rem] font-semibold uppercase tracking-wide text-txt-secondary mb-2">
+              Slack Webhook URL
+            </label>
+            <input
+              type="url"
+              value={url}
+              onChange={e => { setUrl(e.target.value); setDirty(true) }}
+              placeholder="https://hooks.slack.com/services/{team}/{channel}/{token}"
+              className="w-full px-3.5 py-2.5 bg-surface border border-bdr rounded-lg text-[0.88rem] font-mono outline-none focus:border-ink focus:ring-2 focus:ring-sage-bright/30 transition-all"
+            />
+            <p className="text-[0.72rem] text-txt-tertiary mt-1.5">
+              Opprett en Incoming Webhook i Slack:{' '}
+              <a href="https://api.slack.com/messaging/webhooks" target="_blank" rel="noopener noreferrer" className="underline hover:text-ink">
+                api.slack.com/messaging/webhooks
+              </a>
+              . Tom URL slår av integrasjonen.
+            </p>
+          </div>
+
+          <div>
+            <div className="text-[0.78rem] font-semibold uppercase tracking-wide text-txt-secondary mb-3">
+              Hendelser som sender varsel
+            </div>
+            <div className="space-y-2">
+              {SLACK_EVENTS.map(ev => {
+                const checked = events.includes(ev.id)
+                return (
+                  <label
+                    key={ev.id}
+                    className={`flex items-start gap-3 p-3.5 rounded-lg border transition-all ${
+                      !ev.available
+                        ? 'border-bdr bg-surface-sunken opacity-50 cursor-not-allowed'
+                        : checked
+                          ? 'border-ink/30 bg-sage-bright/10 cursor-pointer'
+                          : 'border-bdr bg-surface hover:border-ink/20 cursor-pointer'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      disabled={!ev.available}
+                      onChange={() => toggleEvent(ev.id, ev.available)}
+                      className="mt-0.5 accent-ink"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[0.88rem] font-semibold text-ink">{ev.label}</span>
+                        {!ev.available && (
+                          <span className="text-[0.64rem] font-semibold tracking-wider uppercase text-txt-tertiary bg-surface-sunken border border-bdr px-1.5 py-0.5 rounded">
+                            Kommer snart
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[0.78rem] text-txt-tertiary mt-0.5">{ev.desc}</p>
+                    </div>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-center justify-end gap-3">
+            {dirty && <span className="text-[0.78rem] text-txt-tertiary">Ulagrede endringer</span>}
+            <button
+              onClick={handleSave}
+              disabled={saving || !dirty}
+              className="px-5 py-2.5 rounded-lg text-[0.875rem] font-medium text-canvas bg-ink hover:bg-ink-soft transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {saving ? (<span className="flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Lagrer…</span>) : 'Lagre'}
+            </button>
+          </div>
+        </>
       )}
     </div>
   )
