@@ -48,4 +48,25 @@ export const BRAND = {
 /** Build a namespaced localStorage key. */
 export const storageKey = (suffix) => `${BRAND.storagePrefix}_${suffix}`
 
+/**
+ * Clear every localStorage key belonging to this app (onboarding flags,
+ * cached ICP, search history, activity log, etc.). Call on sign-out so
+ * the next user on the same browser doesn't inherit the previous user's
+ * cached UI state.
+ *
+ * Safe: Supabase uses its own key format (`sb-<ref>-auth-token`) which
+ * does not collide with our `BRAND.storagePrefix` namespace.
+ */
+export function clearAppStorage() {
+  if (typeof window === 'undefined') return
+  const prefix = `${BRAND.storagePrefix}_`
+  const toRemove = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key && key.startsWith(prefix)) toRemove.push(key)
+  }
+  toRemove.forEach(k => localStorage.removeItem(k))
+  return toRemove
+}
+
 export default BRAND

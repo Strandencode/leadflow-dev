@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import { clearAppStorage } from '../config/brand'
 
 const AuthContext = createContext({})
 
@@ -29,11 +30,15 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen for auth changes. SIGNED_OUT covers explicit logout, token
+    // expiry, and sign-outs triggered in another tab — all should wipe the
+    // previous user's cached UI state (onboarding flags, ICP, search
+    // history, etc.) so the next session starts clean.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
       else setProfile(null)
+      if (event === 'SIGNED_OUT') clearAppStorage()
     })
 
     return () => subscription.unsubscribe()
@@ -81,11 +86,14 @@ export function AuthProvider({ children }) {
 
   async function signOut() {
     if (!isSupabaseConfigured()) {
+      // Demo mode — no auth listener, so clear directly
+      clearAppStorage()
       setUser(null)
       setProfile(null)
       setIsDemo(false)
       return
     }
+    // Supabase path — the auth listener (SIGNED_OUT) clears storage
     await supabase.auth.signOut()
     setIsDemo(false)
   }
