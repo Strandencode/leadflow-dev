@@ -38,7 +38,10 @@ export function useIntegrations() {
   async function saveSlack({ webhookUrl, events }) {
     if (!wsId || !isSupabaseConfigured()) return { error: 'no_workspace' }
     const cleanUrl = (webhookUrl || '').trim()
-    if (cleanUrl && !/^https:\/\/hooks\.slack\.com\/services\/[A-Z0-9\/]+$/i.test(cleanUrl)) {
+    // Accept both Incoming Webhooks (/services/...) and Workflow Builder
+    // trigger URLs (/triggers/...). Both are valid hooks.slack.com endpoints.
+    const SLACK_URL_RE = /^https:\/\/hooks\.slack\.com\/(?:services|triggers)\/[A-Za-z0-9_\-\/]+$/
+    if (cleanUrl && !SLACK_URL_RE.test(cleanUrl)) {
       return { error: 'invalid_slack_url' }
     }
     setSaving(true)

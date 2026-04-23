@@ -533,7 +533,7 @@ function IntegrationsSection() {
   async function handleSave() {
     const res = await saveSlack({ webhookUrl: url, events })
     if (res?.error === 'invalid_slack_url') {
-      toast.error('Slack webhook-URL må starte med https://hooks.slack.com/services/')
+      toast.error('Ugyldig Slack-URL. Må være hooks.slack.com/services/… eller hooks.slack.com/triggers/…')
       return
     }
     if (res?.error) { toast.error(res.error); return }
@@ -551,7 +551,7 @@ function IntegrationsSection() {
             <Slack size={18} className="text-txt-secondary" /> Integrasjoner
           </h3>
           <p className="text-[0.85rem] text-txt-tertiary mt-1">
-            Koble Vekstor til Slack og andre verktøy. Varsler sendes til en Incoming Webhook du oppretter i Slack.
+            Koble Vekstor til Slack. Støtter både Incoming Webhooks (rik formatering) og Workflow Builder-triggere (du mapper feltene selv).
           </p>
         </div>
         {enabled && (
@@ -573,17 +573,22 @@ function IntegrationsSection() {
               type="url"
               value={url}
               onChange={e => { setUrl(e.target.value); setDirty(true) }}
-              placeholder="https://hooks.slack.com/services/{team}/{channel}/{token}"
+              placeholder="https://hooks.slack.com/services/…  eller  /triggers/…"
               className="w-full px-3.5 py-2.5 bg-surface border border-bdr rounded-lg text-[0.88rem] font-mono outline-none focus:border-ink focus:ring-2 focus:ring-sage-bright/30 transition-all"
             />
             <p className="text-[0.72rem] text-txt-tertiary mt-1.5">
-              Opprett en Incoming Webhook i Slack:{' '}
               <a href="https://api.slack.com/messaging/webhooks" target="_blank" rel="noopener noreferrer" className="underline hover:text-ink">
-                api.slack.com/messaging/webhooks
+                Incoming Webhook
+              </a>
+              {' · '}
+              <a href="https://slack.com/help/articles/360041352714" target="_blank" rel="noopener noreferrer" className="underline hover:text-ink">
+                Workflow Builder-trigger
               </a>
               . Tom URL slår av integrasjonen.
             </p>
           </div>
+
+          <PayloadExample />
 
           <div>
             <div className="text-[0.78rem] font-semibold uppercase tracking-wide text-txt-secondary mb-3">
@@ -638,6 +643,129 @@ function IntegrationsSection() {
             </button>
           </div>
         </>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Payload example — lets the user map fields in Slack Workflow Builder
+// ---------------------------------------------------------------------------
+
+// Fields we send at the top level of the JSON payload. Workflow Builder
+// exposes each as a variable the user can reference in their workflow steps.
+const PAYLOAD_FIELDS = [
+  ['event',        'string', '"new_lead"'],
+  ['lead_name',    'string', 'Ola Nordmann'],
+  ['contact_name', 'string', 'Ola Nordmann'],
+  ['company',      'string', 'Bedrift AS'],
+  ['lead_email',   'string', 'ola@bedrift.no'],
+  ['lead_phone',   'string', '+47 99 88 77 66'],
+  ['source',       'string', 'vekstor'],
+  ['org_number',   'string', 'inbound-8c4f2a1d10'],
+  ['stage',        'string', 'new'],
+  ['workspace_id', 'string', '3b2fc81c-…'],
+  ['created_at',   'string', '2026-04-23T10:15:00Z'],
+  ['pipeline_url', 'string', 'https://app.vekstor.no/pipeline'],
+]
+
+const EXAMPLE_PAYLOAD = {
+  event:        'new_lead',
+  lead_name:    'Ola Nordmann',
+  contact_name: 'Ola Nordmann',
+  company:      'Bedrift AS',
+  lead_email:   'ola@bedrift.no',
+  lead_phone:   '+47 99 88 77 66',
+  source:       'vekstor',
+  org_number:   'inbound-8c4f2a1d10',
+  stage:        'new',
+  workspace_id: '3b2fc81c-5783-47b0-9681-30a5f494a970',
+  created_at:   '2026-04-23T10:15:00Z',
+  pipeline_url: 'https://app.vekstor.no/pipeline',
+  text:         '🌱 Ny lead i Vekstor: Ola Nordmann',
+  blocks:       ['… rik formatering for Incoming Webhook, kan ignoreres for Workflow Builder …'],
+}
+
+function PayloadExample() {
+  const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(EXAMPLE_PAYLOAD, null, 2))
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch { /* ignore */ }
+  }
+
+  return (
+    <div className="mb-6 border border-bdr rounded-lg bg-surface">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+      >
+        <span className="text-[0.82rem] font-semibold text-ink">
+          Se eksempel på payload
+        </span>
+        <span className="text-[0.72rem] text-txt-tertiary">
+          {open ? 'Skjul' : `${PAYLOAD_FIELDS.length} felter du kan mappe`}
+        </span>
+      </button>
+
+      {open && (
+        <div className="border-t border-bdr p-4 space-y-4">
+          <p className="text-[0.78rem] text-txt-secondary">
+            Payload sendt til Slack når en ny lead opprettes. Hvert toppnivå-felt
+            blir tilgjengelig som variabel i Slack Workflow Builder — sett dem
+            opp der når du konfigurerer trigger-webhooken.
+          </p>
+
+          {/* Field table */}
+          <div className="overflow-hidden rounded-lg border border-bdr">
+            <table className="w-full text-[0.78rem]">
+              <thead className="bg-surface-sunken text-txt-tertiary">
+                <tr>
+                  <th className="text-left font-semibold uppercase tracking-wider px-3 py-2 text-[0.68rem]">Felt</th>
+                  <th className="text-left font-semibold uppercase tracking-wider px-3 py-2 text-[0.68rem]">Type</th>
+                  <th className="text-left font-semibold uppercase tracking-wider px-3 py-2 text-[0.68rem]">Eksempel</th>
+                </tr>
+              </thead>
+              <tbody className="bg-surface-raised">
+                {PAYLOAD_FIELDS.map(([name, type, example]) => (
+                  <tr key={name} className="border-t border-bdr">
+                    <td className="px-3 py-1.5 font-mono text-ink">{name}</td>
+                    <td className="px-3 py-1.5 text-txt-tertiary">{type}</td>
+                    <td className="px-3 py-1.5 font-mono text-txt-secondary">{example}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Raw JSON */}
+          <div className="relative">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[0.72rem] font-semibold uppercase tracking-wider text-txt-tertiary">
+                Full JSON
+              </span>
+              <button
+                type="button"
+                onClick={copy}
+                className="text-[0.72rem] text-ink-muted hover:text-ink transition-colors"
+              >
+                {copied ? '✓ Kopiert' : 'Kopier'}
+              </button>
+            </div>
+            <pre className="bg-ink text-canvas/90 p-4 rounded-lg text-[0.72rem] leading-relaxed font-mono overflow-x-auto">
+{JSON.stringify(EXAMPLE_PAYLOAD, null, 2)}
+            </pre>
+          </div>
+
+          <p className="text-[0.72rem] text-txt-tertiary">
+            <strong className="text-ink">Tips:</strong> Incoming Webhooks viser <code>text</code> + <code>blocks</code> som rik melding. Workflow-triggere ignorerer disse og bruker de flate feltene over.
+          </p>
+        </div>
       )}
     </div>
   )

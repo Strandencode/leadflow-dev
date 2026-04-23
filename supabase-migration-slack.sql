@@ -41,9 +41,31 @@ begin
 
   display := coalesce(new.contact_name, new.name, new.email, 'Ukjent');
 
+  -- The payload is designed to work with BOTH Slack endpoints:
+  --   • Incoming Webhooks (hooks.slack.com/services/…) render the
+  --     `text` + `blocks` fields as a formatted message.
+  --   • Workflow Builder triggers (hooks.slack.com/triggers/…) expose each
+  --     top-level key as a variable the user can reference in their workflow
+  --     (lead_name, lead_email, lead_phone, company, source, notes, etc.).
+  -- Keeping flat scalar fields at the top level is what makes mapping in
+  -- Workflow Builder trivial.
   payload := jsonb_build_object(
-    'text',
-    format('🌱 Ny lead i Vekstor: %s', display),
+    -- Flat fields — map these in Slack Workflow Builder
+    'event',        'new_lead',
+    'lead_name',    display,
+    'contact_name', coalesce(new.contact_name, ''),
+    'company',      coalesce(new.name, ''),
+    'lead_email',   coalesce(new.email, ''),
+    'lead_phone',   coalesce(new.phone, ''),
+    'source',       'vekstor',
+    'org_number',   new.org_number,
+    'stage',        'new',
+    'workspace_id', new.workspace_id::text,
+    'created_at',   to_char(new.created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+    'pipeline_url', 'https://app.vekstor.no/pipeline',
+
+    -- Rich rendering — used by Incoming Webhooks, ignored by Workflow Builder
+    'text', format('🌱 Ny lead i Vekstor: %s', display),
     'blocks', jsonb_build_array(
       jsonb_build_object(
         'type', 'header',
