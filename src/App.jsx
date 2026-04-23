@@ -3,8 +3,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import Sidebar from './components/Sidebar'
 import { Mark } from './components/Logo'
-import LandingPage from './pages/LandingPage'
-import NettiroPage from './pages/NettiroPage'
+import { BRAND } from './config/brand'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import SearchPage from './pages/SearchPage'
@@ -26,7 +25,7 @@ function ProtectedLayout() {
       <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="text-center">
           <div className="mb-4 animate-arc"><Mark variant="ink" size={40} /></div>
-          <p className="mono-label" style={{ fontSize: '0.7rem' }}>LASTER LEADFLOW</p>
+          <p className="mono-label" style={{ fontSize: '0.7rem' }}>LASTER {BRAND.name.toUpperCase()}</p>
         </div>
       </div>
     )
@@ -68,11 +67,11 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/nettiro" element={<NettiroPage />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/invite/:token" element={<InviteAcceptPage />} />
+      {/* Everything else — including "/" — falls through to ProtectedLayout,
+          which redirects unauth users to /login and auth users to /dashboard. */}
       <Route path="/*" element={<ProtectedLayout />} />
     </Routes>
   )
